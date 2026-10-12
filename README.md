@@ -1,4 +1,4 @@
-# STAT 250 · Interactive statistics
+# STAT 250 · Introductory Statistics I
 
 [Open the live collection](https://wdai0.github.io/STAT250-26F-vis/).
 
