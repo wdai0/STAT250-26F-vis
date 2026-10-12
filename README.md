@@ -1,2 +1,104 @@
-# STAT250-26F-vis
-Interactive statistical visualizations and teaching demonstrations for STAT 250: Introductory Statistics I (Fall 2026)
+# STAT 250 · Interactive statistics
+
+[Open the live collection](https://wdai0.github.io/STAT250-26F-vis/).
+
+A GitHub Pages collection of self-contained HTML visualizations for Introductory Statistics I, Fall 2026.
+Each visualization opens in a shared tabbed interface and can be downloaded as a complete HTML file to use and edit offline.
+The initial interface preview demonstrates the design and controls; it is not a statistics lesson.
+
+## Build and preview
+
+Use Python 3.10 or later; no third-party packages are required.
+
+```sh
+python3 -m unittest discover -s tests -v
+python3 scripts/build.py
+python3 -m http.server 8000 --directory dist
+```
+
+Open [the local preview](http://localhost:8000).
+Rebuild after editing sources, configuration, or styling, then refresh the browser.
+The build recreates `dist/`, so edit the sources rather than generated files.
+
+## Project structure
+
+| Path | Purpose |
+| --- | --- |
+| `index.html` | Shared hub layout |
+| `assets/theme.css` | Shared colors, typography, controls, and visualization styles |
+| `assets/site.css` | Hub-specific layout |
+| `assets/site.js` | Tabs, links, embedded views, and downloads |
+| `site.json` | Course identity and authorship |
+| `visualizations.json` | Ordered list of visualization metadata and source paths |
+| `sources/` | Editable HTML visualization sources |
+| `scripts/build.py` | Validation and standalone HTML generation |
+| `tests/test_build.py` | Build-contract tests using temporary fixtures |
+| `dist/` | Generated site uploaded to GitHub Pages |
+
+## Add a visualization
+
+1. Place an HTML file in `sources/` with a unique, descriptive filename.
+2. Add exactly one `<!-- SHARED_THEME -->` inside its `<head>` and one `<!-- AUTHORSHIP -->` inside its `<body>`.
+3. Adapt its typography, controls, layout, and chart colors to the tokens and components in `assets/theme.css`.
+4. Add an entry to `visualizations.json` in the desired tab order.
+5. Run the tests and build, then check the embedded and downloaded versions in a browser.
+
+An example registry entry:
+
+```json
+{
+  "id": "sampling-distribution",
+  "title": "Sampling distributions",
+  "description": "Explore how sample means vary across repeated samples.",
+  "source": "sources/sampling-distribution.html",
+  "category": "Sampling",
+  "kind": "visualization"
+}
+```
+
+IDs use lowercase letters, digits, and single separating hyphens, beginning with a letter.
+`overview` is reserved for the collection overview.
+Each ID and resolved source path must be unique.
+An empty registry (`[]`) is valid and leaves the hub with its empty collection state.
+Use `kind: "preview"` for design demonstrations so they remain distinct from course visualizations.
+
+The build embeds the shared CSS and authorship into each generated HTML file.
+The iframe and Download button use that same generated file, so the online and downloadable versions stay aligned.
+The download contains the complete visualization source; it does not capture the current interactive settings or simulation results.
+
+## Standalone files and consistency
+
+Keep visualization scripts, CSS, and required data inside the HTML file.
+Use inline SVG or embedded data URLs for required images and avoid CDNs, remote fonts, external stylesheets, JavaScript imports, and fetched data.
+Preserve required third-party notices when incorporating existing code or libraries.
+Use `sources/interface-preview.html` as the layout and control reference.
+Add visualization-specific styles only when the shared theme does not cover the need.
+When chart colors are set in JavaScript, read the shared CSS custom properties so charts use the same palette.
+
+Importing an existing file requires both a visual adaptation and a behavior check.
+Do not alter calculations or statistical assumptions as an incidental part of restyling.
+For each new visualization, inspect desktop and narrow layouts, visible keyboard focus, labels, keyboard controls, readable plots, direct tab links, and the Download button.
+Open the downloaded file through `file://` with network access disabled and exercise all its controls.
+Check statistical results against known examples or the original implementation where applicable.
+The build validates paths, metadata, and required markers; it does not prove that arbitrary visualization JavaScript works offline or that its statistics are correct.
+
+## Authorship
+
+The exact author name is deferred.
+The current visible credit is “Ideas and instructional design: The course author” and “Implementation: ChatGPT-6 Astra”.
+Update `authorship.ideas` in `site.json` when the display name is decided, then rebuild.
+The hub reads the same configuration, and every downloaded file includes visible credit and an HTML source comment.
+The existing repository `LICENSE` is also embedded unchanged in a separate HTML source comment in every download and copied to `dist/LICENSE`.
+This retains the MIT copyright and permission notice independently of the deferred display credit.
+
+## GitHub Pages
+
+The [Pages workflow](.github/workflows/pages.yml) tests and builds on pull requests and on pushes to `main`.
+Only `main` can deploy; a manual workflow run on `main` is also supported.
+In the repository's **Settings → Pages → Build and deployment**, select **GitHub Actions** as the publishing source.
+The workflow uploads only `dist/` and deploys it to the `github-pages` environment after a successful build.
+Generated files do not need to be committed.
+The public site URL appears in the deployment job and the repository's Pages settings.
+All published file links are relative so the hub works under a project-site path.
+
+See GitHub's [custom Pages workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages) for deployment settings.

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A standalone preview of the shared STAT 250 visualization interface.">
+  <title>Interface preview · STAT 250</title>
+  <!-- SHARED_THEME -->
+</head>
+<body class="viz-page">
+  <main class="viz-shell">
+    <header class="viz-heading">
+      <p class="eyebrow">STAT 250 / Design preview</p>
+      <h1>A little room to experiment.</h1>
+      <p>Try the controls, watch the display respond, and get a feel for the collection. This is an interface preview, not a course lesson.</p>
+    </header>
+    <div class="viz-workspace">
+      <section class="control-panel" aria-labelledby="controls-heading">
+        <h2 id="controls-heading">Make a change</h2>
+        <div class="control-group">
+          <label for="spread">Spread <output id="spread-value" for="spread">24</output></label>
+          <input id="spread" type="range" min="10" max="40" value="24" step="1">
+          <div class="range-labels" aria-hidden="true"><span>Closer together</span><span>Further apart</span></div>
+        </div>
+        <label class="checkbox-label"><input type="checkbox" id="reference" checked>Show reference line</label>
+        <div class="control-actions"><button class="button" id="rearrange" type="button">Rearrange points</button><button class="button button-secondary" id="reset" type="button">Reset</button></div>
+      </section>
+      <section class="plot-panel" aria-labelledby="plot-heading">
+        <div class="plot-heading"><div><h2 id="plot-heading">Every adjustment tells a story.</h2><p>Illustrative points on a scale from 0 to 100.</p></div><span class="badge">Preview</span></div>
+        <svg id="plot" class="plot-canvas" viewBox="0 0 620 240" role="img" aria-labelledby="chart-title chart-desc">
+          <title id="chart-title">Illustrative dot plot</title>
+          <desc id="chart-desc">24 illustrative points. Use the spread control to move them closer together or further apart.</desc>
+          <g id="grid"></g><g id="points"></g>
+          <line id="reference-line" x1="310" y1="18" x2="310" y2="193" stroke="var(--warm)" stroke-width="1.5" stroke-dasharray="5 5"/>
+          <text id="reference-label" x="318" y="27" font-size="12" fill="var(--warm)">reference</text>
+        </svg>
+        <div class="stat-row" aria-live="polite" aria-atomic="true">
+          <div><span class="stat-label">Illustrative points</span><span class="stat-value">24</span></div>
+          <div><span class="stat-label">Spread setting</span><span class="stat-value" id="spread-stat">24</span></div>
+          <div><span class="stat-label">Reference line</span><span class="stat-value" id="reference-stat">50</span></div>
+        </div>
+      </section>
+    </div>
+    <p class="viz-note"><strong>Take the interface with you.</strong> The downloaded HTML contains its own styles and interactive controls. Open it in a browser without an internet connection, or open it in a text editor to adapt it.</p>
+    <!-- AUTHORSHIP -->
+  </main>
+  <script>
+    (() => {
+      'use strict';
+      const ns = 'http://www.w3.org/2000/svg';
+      const spread = document.querySelector('#spread');
+      const reference = document.querySelector('#reference');
+      let arrangement = 1;
+      function svgElement(name, attributes, text) {
+        const node = document.createElementNS(ns, name);
+        for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, value);
+        if (text !== undefined) node.textContent = text;
+        return node;
+      }
+      const grid = document.querySelector('#grid');
+      for (let value = 0; value <= 100; value += 20) {
+        const x = 30 + value * 5.6;
+        grid.append(svgElement('line', {x1:x, y1:40, x2:x, y2:193, stroke:'var(--plot-grid)'}));
+        grid.append(svgElement('text', {x, y:219, 'text-anchor':'middle', fill:'var(--muted)', 'font-size':12}, String(value)));
+      }
+      grid.append(svgElement('line', {x1:30, y1:193, x2:590, y2:193, stroke:'var(--plot-axis)'}));
+      function render() {
+        const width = Number(spread.value);
+        document.querySelector('#spread-value').value = width;
+        document.querySelector('#spread-stat').textContent = width;
+        document.querySelector('#reference-stat').textContent = reference.checked ? '50' : 'Hidden';
+        document.querySelector('#reference-line').style.display = reference.checked ? '' : 'none';
+        document.querySelector('#reference-label').style.display = reference.checked ? '' : 'none';
+        const points = document.querySelector('#points');
+        points.replaceChildren();
+        const stacks = new Map();
+        for (let i = 0; i < 24; i += 1) {
+          // Deterministic illustrative positions; this preview makes no sampling claims.
+          const offset = (Math.sin((i + 1) * arrangement * 1.73) + Math.cos((i + 2) * 2.31)) / 2;
+          const value = Math.round((50 + offset * width) / 3) * 3;
+          const level = stacks.get(value) || 0;
+          stacks.set(value, level + 1);
+          points.append(svgElement('circle', {cx:30 + value * 5.6, cy:181 - level * 18, r:7, fill:'var(--plot)', opacity:.88}));
+        }
+        document.querySelector('#chart-desc').textContent = `24 illustrative points with spread setting ${width}. Reference line ${reference.checked ? 'shown at 50' : 'hidden'}. These are design examples, not statistical results.`;
+      }
+      spread.addEventListener('input', render);
+      reference.addEventListener('change', render);
+      document.querySelector('#rearrange').addEventListener('click', () => { arrangement += 1; render(); });
+      document.querySelector('#reset').addEventListener('click', () => { spread.value = 24; reference.checked = true; arrangement = 1; render(); });
+      const chart = document.querySelector('#plot');
+      new ResizeObserver(() => {
+        const width = chart.getBoundingClientRect().width;
+        if (width > 0) chart.querySelectorAll('text').forEach(label => label.setAttribute('font-size', 12 * 620 / width));
+      }).observe(chart);
+      render();
+    })();
+  </script>
+</body>
+</html>
