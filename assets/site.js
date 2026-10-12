@@ -33,7 +33,7 @@
     credit.append(span);
   }
 
-  for (const item of [{id: 'overview', title: 'Overview'}, ...entries]) {
+  for (const item of [{id: 'overview', title: 'How to use'}, ...entries]) {
     const button = element('button', 'tab', item.title);
     button.id = `tab-${item.id}`;
     button.type = 'button';
@@ -74,22 +74,15 @@
   document.querySelector('#collection-count').textContent = `${teaching.length} teaching visualization${teaching.length === 1 ? '' : 's'}${previews.length ? ` · ${previews.length} preview${previews.length === 1 ? '' : 's'}` : ''}`;
   const grid = document.querySelector('#collection-grid');
   if (!teaching.length) {
-    const empty = element('div', 'empty-card');
-    const icon = element('div', 'empty-icon');
-    icon.setAttribute('aria-hidden', 'true');
-    icon.innerHTML = '<svg viewBox="0 0 28 28"><path d="M5 23V6m0 17h19M10 19v-6m5 6V8m5 11v-9" stroke-linecap="round"/></svg>';
-    const text = element('div');
-    text.append(element('h3', '', 'Course visualizations are on their way.'), element('p', '', 'This space will grow with the course. Each exploration will be available here and as a standalone download.'));
-    empty.append(icon, text);
-    grid.append(empty);
+    grid.append(element('p', 'empty-state', 'No course visualizations have been added yet.'));
   }
   for (const entry of entries) {
-    const card = element('article', 'collection-card');
-    const top = element('div', 'card-top');
-    top.append(element('span', 'badge', entry.category), element('span', 'file-type', '.HTML'));
-    const link = element('a', 'card-link', entry.kind === 'preview' ? 'Explore the preview →' : 'Open visualization →');
+    const card = element('article', 'collection-entry');
+    const title = element('h3');
+    const link = element('a', '', entry.title);
     link.href = `#${entry.id}`;
-    card.append(top, element('h3', '', entry.title), element('p', '', entry.description), link);
+    title.append(link);
+    card.append(title, element('p', '', entry.description));
     grid.append(card);
   }
 
@@ -129,7 +122,7 @@
       mounted.get(entry.id).resize = resize;
       resize();
     });
-    panel.append(toolbar, frame, element('p', 'download-note', 'One HTML file. Works offline. Yours to explore and adapt.'));
+    panel.append(toolbar, frame, element('p', 'download-note', 'Download the HTML file to use or edit it offline.'));
     mounted.set(entry.id, {panel, frame});
     return panel;
   }
@@ -161,17 +154,4 @@
   window.addEventListener('hashchange', route);
   route();
 
-  const dots = document.querySelector('#hero-dots');
-  const stacks = [1, 2, 3, 5, 7, 9, 8, 6, 4, 2, 1];
-  stacks.forEach((count, column) => {
-    for (let row = 0; row < count; row += 1) {
-      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      dot.setAttribute('cx', String(65 + column * 31));
-      dot.setAttribute('cy', String(174 - row * 15));
-      dot.setAttribute('r', '5.5');
-      dot.setAttribute('fill', column < 7 ? 'var(--plot)' : 'var(--plot-muted)');
-      dot.setAttribute('opacity', String(.64 + row * .035));
-      dots.append(dot);
-    }
-  });
 })();

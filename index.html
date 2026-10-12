@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Interactive explorations for STAT 250. Explore statistics in your browser and download each visualization to use offline.">
-  <meta name="theme-color" content="#f5f7fa">
+  <meta name="description" content="STAT 250 interactive visualizations, usage guidance, and standalone HTML downloads.">
+  <meta name="theme-color" content="#ffffff">
   <title>STAT 250 · Interactive statistics</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231c3553'/%3E%3Cpath d='M16 45V33m16 12V19m16 26V27' stroke='%23fff' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="assets/theme.css">
@@ -16,8 +16,7 @@
   <a class="skip-link" href="#main">Skip to content</a>
   <div class="site-wrap">
     <header class="site-header">
-      <a class="brand" href="#overview" aria-label="STAT 250 overview">
-        <svg class="brand-mark" viewBox="0 0 42 42" aria-hidden="true"><rect width="42" height="42" rx="11"/><path d="M12 29V22m9 7V13m9 16V18"/></svg>
+      <a class="brand" href="#overview" aria-label="STAT 250 how to use">
         <span><strong data-site-title>STAT 250</strong><span class="brand-subtitle" data-site-subtitle>Interactive statistics</span></span>
       </a>
       <div class="header-meta"><span class="term" data-site-term>Fall 2026</span><a class="source-link" href="https://github.com/wdai0/STAT250-26F-vis" target="_blank" rel="noopener">View source <span aria-hidden="true">↗</span></a></div>
@@ -26,44 +25,75 @@
     <nav class="navigation" aria-label="Visualization navigation">
       <div class="tabs" id="tabs" role="tablist" aria-label="Visualizations"></div>
       <label class="mobile-navigation" for="visualization-select"><span class="sr-only">Choose a visualization</span><select id="visualization-select"></select></label>
-      <span class="navigation-note">Explore. Experiment. Understand.</span>
     </nav>
 
     <main id="main" tabindex="-1">
       <p id="route-message" class="notice" role="status" hidden></p>
       <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="0">
-        <div class="hero">
-          <div class="hero-copy">
-            <p class="eyebrow">A hands-on companion to STAT 250</p>
-            <h1>See statistics.<br><span>Build intuition.</span></h1>
-            <p class="hero-description">Room to experiment, change a setting, and see what happens. Interactive explorations for the ideas we meet in class.</p>
-            <div class="hero-details"><span><i aria-hidden="true"></i>Learn by exploring</span><span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m-3-3 3 3 3-3M4 13v3h12v-3"/></svg>Take it offline</span></div>
-          </div>
-          <div class="hero-art" aria-hidden="true">
-            <div class="art-caption"><span class="eyebrow">A different way to see it</span><span class="art-pill">Change your perspective</span></div>
-            <svg class="hero-plot" viewBox="0 0 440 208">
-              <defs><linearGradient id="plot-fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#416db4" stop-opacity=".15"/><stop offset="1" stop-color="#416db4" stop-opacity="0"/></linearGradient></defs>
-              <path d="M30 174H410M30 126H410M30 78H410M30 30H410" class="plot-grid"/>
-              <path d="M30 174C80 174 100 160 127 139S174 42 220 42s66 75 93 97 47 35 97 35V182H30Z" fill="url(#plot-fade)"/>
-              <path d="M30 174C80 174 100 160 127 139S174 42 220 42s66 75 93 97 47 35 97 35" fill="none" stroke="#89a6d1" stroke-width="2" stroke-dasharray="4 5"/>
-              <g id="hero-dots"></g>
-              <path d="M30 184H410" stroke="#c5cfdb"/>
-              <path d="M220 24V184" stroke="#bd9070" stroke-dasharray="4 5"/>
-              <circle cx="220" cy="24" r="4" fill="#bd9070"/>
-            </svg>
-            <div class="art-bottom"><span>Small changes. New perspectives.</span><span class="art-lines"><b></b><b></b><b></b></span></div>
-          </div>
-        </div>
+        <header class="guide-heading">
+          <h1>How to use this site</h1>
+          <p>Select a visualization from the tabs.
+          Use its controls to examine a statistical question, and use <strong>Reset</strong> to return to the starting settings.</p>
+          <p><strong>Download</strong> saves a complete HTML file that you can open in a browser offline or edit for your own use.
+          It saves the visualization, not your current settings or simulation results.</p>
+        </header>
 
-        <section class="collection" aria-labelledby="collection-title">
-          <div class="section-heading"><div><p class="eyebrow">Your exploration space</p><h2 id="collection-title">The collection</h2></div><span id="collection-count" class="muted"></span></div>
-          <div id="collection-grid" class="collection-grid"></div>
+        <section class="guide-section" aria-labelledby="principles-heading">
+          <h2 id="principles-heading">Working with a visualization</h2>
+          <ol class="guidance-list">
+            <li><strong>Start with a question.</strong> Identify the variables, units, groups, and quantity of interest.
+            Check whether the display uses observed data or a simulation.</li>
+            <li><strong>Compare deliberately.</strong> Change one setting at a time and compare the result.
+            Check that groups use consistent numerical scales and histogram bins.
+            Changing bin width should change only the histogram; filtering observations can change counts and summaries.</li>
+            <li><strong>Check the evidence.</strong> Read graphs together with numerical summaries, group sizes, and missing-value counts.
+            Check units and any stated quartile or boxplot-whisker conventions.
+            Small groups and random variation can make patterns unstable.</li>
+            <li><strong>Explain the result in context.</strong> Connect what you see to the statistical ideas covered in class.
+            State the limitations of the data, study design, or model; an association alone does not establish causation.</li>
+          </ol>
         </section>
 
-        <section class="use-notes" aria-label="Using this collection">
-          <div><span class="note-number">01</span><div><h3>Choose an exploration</h3><p>Use the tabs to move between visualizations.</p></div></div>
-          <div><span class="note-number">02</span><div><h3>Make it your own</h3><p>Adjust the controls and follow what changes.</p></div></div>
-          <div><span class="note-number">03</span><div><h3>Keep exploring offline</h3><p>Download an HTML file. Open it in your browser, anytime.</p></div></div>
+        <section class="guide-section" aria-labelledby="ai-heading">
+          <h2 id="ai-heading">Optional AI-assisted data exploration</h2>
+          <p>You may use Patriot AI with the course prompt template to explore a dataset and a research question of your own.</p>
+          <ul class="guidance-list">
+            <li><strong>Adapt the prompt.</strong> Specify your dataset, variables, and research question rather than leaving the example details unchanged.</li>
+            <li><strong>Revise and ask follow-up questions.</strong> The first result may need correction.
+            Ask why a graph or method was chosen, request alternatives, or ask for a clearer interpretation.</li>
+            <li><strong>Verify the result.</strong> Compare the output with the supplied data and course concepts.
+            AI can misread variables, make calculation errors, or suggest inappropriate analyses.</li>
+            <li><strong>Use it to support your reasoning.</strong> AI-generated explanations and visualizations are additional learning resources, not substitutes for your statistical understanding.</li>
+            <li><strong>Protect sensitive data.</strong> Do not upload confidential or personally identifiable information without explicit authorization.
+            Use de-identified or simplified data when appropriate.</li>
+          </ul>
+          <p class="course-note">This AI-assisted activity is optional and is not required for the course.
+          Material that depends specifically on using these AI tools will not appear on exams or quizzes.</p>
+
+          <details class="prompt-details">
+            <summary>Prompt template for descriptive data exploration</summary>
+            <p>Replace the bracketed fields and adapt the requested displays to your question.</p>
+            <pre class="prompt-template" tabindex="0" aria-label="Adaptable prompt template">Create a self-contained interactive HTML visualization using only the attached [dataset] to investigate [research question].
+
+Let me choose among [numerical variables], inspect a histogram with adjustable bin width, and compare distributions across [grouping variable] using side-by-side boxplots.
+Include group filters, a reset button, and an option to show individual observations.
+Report valid observation counts, missing-value counts, mean, median, standard deviation, and IQR for the selected data and each displayed group.
+
+Keep comparison scales and histogram bin boundaries consistent across groups, including when a group is hidden.
+Changing bin width must not change the data or numerical summaries.
+Confirm units from the supplied documentation, label unverified units, and explain the quartile and whisker conventions.
+Preserve recorded categories and distinguish totals from rates or per-unit measurements where relevant.
+
+Keep the layout simple, with readable labels and no unnecessary animation.
+Keep this exploration descriptive: do not add causal claims, rankings, or significance tests.
+Return one complete HTML file that works offline, with brief instructions for opening it.</pre>
+          </details>
+          <p class="source-note">Adapted from the course's <cite>Prompt Template for Interactive Data Exploration</cite>, pp. 1–3.</p>
+        </section>
+
+        <section class="collection guide-section" aria-labelledby="collection-title">
+          <div class="section-heading"><h2 id="collection-title">Available visualizations</h2><span id="collection-count" class="muted"></span></div>
+          <div id="collection-grid" class="collection-grid"></div>
         </section>
       </section>
       <div id="visualization-panels"></div>

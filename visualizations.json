@@ -2,7 +2,7 @@
   {
     "id": "interface-preview",
     "title": "Interface preview",
-    "description": "Explore the shared layout and controls before course visualizations arrive.",
+    "description": "Check the shared controls, plot layout, and offline download. This is a design preview, not a course lesson.",
     "source": "sources/interface-preview.html",
     "category": "Design preview",
     "kind": "preview"

@@ -6,6 +6,22 @@ A GitHub Pages collection of self-contained HTML visualizations for Introductory
 Each visualization opens in a shared tabbed interface and can be downloaded as a complete HTML file to use and edit offline.
 The initial interface preview demonstrates the design and controls; it is not a statistics lesson.
 
+## Content and design references
+
+The first tab, **How to use**, contains practical guidance and an expandable prompt template.
+It retains the `#overview` address so existing links continue to work.
+Keep the interface plain: prioritize controls, statistical content, and downloads, without promotional headlines, decorative plots, or unnecessary animation.
+
+The guidance paraphrases the supplied *Prompt Template for Interactive Data Exploration* (`prompts_interactive_data_exploration.pdf`):
+
+- Pages 1–2: explicit questions and variables, consistent comparison scales and bins, separate display settings from data selection, report counts and missingness, verify units, and explain boxplot conventions.
+- Page 3: adapt and revise prompts, check AI output, ask follow-up questions, preserve the student's own reasoning, protect sensitive information, and state the optional nature of AI-assisted exploration.
+
+The descriptive-exploration prompt does not set restrictions on future inference visualizations.
+The supplied Fall 2026 STAT 250-007 syllabus, pages 1–2, informs the broader course scope: data collection and study design; one- and two-variable summaries; probability; sampling distributions and bootstrap methods; confidence intervals and hypothesis tests for means and proportions; correlation and regression.
+These topics guide future integration rather than representing visualizations already available.
+The reference PDFs are not redistributed with the site, and the source course repository is not modified.
+
 ## Build and preview
 
 Use Python 3.10 or later; no third-party packages are required.

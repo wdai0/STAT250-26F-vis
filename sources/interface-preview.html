@@ -11,12 +11,13 @@
   <main class="viz-shell">
     <header class="viz-heading">
       <p class="eyebrow">STAT 250 / Design preview</p>
-      <h1>A little room to experiment.</h1>
-      <p>Try the controls, watch the display respond, and get a feel for the collection. This is an interface preview, not a course lesson.</p>
+      <h1>Interface preview</h1>
+      <p>Check the controls, plot layout, and offline download.
+      The points are illustrative; this preview is not a statistical analysis or course lesson.</p>
     </header>
     <div class="viz-workspace">
       <section class="control-panel" aria-labelledby="controls-heading">
-        <h2 id="controls-heading">Make a change</h2>
+        <h2 id="controls-heading">Controls</h2>
         <div class="control-group">
           <label for="spread">Spread <output id="spread-value" for="spread">24</output></label>
           <input id="spread" type="range" min="10" max="40" value="24" step="1">
@@ -26,7 +27,7 @@
         <div class="control-actions"><button class="button" id="rearrange" type="button">Rearrange points</button><button class="button button-secondary" id="reset" type="button">Reset</button></div>
       </section>
       <section class="plot-panel" aria-labelledby="plot-heading">
-        <div class="plot-heading"><div><h2 id="plot-heading">Every adjustment tells a story.</h2><p>Illustrative points on a scale from 0 to 100.</p></div><span class="badge">Preview</span></div>
+        <div class="plot-heading"><div><h2 id="plot-heading">Illustrative dot plot</h2><p>24 points on a scale from 0 to 100.</p></div></div>
         <svg id="plot" class="plot-canvas" viewBox="0 0 620 240" role="img" aria-labelledby="chart-title chart-desc">
           <title id="chart-title">Illustrative dot plot</title>
           <desc id="chart-desc">24 illustrative points. Use the spread control to move them closer together or further apart.</desc>
@@ -41,7 +42,8 @@
         </div>
       </section>
     </div>
-    <p class="viz-note"><strong>Take the interface with you.</strong> The downloaded HTML contains its own styles and interactive controls. Open it in a browser without an internet connection, or open it in a text editor to adapt it.</p>
+    <p class="viz-note">The downloaded HTML includes its styles and controls.
+    Open it in a browser offline, or use a text editor to adapt it.</p>
     <!-- AUTHORSHIP -->
   </main>
   <script>
