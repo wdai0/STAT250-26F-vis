@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Create or adapt a self-contained statistical visualization with the STAT 250 prompt template and practical checks.">
+  <title>Create your own · STAT 250</title>
+  <!-- SHARED_THEME -->
+  <style>
+    .guide-shell { max-width: 900px; }
+    .guide-heading { margin-bottom: 28px; }
+    .guide-heading .eyebrow { margin-bottom: 10px; }
+    .guide-heading p:last-child { max-width: 730px; margin-top: 12px; color: var(--muted); }
+    .create-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; padding: 0; margin: 0 0 30px; list-style: none; counter-reset: steps; }
+    .create-steps li { counter-increment: steps; }
+    .create-steps strong { display: block; margin-bottom: 6px; color: var(--ink); font-size: .95rem; }
+    .create-steps strong::before { content: counter(steps) ". "; color: var(--accent); }
+    .create-steps p { font-size: .87rem; color: var(--muted); }
+    .prompt-card { padding: 24px; border: 1px solid var(--line); border-radius: 10px; background: #f8faff; }
+    .prompt-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .prompt-heading p { margin-top: 7px; font-size: .88rem; color: var(--muted); }
+    .copy-status { margin-top: 12px; min-height: 1.6em; font-size: .85rem; color: var(--accent); }
+    .prompt-details { margin-top: 8px; }
+    summary { color: var(--ink); font-weight: 600; cursor: pointer; padding: 8px 0; }
+    summary::marker { color: var(--accent); }
+    .prompt-template { margin: 12px 0 0; padding: 20px; max-width: 100%; white-space: pre-wrap; overflow-wrap: anywhere; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font: .86rem/1.7 var(--font); color: var(--text); }
+    .source-note { margin-top: 15px; color: var(--muted); font-size: .76rem; }
+    .guide-section { padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .guide-section:first-of-type { margin-top: 10px; }
+    .guide-section > summary { font-size: 1.03rem; }
+    .guide-section > p { margin-top: 12px; font-size: .9rem; }
+    .guidance-list { padding-left: 23px; margin: 14px 0 0; font-size: .9rem; }
+    .guidance-list li + li { margin-top: 12px; }
+    .guidance-list strong { color: var(--ink); }
+    .course-note { padding: 14px 16px; margin-top: 22px; border-left: 3px solid var(--line); color: var(--muted); font-size: .85rem; }
+    @media (max-width: 620px) {
+      .create-steps { grid-template-columns: 1fr; gap: 17px; }
+      .prompt-card { padding: 18px; }
+      .prompt-heading { align-items: flex-start; }
+      .prompt-template { padding: 15px; }
+    }
+  </style>
+</head>
+<body class="viz-page">
+  <main class="viz-shell guide-shell">
+    <header class="guide-heading">
+      <p class="eyebrow">STAT 250 / Guide</p>
+      <h1>Create your own</h1>
+      <p>Use the prompt below to create a self-contained interactive HTML file, or adapt a visualization you have downloaded.
+      Start with your question and data, then check what the result actually shows.</p>
+    </header>
+
+    <ol class="create-steps" aria-label="Creating a visualization">
+      <li><strong>Choose a question</strong><p>Identify the variables, groups, and comparisons you want to explore.</p></li>
+      <li><strong>Adapt the prompt</strong><p>Replace the bracketed fields, attach your data, and request one complete HTML file.</p></li>
+      <li><strong>Open, check, revise</strong><p>Open the file in a browser.
+      Check its controls and calculations against the original data before using or sharing it.</p></li>
+    </ol>
+
+    <section class="prompt-card" aria-labelledby="prompt-heading">
+      <div class="prompt-heading">
+        <div><h2 id="prompt-heading">Your starting prompt</h2><p>Adapt the requested displays to your question.</p></div>
+        <button id="copy-prompt" class="button" type="button" aria-describedby="copy-status" hidden>Copy prompt</button>
+      </div>
+      <p id="copy-status" class="copy-status" role="status" aria-live="polite" aria-atomic="true"></p>
+      <details id="prompt-details" class="prompt-details">
+        <summary>Read the prompt template</summary>
+        <pre id="prompt-template" class="prompt-template" tabindex="0" aria-label="Adaptable prompt template">Create a self-contained interactive HTML visualization using only the attached [dataset] to investigate [research question].
+
+Let me choose among [numerical variables], inspect a histogram with adjustable bin width, and compare distributions across [grouping variable] using side-by-side boxplots.
+Include group filters, a reset button, and an option to show individual observations.
+Report valid observation counts, missing-value counts, mean, median, standard deviation, and IQR for the selected data and each displayed group.
+
+Keep comparison scales and histogram bin boundaries consistent across groups, including when a group is hidden.
+Changing bin width must not change the data or numerical summaries.
+Confirm units from the supplied documentation, label unverified units, and explain the quartile and whisker conventions.
+Preserve recorded categories and distinguish totals from rates or per-unit measurements where relevant.
+
+Keep the layout simple, with readable labels and no unnecessary animation.
+Keep this exploration descriptive: do not add causal claims, rankings, or significance tests.
+Return one complete HTML file that works offline, with brief instructions for opening it.</pre>
+      </details>
+      <noscript><p>Expand the template, select its text, and copy it into your prompt.</p></noscript>
+      <p class="source-note">Adapted from the course's <cite>Prompt Template for Interactive Data Exploration</cite>, pp. 1–3.</p>
+    </section>
+
+    <details class="guide-section">
+      <summary>Working with a visualization</summary>
+      <p>Choose a visualization from the collection, use its controls to examine a question, and use <strong>Reset</strong> to restart the exploration.</p>
+      <ol class="guidance-list">
+        <li><strong>Start with a question.</strong> Identify the variables, units, groups, and quantity of interest.
+        Check whether the display uses observed data or a simulation.</li>
+        <li><strong>Compare deliberately.</strong> Change one setting at a time and compare the result.
+        Check that groups use consistent numerical scales and histogram bins.
+        Changing bin width should change only the histogram; filtering observations can change counts and summaries.</li>
+        <li><strong>Check the evidence.</strong> Read graphs together with numerical summaries, group sizes, and missing-value counts.
+        Check units and any stated quartile or boxplot-whisker conventions.
+        Small groups and random variation can make patterns unstable.</li>
+        <li><strong>Explain the result in context.</strong> Connect what you see to the statistical ideas covered in class.
+        State the limitations of the data, study design, or model; an association alone does not establish causation.</li>
+      </ol>
+      <p><strong>Download</strong> saves a complete HTML file that you can open in a browser offline or edit for your own use.
+      It saves the visualization, not your current settings or simulation results.</p>
+    </details>
+
+    <details class="guide-section">
+      <summary>Optional AI-assisted data exploration</summary>
+      <p>You may use Patriot AI with the course prompt template to explore a dataset and a research question of your own.</p>
+      <ul class="guidance-list">
+        <li><strong>Adapt the prompt.</strong> Specify your dataset, variables, and research question rather than leaving the example details unchanged.</li>
+        <li><strong>Revise and ask follow-up questions.</strong> The first result may need correction.
+        Ask why a graph or method was chosen, request alternatives, or ask for a clearer interpretation.</li>
+        <li><strong>Verify the result.</strong> Compare the output with the supplied data and course concepts.
+        AI can misread variables, make calculation errors, or suggest inappropriate analyses.</li>
+        <li><strong>Use it to support your reasoning.</strong> AI-generated explanations and visualizations are additional learning resources, not substitutes for your statistical understanding.</li>
+        <li><strong>Protect sensitive data.</strong> Do not upload confidential or personally identifiable information without explicit authorization.
+        Use de-identified or simplified data when appropriate.</li>
+      </ul>
+    </details>
+
+    <p class="course-note">This AI-assisted activity is optional and is not required for the course.
+    Material that depends specifically on using these AI tools will not appear on exams or quizzes.</p>
+    <!-- AUTHORSHIP -->
+  </main>
+  <script>
+    (() => {
+      'use strict';
+      const copyButton = document.querySelector('#copy-prompt');
+      const prompt = document.querySelector('#prompt-template');
+      const details = document.querySelector('#prompt-details');
+      const status = document.querySelector('#copy-status');
+      copyButton.hidden = false;
+
+      function selectForManualCopy() {
+        details.open = true;
+        prompt.focus();
+        const selection = window.getSelection();
+        if (selection) {
+          const range = document.createRange();
+          range.selectNodeContents(prompt);
+          selection.removeAllRanges();
+          selection.addRange(range);
+          status.textContent = 'Automatic copy is unavailable. The prompt is selected; press Ctrl+C or ⌘C, or use your device’s Copy command.';
+        } else {
+          status.textContent = 'Automatic copy is unavailable. Select the prompt text below and use your device’s Copy command.';
+        }
+      }
+
+      copyButton.addEventListener('click', async () => {
+        copyButton.disabled = true;
+        status.textContent = '';
+        try {
+          if (!navigator.clipboard || !navigator.clipboard.writeText) {
+            selectForManualCopy();
+            return;
+          }
+          await navigator.clipboard.writeText(prompt.textContent);
+          status.textContent = 'Prompt copied. Replace the bracketed fields before using it.';
+        } catch {
+          selectForManualCopy();
+        } finally {
+          copyButton.disabled = false;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

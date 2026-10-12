@@ -86,12 +86,25 @@ class BuildTests(unittest.TestCase):
         self.assertTrue((self.root / "dist/index.html").is_file())
         self.assertFalse((self.root / "dist/visualizations/example.html").exists())
 
-    def test_invalid_ids_and_reserved_overview_fail(self):
-        for identifier in ("../other", "MixedCase", "with spaces", "overview", "a/b"):
+    def test_invalid_ids_and_reserved_routes_fail(self):
+        for identifier in ("../other", "MixedCase", "with spaces", "overview", "home", "a/b"):
             with self.subTest(identifier=identifier):
                 self.write_json("visualizations.json", [self.entry | {"id": identifier}])
                 with self.assertRaisesRegex(BuildError, "Invalid or reserved"):
                     build(self.root)
+
+    def test_homepage_must_resolve_without_overwriting_previous_build(self):
+        self.site["homepage"] = "example"
+        self.write_json("site.json", self.site)
+        build(self.root)
+        self.assertEqual(self.catalog()["homepage"], "example")
+        previous = (self.root / "dist/assets/catalog.js").read_bytes()
+        for homepage in ("missing", "", None):
+            with self.subTest(homepage=homepage):
+                self.write_json("site.json", self.site | {"homepage": homepage})
+                with self.assertRaises(BuildError):
+                    build(self.root)
+                self.assertEqual((self.root / "dist/assets/catalog.js").read_bytes(), previous)
 
     def test_duplicate_ids_fail(self):
         self.write_json("visualizations.json", [self.entry, self.entry])

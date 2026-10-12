@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Release a ball, start a rain of random paths, and watch a binomial distribution take shape.">
+  <title>Galton board · STAT 250</title>
+  <style>
+    body.galton-page { margin:0; padding:24px; background:#fff; color:#1c3553; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    body.galton-page.is-embedded { padding:0; }
+    .galton-shell { max-width:1120px; margin:0 auto; }
+    .galton-heading { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px 20px; margin-bottom:15px; }
+    .galton-heading h1 { font-size:1.3rem; letter-spacing:-.025em; line-height:1.2; font-weight:650; }
+    .galton-heading p { color:#607086; font-size:.79rem; }
+    .galton-stage { position:relative; overflow:hidden; border:1px solid #19354e; border-radius:16px; background:radial-gradient(ellipse at 50% 25%,#132e48 0%,#0b1d32 49%,#071322 100%); box-shadow:0 10px 32px #15375812; isolation:isolate; }
+    .galton-stage::before { content:""; pointer-events:none; position:absolute; inset:0; z-index:-1; opacity:.2; background-image:radial-gradient(#8eb5cc 0.6px,transparent .7px); background-size:28px 28px; mask-image:linear-gradient(transparent,#000 60%,transparent); }
+    .galton-status { display:flex; align-items:center; justify-content:space-between; gap:12px; position:absolute; z-index:2; top:19px; right:24px; left:24px; pointer-events:none; color:#b4cadc; font-size:.72rem; line-height:1.35; }
+    .galton-counter { display:flex; align-items:center; gap:9px; }
+    .galton-counter strong { color:#effaff; font-weight:650; font-variant-numeric:tabular-nums; }
+    .galton-led { width:6px; height:6px; border-radius:50%; background:#7891a8; box-shadow:0 0 0 4px #7891a810; }
+    .galton-led.is-running { background:#77e2d5; box-shadow:0 0 12px #77e2d555,0 0 0 4px #77e2d510; }
+    .galton-mode { color:#8caac2; }
+    .galton-canvas { display:block; width:100%; height:442px; cursor:crosshair; touch-action:manipulation; outline-offset:-5px; }
+    .galton-canvas:focus-visible { outline:2px solid #9ae9ec; }
+    .galton-controls { padding:18px 22px 19px; background:#0a1728; border-top:1px solid #8bb1cf20; display:grid; grid-template-columns:minmax(270px,1.15fr) minmax(110px,.7fr) minmax(160px,1fr); gap:26px; align-items:center; color:#d2e0ec; }
+    .galton-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+    .galton-page .galton-button { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:39px; border:1px solid #7898b345; border-radius:7px; padding:8px 12px; background:#1b3047; color:#e3eef6; font:600 .76rem/1.25 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; white-space:nowrap; transition:background .15s,border-color .15s; }
+    .galton-page .galton-button:hover { background:#29425d; border-color:#96bdd47a; }
+    .galton-page .galton-button-primary { color:#092332; background:#8be3df; border-color:#8be3df; min-width:111px; }
+    .galton-page .galton-button-primary:hover { background:#b0f3eb; border-color:#b0f3eb; }
+    .galton-button svg { width:12px; height:12px; fill:currentColor; flex:none; }
+    .galton-button-reset svg { fill:none; stroke:currentColor; stroke-width:1.7; }
+    .galton-slider label { display:flex; align-items:center; justify-content:space-between; gap:8px; color:#bdcfde; font-size:.72rem; line-height:1.3; }
+    .galton-slider output { color:#f0f7fb; font-size:.76rem; font-weight:600; font-variant-numeric:tabular-nums; }
+    .galton-page .galton-slider input { display:block; width:100%; height:4px; margin:13px 0 4px; accent-color:#8be3df; cursor:pointer; }
+    .galton-options { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:9px 18px; padding:11px 2px 0; color:#607086; font-size:.72rem; }
+    .galton-options label { display:flex; align-items:center; gap:7px; cursor:pointer; }
+    .galton-options input { width:14px; height:14px; margin:0; accent-color:#365fa0; }
+    .galton-summary { font-variant-numeric:tabular-nums; }
+    .galton-page .attribution { margin-top:19px; padding-top:14px; }
+    @media (max-width:760px) {
+      .galton-controls { grid-template-columns:1fr 1.2fr; gap:19px 24px; padding:16px 18px 20px; }
+      .galton-actions { grid-column:1/-1; justify-content:center; }
+      .galton-canvas { height:418px; }
+      .galton-status { top:16px; left:18px; right:18px; }
+    }
+    @media (max-width:440px) {
+      body.galton-page { padding:16px; }
+      .galton-heading { gap:6px; margin-bottom:13px; }
+      .galton-heading h1 { font-size:1.13rem; }
+      .galton-heading p { font-size:.71rem; }
+      .galton-stage { border-radius:12px; }
+      .galton-canvas { height:402px; }
+      .galton-controls { padding:15px 13px 20px; gap:20px; }
+      .galton-page .galton-button { padding:9px 10px; font-size:.72rem; }
+      .galton-page .galton-button-primary { min-width:105px; }
+      .galton-status { left:15px; right:15px; font-size:.66rem; }
+      .galton-options { font-size:.68rem; }
+    }
+  </style>
+  <!-- SHARED_THEME -->
+</head>
+<body class="galton-page">
+  <main class="galton-shell">
+    <header class="galton-heading">
+      <h1>Galton board</h1>
+      <p>Click the board to release a ball.</p>
+    </header>
+    <section class="galton-stage" aria-label="Interactive Galton board">
+      <div class="galton-status" aria-hidden="true">
+        <span class="galton-counter"><span class="galton-led" id="motion-led"></span><strong id="landed-count">0</strong> landed<span class="galton-mode" id="flight-count"></span></span>
+        <span class="galton-mode" id="motion-label">Ready</span>
+      </div>
+      <canvas id="board" class="galton-canvas" tabindex="0" role="button" aria-label="Release a ball into the Galton board. Press Enter or Space to release one." aria-describedby="board-summary"></canvas>
+      <div class="galton-controls">
+        <div class="galton-actions">
+          <button class="galton-button" id="release" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.5"/></svg>Release one</button>
+          <button class="galton-button galton-button-primary" id="rain" type="button"><svg id="rain-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5 13 8 4 13.5Z"/></svg><span id="rain-label">Start rain</span></button>
+          <button class="galton-button galton-button-reset" id="reset" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 4.5a5.2 5.2 0 1 1-.2 6.6M3.2 1.8v3.5h3.5"/></svg>Reset</button>
+        </div>
+        <div class="galton-slider"><label for="rows">Rows <output id="rows-value" for="rows">12</output></label><input id="rows" type="range" min="8" max="18" value="12" step="2"></div>
+        <div class="galton-slider"><label for="bias">Chance of right <output id="bias-value" for="bias">50%</output></label><input id="bias" type="range" min="0" max="100" value="50" step="5"></div>
+      </div>
+    </section>
+    <div class="galton-options">
+      <label><input id="expected" type="checkbox" checked>Expected distribution</label>
+      <span class="galton-summary" id="board-summary" role="status" aria-live="polite">0 balls landed · 12 rows · 50% chance of right</span>
+    </div>
+    <!-- AUTHORSHIP -->
+  </main>
+  <script>
+    // Pure sampling and counting. Every rendered ball uses one immutable path.
+    const GaltonMath = (() => {
+      'use strict';
+      function validateSettings(rows, p) {
+        if (!Number.isInteger(rows) || rows < 1 || rows > 64) throw new RangeError('Rows must be an integer from 1 to 64.');
+        if (!Number.isFinite(p) || p < 0 || p > 1) throw new RangeError('The chance of right must be between 0 and 1.');
+      }
+      function binomialProbabilities(rows, p) {
+        validateSettings(rows, p);
+        const probabilities = Array(rows + 1).fill(0);
+        if (p === 0 || p === 1) { probabilities[p === 0 ? 0 : rows] = 1; return probabilities; }
+        // Start at the mode to avoid unstable division by an underflowed tail.
+        const mode = Math.min(rows, Math.floor((rows + 1) * p));
+        probabilities[mode] = 1;
+        for (let k = mode; k > 0; k -= 1) probabilities[k - 1] = probabilities[k] * k / (rows - k + 1) * (1 - p) / p;
+        for (let k = mode; k < rows; k += 1) probabilities[k + 1] = probabilities[k] * (rows - k) / (k + 1) * p / (1 - p);
+        const sum = probabilities.reduce((total, value) => total + value, 0);
+        return probabilities.map(value => value / sum);
+      }
+      function samplePath(rows, p, rng = Math.random) {
+        validateSettings(rows, p);
+        const path = [0];
+        for (let row = 0; row < rows; row += 1) {
+          const uniform = rng();
+          if (!Number.isFinite(uniform) || uniform < 0 || uniform >= 1) throw new RangeError('Random draws must be in [0, 1).');
+          path.push(path[row] + (uniform < p ? 1 : 0));
+        }
+        return Object.freeze(path);
+      }
+      function createRun(rows, p) {
+        validateSettings(rows, p);
+        return {rows, p, generation:0, nextId:0, total:0, counts:Array(rows + 1).fill(0), balls:[]};
+      }
+      function releaseBall(run, rng = Math.random) {
+        const path = samplePath(run.rows, run.p, rng);
+        const ball = {id:run.nextId++, generation:run.generation, path, bin:path[run.rows], completed:false};
+        run.balls.push(ball);
+        return ball;
+      }
+      function completeBall(run, ball) {
+        const index = run.balls.indexOf(ball);
+        if (ball.generation !== run.generation || ball.completed || index === -1) return false;
+        ball.completed = true;
+        run.counts[ball.bin] += 1;
+        run.total += 1;
+        run.balls.splice(index, 1);
+        return true;
+      }
+      function resetRun(run, rows = run.rows, p = run.p) {
+        validateSettings(rows, p);
+        run.rows = rows;
+        run.p = p;
+        run.generation += 1;
+        run.nextId = 0;
+        run.total = 0;
+        run.counts = Array(rows + 1).fill(0);
+        run.balls.length = 0;
+        return run;
+      }
+      return Object.freeze({validateSettings, binomialProbabilities, samplePath, createRun, releaseBall, completeBall, resetRun});
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+      if (window.parent !== window) document.body.classList.add('is-embedded');
+      const $ = selector => document.querySelector(selector);
+      const canvas = $('#board');
+      const ctx = canvas.getContext('2d');
+      const rowsInput = $('#rows');
+      const biasInput = $('#bias');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const run = GaltonMath.createRun(Number(rowsInput.value), Number(biasInput.value) / 100);
+      let expected = GaltonMath.binomialProbabilities(run.rows, run.p);
+      let width = 0;
+      let height = 0;
+      let geometry = null;
+      let playing = !reducedMotion.matches;
+      let rain = false;
+      let welcomeRemaining = reducedMotion.matches ? 0 : 84;
+      let parentVisible = true;
+      let lastTime = null;
+      let frame = null;
+      let emissionClock = 0;
+      let summaryClock = 0;
+      let drain = [];
+      let sparks = [];
+      let ripples = [];
+      let visualShares = Array(run.rows + 1).fill(0);
+      let binFlashes = Array(run.rows + 1).fill(0);
+      const colors = ['#83e8e3', '#9bccff', '#60c8df', '#b0f2ec'];
+      const visible = () => parentVisible && !document.hidden;
+      const clamp = (value, lo, hi) => Math.min(hi, Math.max(lo, value));
+
+      function updateGeometry() {
+        const span = Math.min(width - (width < 500 ? 38 : 100), 850);
+        const gap = span / (run.rows + 1);
+        const top = 65;
+        const histogramTop = height - 137;
+        const rowStep = (histogramTop - top - 27) / Math.max(1, run.rows - 1);
+        geometry = {gap, top, rowStep, histogramTop, baseline:height - 36,
+          binX:k => width / 2 + (k - run.rows / 2) * gap,
+          pegX:(row, rights) => width / 2 + (rights - row / 2) * gap};
+      }
+      function resize() {
+        const bounds = canvas.getBoundingClientRect();
+        if (bounds.width <= 0 || bounds.height <= 0) return;
+        if (bounds.width !== width || bounds.height !== height) {
+          for (const ball of run.balls) ball.trail = [];
+          if (width && height) {
+            for (const particle of drain) {
+              particle.x *= bounds.width / width;
+              particle.y *= bounds.height / height;
+            }
+          }
+        }
+        width = bounds.width;
+        height = bounds.height;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        updateGeometry();
+        draw();
+      }
+      function ballPosition(ball) {
+        const g = geometry;
+        if (ball.age < ball.entryDuration) {
+          const t = clamp(ball.age / ball.entryDuration, 0, 1);
+          return {x:width / 2, y:35 + (g.top - 35) * t * t};
+        }
+        const progress = (ball.age - ball.entryDuration) / ball.stepDuration;
+        if (progress < run.rows) {
+          const row = Math.floor(progress);
+          const t = progress - row;
+          const x0 = g.pegX(row, ball.path[row]);
+          const x1 = g.pegX(row + 1, ball.path[row + 1]);
+          // A short upward kick after impact, then a gravity-like descent.
+          const hop = (t * t * 1.32 - t * .32);
+          return {x:x0 + (x1 - x0) * t, y:g.top + row * g.rowStep + hop * g.rowStep};
+        }
+        const t = clamp((progress - run.rows) / 1.8, 0, 1);
+        const start = g.top + run.rows * g.rowStep;
+        return {x:g.binX(ball.bin), y:start + (g.baseline - 4 - start) * t * t};
+      }
+      function release() {
+        if (run.balls.length >= 260) return;
+        const ball = GaltonMath.releaseBall(run);
+        // Appearance and speed do not change the Bernoulli path or its outcome.
+        ball.age = 0;
+        ball.entryDuration = .22;
+        ball.stepDuration = 2.1 / run.rows + (ball.id % 5) * .004;
+        ball.duration = ball.entryDuration + (run.rows + 1.8) * ball.stepDuration;
+        ball.lastPeg = -1;
+        ball.color = colors[ball.id % colors.length];
+        ball.trail = [];
+        if (reducedMotion.matches) GaltonMath.completeBall(run, ball);
+      }
+      function summary() {
+        $('#landed-count').textContent = run.total.toLocaleString();
+        $('#flight-count').textContent = run.balls.length ? ` / ${run.balls.length} in flight` : '';
+        $('#board-summary').textContent = `${run.total.toLocaleString()} balls landed · ${run.rows} rows · ${Math.round(run.p * 100)}% chance of right`;
+      }
+      function updateControls() {
+        const active = playing && visible();
+        const unfinished = run.balls.length || drain.length || welcomeRemaining;
+        $('#motion-led').classList.toggle('is-running', active);
+        $('#motion-label').textContent = active ? (drain.length ? 'Clearing' : 'In motion') : (unfinished ? 'Paused' : 'Ready');
+        $('#rain-label').textContent = active ? 'Pause' : (unfinished ? 'Resume' : 'Start rain');
+        $('#rain-icon').innerHTML = active ? '<path d="M3 2h3.5v12H3zm6.5 0H13v12H9.5z"/>' : '<path d="M4 2.5 13 8 4 13.5Z"/>';
+        $('#rain').setAttribute('aria-label', active ? 'Pause all motion' : (unfinished ? 'Resume motion' : 'Start rain of balls'));
+        // A finite batch replaces animated rain for visitors requesting less motion.
+        if (reducedMotion.matches) {
+          $('#rain-label').textContent = 'Release 100';
+          $('#rain').setAttribute('aria-label', 'Release 100 balls without animation');
+        }
+      }
+      function requestFrame() {
+        if (frame === null && playing && visible() && !reducedMotion.matches) frame = requestAnimationFrame(tick);
+      }
+      function cancelFrame() {
+        if (frame !== null) cancelAnimationFrame(frame);
+        frame = null;
+        lastTime = null;
+      }
+      function step(dt) {
+        if (rain || welcomeRemaining > 0) {
+          emissionClock += dt;
+          const rate = welcomeRemaining > 0 ? 28 : 38;
+          while (emissionClock >= 1 / rate) {
+            emissionClock -= 1 / rate;
+            release();
+            if (welcomeRemaining > 0) welcomeRemaining -= 1;
+            if (!rain && welcomeRemaining === 0) { emissionClock = 0; break; }
+          }
+        }
+        for (const ball of [...run.balls]) {
+          ball.age += dt;
+          const peg = Math.min(run.rows - 1, Math.floor((ball.age - ball.entryDuration) / ball.stepDuration));
+          if (peg >= 0 && peg > ball.lastPeg) {
+            for (let row = Math.max(0, ball.lastPeg + 1); row <= peg; row += 1) {
+              sparks.push({row, rights:ball.path[row], age:0});
+            }
+            ball.lastPeg = peg;
+          }
+          const point = ballPosition(ball);
+          ball.trail.push({x:point.x, y:point.y});
+          if (ball.trail.length > 5) ball.trail.shift();
+          if (ball.age >= ball.duration && GaltonMath.completeBall(run, ball)) {
+            binFlashes[ball.bin] = 1;
+            ripples.push({bin:ball.bin, age:0, color:ball.color});
+          }
+        }
+        sparks.forEach(spark => { spark.age += dt; });
+        sparks = sparks.filter(spark => spark.age < .32);
+        ripples.forEach(ripple => { ripple.age += dt; });
+        ripples = ripples.filter(ripple => ripple.age < .65);
+        drain.forEach(particle => {
+          particle.age += dt;
+          particle.x += particle.vx * dt;
+          particle.vy += 720 * dt;
+          particle.y += particle.vy * dt;
+        });
+        drain = drain.filter(particle => particle.y < height + 24 && particle.age < 1.3);
+        for (let k = 0; k <= run.rows; k += 1) {
+          const share = run.total ? run.counts[k] / run.total : 0;
+          visualShares[k] += (share - visualShares[k]) * (1 - Math.exp(-dt * 13));
+          binFlashes[k] *= Math.exp(-dt * 6);
+        }
+        summaryClock += dt;
+        if (summaryClock > .5) { summary(); summaryClock = 0; }
+        if (!rain && !welcomeRemaining && !run.balls.length && !drain.length && !ripples.length) {
+          playing = false;
+          lastTime = null;
+          visualShares = run.counts.map(count => run.total ? count / run.total : 0);
+          summary();
+          updateControls();
+        }
+      }
+      function tick(timestamp) {
+        frame = null;
+        if (!playing || !visible() || reducedMotion.matches) { lastTime = null; return; }
+        // The clock advances only while visible and playing; a pause never catches up.
+        const dt = lastTime === null ? 0 : Math.min((timestamp - lastTime) / 1000, .05);
+        lastTime = timestamp;
+        if (geometry) { step(dt); draw(); }
+        requestFrame();
+      }
+      function roundRect(x, y, w, h, radius) {
+        ctx.beginPath();
+        if (h <= 0) return;
+        const r = Math.min(radius, w / 2, h / 2);
+        ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h); ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+      }
+      function dot(x, y, radius, color, glow = 0) {
+        ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.shadowColor = color; ctx.shadowBlur = glow;
+        ctx.fill(); ctx.shadowBlur = 0;
+      }
+      function draw() {
+        if (!geometry || !width) return;
+        const g = geometry;
+        ctx.clearRect(0, 0, width, height);
+        // Light, architectural guide rails frame the triangular board.
+        ctx.strokeStyle = '#90bdd816'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(width / 2 - g.gap * .48, g.top - 10);
+        ctx.lineTo(g.binX(0) - g.gap * .45, g.histogramTop - 2);
+        ctx.moveTo(width / 2 + g.gap * .48, g.top - 10);
+        ctx.lineTo(g.binX(run.rows) + g.gap * .45, g.histogramTop - 2);
+        ctx.stroke();
+        for (let row = 0; row < run.rows; row += 1) {
+          for (let k = 0; k <= row; k += 1) {
+            const x = g.pegX(row, k);
+            const y = g.top + row * g.rowStep;
+            const r = width < 500 ? 1.75 : 2.4;
+            dot(x, y + 1.5, r + .7, '#00000045');
+            dot(x, y, r, '#668ca7');
+            dot(x - .45, y - .6, r * .42, '#c3dfea');
+          }
+        }
+        for (const spark of sparks) {
+          const alpha = (1 - spark.age / .32);
+          const x = g.pegX(spark.row, spark.rights);
+          const y = g.top + spark.row * g.rowStep;
+          ctx.globalAlpha = alpha;
+          dot(x, y, 2.1 + spark.age * 7, '#f1c99b', 8);
+          ctx.strokeStyle = '#f9d49c'; ctx.lineWidth = .7;
+          ctx.beginPath(); ctx.arc(x, y, 4 + spark.age * 19, 0, Math.PI * 2); ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+        const plotHeight = g.baseline - g.histogramTop - 15;
+        const maxShare = Math.max(...expected, ...visualShares) * 1.13;
+        const scale = plotHeight / maxShare;
+        const barWidth = Math.min(g.gap * .72, 49);
+        const gradient = ctx.createLinearGradient(0, g.histogramTop, 0, g.baseline);
+        gradient.addColorStop(0, '#91ebe3'); gradient.addColorStop(.4, '#43b9cb'); gradient.addColorStop(1, '#28699b');
+        for (let k = 0; k <= run.rows; k += 1) {
+          const x = g.binX(k);
+          const barHeight = visualShares[k] * scale;
+          ctx.fillStyle = '#5a829217';
+          roundRect(x - barWidth / 2, g.histogramTop + 12, barWidth, g.baseline - g.histogramTop - 12, 3); ctx.fill();
+          ctx.fillStyle = gradient;
+          roundRect(x - barWidth / 2, g.baseline - barHeight, barWidth, barHeight, 3); ctx.fill();
+          if (barHeight > 1) {
+            ctx.fillStyle = '#b6fff38a'; ctx.fillRect(x - barWidth / 2 + 2, g.baseline - barHeight, Math.max(0, barWidth - 4), 1);
+          }
+          if (binFlashes[k] > .015) {
+            const halo = ctx.createRadialGradient(x, g.baseline - barHeight, 0, x, g.baseline - barHeight, g.gap * .62);
+            halo.addColorStop(0, `rgba(141,244,224,${binFlashes[k] * .38})`); halo.addColorStop(1, 'rgba(93,225,224,0)');
+            ctx.fillStyle = halo; ctx.fillRect(x - g.gap, g.baseline - barHeight - g.gap, 2 * g.gap, 2 * g.gap);
+          }
+        }
+        if ($('#expected').checked) {
+          ctx.beginPath();
+          for (let k = 0; k <= run.rows; k += 1) {
+            const x = g.binX(k);
+            const y = g.baseline - expected[k] * scale;
+            if (k === 0) ctx.moveTo(x - barWidth / 2, y);
+            else ctx.lineTo(x - barWidth / 2, y);
+            ctx.lineTo(x + barWidth / 2, y);
+          }
+          ctx.strokeStyle = '#c4d9eb88'; ctx.lineWidth = 1.4; ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
+        }
+        ctx.strokeStyle = '#9dc2d440'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(g.binX(0) - g.gap / 2, g.baseline + 1); ctx.lineTo(g.binX(run.rows) + g.gap / 2, g.baseline + 1); ctx.stroke();
+        ctx.fillStyle = '#8eacc3'; ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'; ctx.textAlign = 'center';
+        const labelStep = width < 420 && run.rows > 12 ? 2 : 1;
+        for (let k = 0; k <= run.rows; k += labelStep) ctx.fillText(String(k), g.binX(k), g.baseline + 16);
+        ctx.fillStyle = '#809db6'; ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx.fillText('Right turns', width / 2, height - 5);
+        ctx.textAlign = 'left'; ctx.fillStyle = '#7da0ba';
+        ctx.fillText('Share of landings', Math.max(16, g.binX(0) - g.gap / 2), g.histogramTop + 4);
+        for (const ripple of ripples) {
+          const alpha = 1 - ripple.age / .65;
+          ctx.strokeStyle = ripple.color; ctx.globalAlpha = alpha * .65; ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.ellipse(g.binX(ripple.bin), g.baseline - 2, (5 + ripple.age * 22) * Math.min(1, g.gap / 30), 2 + ripple.age * 5, 0, 0, Math.PI * 2); ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+        for (const ball of run.balls) {
+          if (ball.trail.length > 1) {
+            for (let i = 1; i < ball.trail.length; i += 1) {
+              ctx.globalAlpha = i / ball.trail.length * .22;
+              ctx.strokeStyle = ball.color; ctx.lineWidth = width < 500 ? 2 : 3; ctx.lineCap = 'round';
+              ctx.beginPath(); ctx.moveTo(ball.trail[i - 1].x, ball.trail[i - 1].y); ctx.lineTo(ball.trail[i].x, ball.trail[i].y); ctx.stroke();
+            }
+          }
+          ctx.globalAlpha = 1;
+          const {x, y} = ballPosition(ball);
+          const radius = width < 500 ? 2.4 : 3.4;
+          dot(x, y, radius, ball.color, 9);
+          dot(x - radius * .24, y - radius * .28, radius * .35, '#f1ffff');
+        }
+        for (const particle of drain) {
+          ctx.globalAlpha = clamp(1 - particle.age / 1.3, 0, 1);
+          dot(particle.x, particle.y, particle.r, particle.color, 3);
+        }
+        ctx.globalAlpha = 1;
+      }
+      function updateWithoutMotion() {
+        visualShares = run.counts.map(count => run.total ? count / run.total : 0);
+        summary(); updateControls(); draw();
+      }
+      function releaseOne() {
+        if (!playing) rain = false;
+        release();
+        welcomeRemaining = 0;
+        if (reducedMotion.matches) { updateWithoutMotion(); return; }
+        playing = true;
+        lastTime = null;
+        updateControls(); requestFrame();
+      }
+      function reset(animate, rows = run.rows, p = run.p) {
+        const previousParticles = [];
+        if (animate && geometry && !reducedMotion.matches) {
+          for (const ball of run.balls) {
+            const point = ballPosition(ball);
+            previousParticles.push({x:point.x, y:point.y, vx:(Math.random() - .5) * 55, vy:20, age:0, r:2.8, color:ball.color});
+          }
+          for (let k = 0; k <= run.rows; k += 1) {
+            const count = Math.min(26, run.counts[k]);
+            for (let i = 0; i < count; i += 1) {
+              previousParticles.push({x:geometry.binX(k) + (Math.random() - .5) * geometry.gap * .65,
+                y:geometry.baseline - 4 - i * 3, vx:(Math.random() - .5) * 50, vy:10 + i * 3, age:0, r:2.6, color:colors[i % colors.length]});
+            }
+          }
+        }
+        cancelFrame();
+        GaltonMath.resetRun(run, rows, p);
+        expected = GaltonMath.binomialProbabilities(rows, p);
+        sparks = []; ripples = []; drain = previousParticles;
+        visualShares = Array(rows + 1).fill(0); binFlashes = Array(rows + 1).fill(0);
+        rain = false; welcomeRemaining = 0; emissionClock = 0; summaryClock = 0;
+        playing = drain.length > 0;
+        updateGeometry(); summary(); updateControls(); draw(); requestFrame();
+      }
+      $('#release').addEventListener('click', releaseOne);
+      canvas.addEventListener('click', releaseOne);
+      canvas.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); releaseOne(); }
+      });
+      $('#rain').addEventListener('click', () => {
+        if (reducedMotion.matches) { for (let i = 0; i < 100; i += 1) release(); updateWithoutMotion(); return; }
+        if (playing) { playing = false; cancelFrame(); }
+        else {
+          playing = true;
+          // Resume an interrupted finite run; start continuous rain from a settled board.
+          if (!run.balls.length && !drain.length && !welcomeRemaining) rain = true;
+          requestFrame();
+        }
+        updateControls(); summary();
+      });
+      $('#reset').addEventListener('click', () => reset(true));
+      function settingsChanged() {
+        const rows = Number(rowsInput.value);
+        const p = Number(biasInput.value) / 100;
+        $('#rows-value').value = rows;
+        $('#bias-value').value = `${Math.round(p * 100)}%`;
+        reset(false, rows, p);
+      }
+      rowsInput.addEventListener('input', settingsChanged);
+      biasInput.addEventListener('input', settingsChanged);
+      $('#expected').addEventListener('change', draw);
+      function visibilityChanged() {
+        cancelFrame();
+        updateControls();
+        if (visible()) { resize(); requestFrame(); }
+      }
+      document.addEventListener('visibilitychange', visibilityChanged);
+      window.addEventListener('message', event => {
+        if (event.source !== window.parent || event.origin !== window.location.origin) return;
+        if (event.data && event.data.type === 'stat250:visibility' && typeof event.data.visible === 'boolean') {
+          parentVisible = event.data.visible;
+          visibilityChanged();
+        }
+      });
+      reducedMotion.addEventListener('change', () => {
+        cancelFrame();
+        playing = false; rain = false; welcomeRemaining = 0;
+        for (const ball of [...run.balls]) GaltonMath.completeBall(run, ball);
+        drain = []; sparks = []; ripples = [];
+        updateWithoutMotion();
+      });
+      new ResizeObserver(resize).observe(canvas);
+      resize(); summary(); updateControls(); requestFrame();
+    })();
+  </script>
+</body>
+</html>

@@ -6,5 +6,6 @@
     "ideas": "wdai0",
     "ideas_url": "https://wdai0.github.io",
     "implementation": "ChatGPT-6 Astra"
-  }
+  },
+  "homepage": "galton-board"
 }

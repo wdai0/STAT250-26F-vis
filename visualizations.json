@@ -1,5 +1,13 @@
 [
   {
+    "id": "galton-board",
+    "title": "Galton board",
+    "description": "Release a ball, start the rain, and watch a distribution take shape.",
+    "source": "sources/galton-board.html",
+    "category": "Probability",
+    "kind": "visualization"
+  },
+  {
     "id": "cars",
     "title": "Cars",
     "description": "Compare car measurements by vehicle type.",
@@ -64,5 +72,13 @@
     "source": "sources/sample-size-p-values.html",
     "category": "Sampling & inference",
     "kind": "visualization"
+  },
+  {
+    "id": "create-your-own",
+    "title": "Create your own",
+    "description": "Guidelines for exploration, verification, and a ready-to-copy prompt.",
+    "source": "sources/create-your-own.html",
+    "category": "Guides",
+    "kind": "guide"
   }
 ]

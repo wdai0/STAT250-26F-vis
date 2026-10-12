@@ -4,7 +4,9 @@
 
 A GitHub Pages collection of self-contained HTML visualizations for Introductory Statistics I, Fall 2026.
 Each visualization opens through a searchable, topic-grouped collection and can be downloaded as a complete HTML file to use and edit offline.
-The collection includes Cars, NBA, 95% rule, Bootstrap CI, Three distributions, and Sample size & p-values.
+The homepage is an animated Galton board.
+The collection also includes Cars, NBA, 95% rule, Bootstrap CI, Three distributions, and Sample size & p-values.
+The separate **Create your own** guide contains the original exploration principles and a copyable prompt template.
 Controls and plots take priority; detailed methods are collapsed or placed in a separate view.
 
 ## Data sources and adaptations
@@ -22,11 +24,18 @@ The 95% rule plot expands its vertical scale for narrow normal curves so their p
 This changes only the display, not the density or probability calculations.
 The original files in Downloads are not modified.
 
+The Galton board draws an independent left/right outcome at each row for every ball.
+Its histogram reports observed landing proportions, and the optional outline shows the exact binomial probabilities for the selected rows and rightward probability.
+Changing either setting clears the previous run; Reset clears the run while retaining the settings.
+Pause freezes balls in flight, and reduced-motion mode replaces autoplay and animated rain with immediate batches.
+The standalone file requires no external assets or data.
+
 ## Content and design references
 
-The **How to use** page contains practical guidance and an expandable prompt template.
-It retains the `#overview` address so existing links continue to work.
-Keep the interface plain: prioritize controls, statistical content, and downloads, without promotional headlines, decorative plots, or unnecessary animation.
+The **Create your own** guide contains practical guidance and an expandable prompt template with a Copy prompt button.
+Its address is `#create-your-own`; the former `#overview` address also opens this guide.
+The homepage deliberately uses animated statistical imagery for play and discovery.
+Keep the other visualizations and guide plain: prioritize controls, statistical content, and downloads, without promotional headlines or unnecessary animation.
 
 The guidance paraphrases the supplied *Prompt Template for Interactive Data Exploration* (`prompts_interactive_data_exploration.pdf`):
 
@@ -40,7 +49,8 @@ The reference PDFs are not redistributed with the site, and the source course re
 
 ## Build and preview
 
-Use Python 3.10 or later; no third-party packages are required.
+The build uses Python 3.10 or later with no third-party packages.
+The Galton statistical regression checks also use Node.js to exercise the actual JavaScript model.
 
 ```sh
 python3 -m unittest discover -s tests -v
@@ -61,12 +71,13 @@ Generated asset URLs include content versions so a refreshed page loads matching
 | `assets/theme.css` | Shared colors, typography, controls, and visualization styles |
 | `assets/site.css` | Hub-specific layout |
 | `assets/site.js` | Search, grouped navigation, links, embedded views, and downloads |
-| `site.json` | Course identity and authorship |
+| `site.json` | Course identity, authorship, and homepage visualization ID |
 | `visualizations.json` | Ordered list of visualization metadata and source paths |
 | `sources/` | Editable HTML visualization sources |
 | `data/` | Authoritative CSV inputs for Cars and NBA |
 | `scripts/build.py` | Validation and standalone HTML generation |
 | `tests/test_build.py` | Build-contract tests using temporary fixtures |
+| `tests/test_galton_math.py` | Independent checks of the Galton probability model and event accounting |
 | `dist/` | Generated site uploaded to GitHub Pages |
 
 ## Navigation
@@ -74,9 +85,13 @@ Generated asset URLs include content versions so a refreshed page loads matching
 **Browse visualizations** opens a searchable panel grouped by `category`.
 Search matches titles, topics, and short descriptions.
 Selecting an item closes the panel and displays the visualization at its existing `#id` link; the browser Back and Forward buttons also work.
-**How to use**, **Open on its own**, and **Download** remain available in the toolbar.
+**Home**, **Create your own**, **Open on its own**, and **Download** remain available in the toolbar.
 The panel supports keyboard navigation and Escape to close, and adapts to small screens.
-The overview directory uses the same registry and groups, so no separate navigation list needs maintaining.
+Homepage topic shortcuts use the same registry and groups, so no separate navigation list needs maintaining.
+The highlighted Browse button counts entries with `kind: "visualization"`; guides appear in the searchable collection under **Guides**.
+The `homepage` ID in `site.json` selects the initial visualization; `#home` is an alias.
+The build rejects a homepage ID that is missing from the registry.
+The Galton animation suspends while its panel is hidden or the browse dialog is open, and preserves its current run.
 Loaded visualizations retain their current controls and simulations when switching between them.
 
 ## Add a visualization
@@ -101,10 +116,10 @@ An example registry entry:
 ```
 
 IDs use lowercase letters, digits, and single separating hyphens, beginning with a letter.
-`overview` is reserved for the collection overview.
+`home` and `overview` are reserved for the homepage and legacy guidance aliases.
 Each ID and resolved source path must be unique.
-An empty registry (`[]`) is valid and leaves the hub with its empty collection state.
-Use `kind: "preview"` for design demonstrations so they remain distinct from course visualizations.
+An empty registry (`[]`) is valid when no `homepage` is configured.
+Use `kind: "guide"` and category `Guides` for a standalone guide, or `kind: "preview"` for a design demonstration.
 
 The build embeds the shared CSS, authorship, and any configured CSV into each generated HTML file.
 The iframe and Download button use that same generated file, so the online and downloadable versions stay aligned.

@@ -206,7 +206,7 @@ def build(root: Path) -> int:
         if not isinstance(entry, dict):
             raise BuildError("Each visualization must be an object")
         identifier = require_text(entry.get("id"), "visualization.id")
-        if not ID_PATTERN.fullmatch(identifier) or identifier == "overview":
+        if not ID_PATTERN.fullmatch(identifier) or identifier in ("overview", "home"):
             raise BuildError(f"Invalid or reserved visualization id: {identifier}")
         if identifier in used_ids:
             raise BuildError(f"Duplicate visualization id: {identifier}")
@@ -224,6 +224,10 @@ def build(root: Path) -> int:
         catalog.append({key: value for key, value in entry.items() if key not in ("source", "dataset")}
                        | {"file": filename})
 
+    if "homepage" in site:
+        homepage = require_text(site["homepage"], "site.homepage")
+        if homepage not in used_ids:
+            raise BuildError("site.homepage must name an entry in visualizations.json")
     payload = json.dumps(site | {"visualizations": catalog}, ensure_ascii=True, indent=2)
     output["assets/catalog.js"] = f"window.STAT250_SITE = {payload};\n"
     # A new page must load matching styles, navigation code, and registry data.

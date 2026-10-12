@@ -9,11 +9,14 @@
   const search = document.querySelector('#visualization-search');
   const clearSearch = document.querySelector('#clear-search');
   const results = document.querySelector('#browse-results');
-  const guideLink = document.querySelector('#how-to-use');
-  let activeId = 'overview';
+  const homeId = site.homepage || entries[0]?.id;
+  const guideId = 'create-your-own';
+  const guideLink = document.querySelector('#create-link');
+  const homeLink = document.querySelector('#home-link');
+  let activeId = homeId;
   let focusOnRoute = false;
   const panels = document.querySelector('#visualization-panels');
-  const allIds = ['overview', ...entries.map(entry => entry.id)];
+  const allIds = entries.map(entry => entry.id);
   const mounted = new Map();
   document.querySelector('.skip-link').addEventListener('click', event => {
     event.preventDefault();
@@ -59,7 +62,10 @@
     if (window.location.hash === `#${id}`) route();
     else window.location.hash = id;
   }
-  guideLink.addEventListener('click', event => navigate(event, 'overview'));
+  guideLink.addEventListener('click', event => navigate(event, guideId));
+  homeLink.addEventListener('click', event => navigate(event, homeId));
+  document.querySelector('.brand').addEventListener('click', event => navigate(event, homeId));
+  document.querySelector('.create-callout').addEventListener('click', event => navigate(event, guideId));
 
   function groupEntries(items) {
     const groups = new Map();
@@ -108,25 +114,29 @@
     renderGroups(results, matches, 'browse');
     clearSearch.hidden = !search.value;
     document.querySelector('#search-status').textContent = terms.length
-      ? `${matches.length} of ${entries.length} visualizations`
-      : `${entries.length} visualization${entries.length === 1 ? '' : 's'}`;
+      ? `${matches.length} of ${entries.length} items`
+      : `${visualizations.length} visualizations · ${guides.length} guide${guides.length === 1 ? '' : 's'}`;
     if (!matches.length) results.append(element('p', 'empty-state', entries.length
       ? 'No matches. Try another name or topic, or clear the search.'
       : 'No visualizations have been added yet.'));
   }
 
-  browseButton.addEventListener('click', () => {
-    search.value = '';
+  function openBrowser(query = '') {
+    search.value = query;
     filterCollection();
     dialog.showModal();
     browseButton.setAttribute('aria-expanded', 'true');
     document.body.classList.add('browse-open');
+    syncVisibility();
     search.focus();
-  });
+  }
+  browseButton.addEventListener('click', () => openBrowser());
+  document.querySelector('#browse-more').addEventListener('click', () => openBrowser());
   document.querySelector('#browse-close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('close', () => {
     browseButton.setAttribute('aria-expanded', 'false');
     document.body.classList.remove('browse-open');
+    syncVisibility();
   });
   dialog.addEventListener('click', event => {
     const bounds = dialog.getBoundingClientRect();
@@ -141,17 +151,34 @@
   });
 
   for (const entry of entries) {
-    const panel = element('section', 'visualization-panel');
+    const panel = element('section', `visualization-panel${entry.id === homeId ? ' home-feature' : ''}`);
     panel.id = `panel-${entry.id}`;
     panel.setAttribute('aria-label', entry.title);
     panel.tabIndex = -1;
     panel.hidden = true;
     panels.append(panel);
   }
-  document.querySelector('#collection-count').textContent = `${entries.length} visualization${entries.length === 1 ? '' : 's'}`;
-  const grid = document.querySelector('#collection-grid');
-  renderGroups(grid, entries, 'overview');
-  if (!entries.length) grid.append(element('p', 'empty-state', 'No course visualizations have been added yet.'));
+  const visualizations = entries.filter(entry => entry.kind === 'visualization');
+  const guides = entries.filter(entry => entry.kind === 'guide');
+  document.querySelector('#browse-count').textContent = visualizations.length;
+  document.querySelector('#collection-count').textContent = `${visualizations.length} visualizations, ready to explore and download.`;
+  for (const [category, group] of groupEntries(visualizations)) {
+    const button = element('button', 'topic-link', category);
+    button.type = 'button';
+    button.setAttribute('aria-haspopup', 'dialog');
+    button.setAttribute('aria-controls', 'browse-dialog');
+    button.append(element('span', '', `${group.length} visualization${group.length === 1 ? '' : 's'} →`));
+    button.addEventListener('click', () => openBrowser(category));
+    document.querySelector('#topic-links').append(button);
+  }
+
+  function notifyVisibility(frame, visible) {
+    frame.contentWindow?.postMessage({type: 'stat250:visibility', visible}, window.location.origin);
+  }
+
+  function syncVisibility() {
+    for (const {panel, frame} of mounted.values()) notifyVisibility(frame, !panel.hidden && !dialog.open);
+  }
 
   function mount(entry) {
     const panel = document.querySelector(`#panel-${entry.id}`);
@@ -159,6 +186,7 @@
     frame.title = entry.title;
     frame.src = entry.file;
     frame.addEventListener('load', () => {
+      notifyVisibility(frame, !panel.hidden && !dialog.open);
       // The files are hosted together, so measure the actual content rather than
       // requiring individual visualizations to implement a messaging protocol.
       const body = frame.contentDocument?.body;
@@ -179,23 +207,28 @@
 
   function route() {
     let id;
-    try { id = decodeURIComponent(window.location.hash.slice(1)) || 'overview'; }
+    try { id = decodeURIComponent(window.location.hash.slice(1)) || homeId; }
     catch { id = ''; }
-    const unknown = !allIds.includes(id);
-    if (unknown) id = 'overview';
+    if (id === 'home') id = homeId;
+    if (id === 'overview') id = guideId; // Preserve links to the former guidance page.
+    const unknown = entries.length > 0 && !allIds.includes(id);
+    if (unknown) id = homeId;
     const notice = document.querySelector('#route-message');
     notice.hidden = !unknown;
     notice.textContent = unknown ? 'That visualization is not in the collection. Use Browse visualizations to choose another.' : '';
     const entry = entries.find(item => item.id === id);
     if (entry && !mounted.has(id)) mount(entry);
-    document.querySelector('#panel-overview').hidden = id !== 'overview';
+    document.querySelector('#home-collection').hidden = id !== homeId;
     for (const [key, value] of mounted) {
       value.panel.hidden = key !== id;
+      notifyVisibility(value.frame, key === id && !dialog.open);
       if (key === id && value.resize) requestAnimationFrame(value.resize);
     }
     activeId = id;
-    document.querySelector('#current-view').textContent = entry ? entry.title : 'Collection';
-    if (id === 'overview') guideLink.setAttribute('aria-current', 'page');
+    document.querySelector('#current-view').textContent = id === homeId ? '' : (entry?.title || 'Collection');
+    if (id === homeId) homeLink.setAttribute('aria-current', 'page');
+    else homeLink.removeAttribute('aria-current');
+    if (id === guideId) guideLink.setAttribute('aria-current', 'page');
     else guideLink.removeAttribute('aria-current');
     document.querySelectorAll('[data-visualization]').forEach(link => {
       if (link.dataset.visualization === id) link.setAttribute('aria-current', 'page');
@@ -213,11 +246,11 @@
       download.setAttribute('aria-label', `Download ${entry.title} as a standalone HTML file`);
     }
     if (focusOnRoute) {
-      document.querySelector(`#panel-${id}`).focus({preventScroll: true});
+      (document.querySelector(`#panel-${id}`) || document.querySelector('#main')).focus({preventScroll: true});
       document.querySelector('.site-header').scrollIntoView({block: 'start'});
       focusOnRoute = false;
     }
-    document.title = entry ? `${entry.title} · ${site.title}` : `${site.title} · ${site.subtitle}`;
+    document.title = entry && id !== homeId ? `${entry.title} · ${site.title}` : `${site.title} · ${site.subtitle}`;
   }
   window.addEventListener('hashchange', route);
   route();
