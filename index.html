@@ -23,16 +23,35 @@
     </header>
 
     <nav class="navigation" aria-label="Visualization navigation">
-      <div class="tabs" id="tabs" role="tablist" aria-label="Visualizations"></div>
-      <label class="mobile-navigation" for="visualization-select"><span class="sr-only">Choose a visualization</span><select id="visualization-select"></select></label>
+      <button id="browse-button" class="button button-secondary" type="button" aria-haspopup="dialog" aria-controls="browse-dialog" aria-expanded="false">Browse visualizations <span aria-hidden="true">⌄</span></button>
+      <span id="current-view" class="current-view">Collection</span>
+      <a id="how-to-use" class="guide-link" href="#overview">How to use</a>
+      <div id="visualization-actions" class="visualization-actions" hidden>
+        <a id="open-visualization" class="button button-secondary" target="_blank" rel="noopener">Open on its own ↗</a>
+        <a id="download-visualization" class="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m-3-3 3 3 3-3M4 13v3h12v-3"/></svg>Download</a>
+      </div>
     </nav>
+
+    <dialog id="browse-dialog" class="browse-dialog" aria-labelledby="browse-heading">
+      <div class="browse-header">
+        <h2 id="browse-heading">Browse visualizations</h2>
+        <button id="browse-close" class="button button-secondary" type="button" aria-label="Close visualization browser">Close</button>
+      </div>
+      <label for="visualization-search" class="search-label">Search by name or topic</label>
+      <div class="search-controls">
+        <input id="visualization-search" type="search" placeholder="e.g. bootstrap, NBA, sample size" autocomplete="off" autofocus>
+        <button id="clear-search" class="button button-secondary" type="button" hidden>Clear</button>
+      </div>
+      <p id="search-status" class="search-status" role="status" aria-live="polite"></p>
+      <nav id="browse-results" class="browse-results" aria-label="Visualizations by topic"></nav>
+    </dialog>
 
     <main id="main" tabindex="-1">
       <p id="route-message" class="notice" role="status" hidden></p>
-      <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="0">
+      <section id="panel-overview" aria-labelledby="guide-title" tabindex="-1">
         <header class="guide-heading">
-          <h1>How to use this site</h1>
-          <p>Select a visualization from the tabs.
+          <h1 id="guide-title">How to use this site</h1>
+          <p>Choose <strong>Browse visualizations</strong> to search the collection or browse by topic.
           Use its controls to examine a statistical question, and use <strong>Reset</strong> to return to the starting settings.</p>
           <p><strong>Download</strong> saves a complete HTML file that you can open in a browser offline or edit for your own use.
           It saves the visualization, not your current settings or simulation results.</p>

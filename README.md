@@ -3,18 +3,18 @@
 [Open the live collection](https://wdai0.github.io/STAT250-26F-vis/).
 
 A GitHub Pages collection of self-contained HTML visualizations for Introductory Statistics I, Fall 2026.
-Each visualization opens in a shared tabbed interface and can be downloaded as a complete HTML file to use and edit offline.
+Each visualization opens through a searchable, topic-grouped collection and can be downloaded as a complete HTML file to use and edit offline.
 The collection includes Cars, NBA, 95% rule, Bootstrap CI, Three distributions, and Sample size & p-values.
 Controls and plots take priority; detailed methods are collapsed or placed in a separate view.
 
 ## Data sources and adaptations
 
-The supplied `data/cars20.csv` and `data/nba23.csv` are authoritative for the data exploration tabs.
+The supplied `data/cars20.csv` and `data/nba23.csv` are authoritative for the data exploration visualizations.
 The build embeds all 110 car records and 332 NBA records directly into the downloadable HTML files.
 Source values and category spellings are retained; only display labels trim surrounding whitespace.
 The Cars data in the original HTML differed from the CSV, so it was replaced.
 The original NBA HTML was truncated before its application code, so its controls and statistical displays were rebuilt around the complete CSV.
-The NBA tab exposes all 28 numeric columns, with team and position filters.
+The NBA visualization exposes all 28 numeric columns, with team and position filters.
 Unspecified units and definitions remain labelled as unverified rather than inferred from plausible values.
 
 The four probability and inference visualizations retain their supplied calculations and seeded simulations.
@@ -24,7 +24,7 @@ The original files in Downloads are not modified.
 
 ## Content and design references
 
-The first tab, **How to use**, contains practical guidance and an expandable prompt template.
+The **How to use** page contains practical guidance and an expandable prompt template.
 It retains the `#overview` address so existing links continue to work.
 Keep the interface plain: prioritize controls, statistical content, and downloads, without promotional headlines, decorative plots, or unnecessary animation.
 
@@ -51,6 +51,7 @@ python3 -m http.server 8000 --directory dist
 Open [the local preview](http://localhost:8000).
 Rebuild after editing sources, configuration, or styling, then refresh the browser.
 The build recreates `dist/`, so edit the sources rather than generated files.
+Generated asset URLs include content versions so a refreshed page loads matching navigation, styles, and catalog data.
 
 ## Project structure
 
@@ -59,7 +60,7 @@ The build recreates `dist/`, so edit the sources rather than generated files.
 | `index.html` | Shared hub layout |
 | `assets/theme.css` | Shared colors, typography, controls, and visualization styles |
 | `assets/site.css` | Hub-specific layout |
-| `assets/site.js` | Tabs, links, embedded views, and downloads |
+| `assets/site.js` | Search, grouped navigation, links, embedded views, and downloads |
 | `site.json` | Course identity and authorship |
 | `visualizations.json` | Ordered list of visualization metadata and source paths |
 | `sources/` | Editable HTML visualization sources |
@@ -68,12 +69,22 @@ The build recreates `dist/`, so edit the sources rather than generated files.
 | `tests/test_build.py` | Build-contract tests using temporary fixtures |
 | `dist/` | Generated site uploaded to GitHub Pages |
 
+## Navigation
+
+**Browse visualizations** opens a searchable panel grouped by `category`.
+Search matches titles, topics, and short descriptions.
+Selecting an item closes the panel and displays the visualization at its existing `#id` link; the browser Back and Forward buttons also work.
+**How to use**, **Open on its own**, and **Download** remain available in the toolbar.
+The panel supports keyboard navigation and Escape to close, and adapts to small screens.
+The overview directory uses the same registry and groups, so no separate navigation list needs maintaining.
+Loaded visualizations retain their current controls and simulations when switching between them.
+
 ## Add a visualization
 
 1. Place an HTML file in `sources/` with a unique, descriptive filename.
 2. Add exactly one `<!-- SHARED_THEME -->` inside its `<head>` and one `<!-- AUTHORSHIP -->` inside its `<body>`.
 3. Adapt its typography, controls, layout, and chart colors to the tokens and components in `assets/theme.css`.
-4. Add an entry to `visualizations.json` in the desired tab order.
+4. Add an entry to `visualizations.json` with its topic in `category`; registry order controls the order of topics and items within each topic.
 5. Run the tests and build, then check the embedded and downloaded versions in a browser.
 
 An example registry entry:
@@ -127,7 +138,7 @@ When chart colors are set in JavaScript, read the shared CSS custom properties s
 
 Importing an existing file requires both a visual adaptation and a behavior check.
 Do not alter calculations or statistical assumptions as an incidental part of restyling.
-For each new visualization, inspect desktop and narrow layouts, visible keyboard focus, labels, keyboard controls, readable plots, direct tab links, and the Download button.
+For each new visualization, inspect desktop and narrow layouts, visible keyboard focus, labels, keyboard controls, readable plots, direct visualization links, and the Download button.
 Open the downloaded file through `file://` with network access disabled and exercise all its controls.
 Check statistical results against known examples or the original implementation where applicable.
 The build validates paths, metadata, and required markers; it does not prove that arbitrary visualization JavaScript works offline or that its statistics are correct.

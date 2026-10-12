@@ -38,7 +38,7 @@
     "title": "95% rule",
     "description": "Compare the central 95% interval with fixed bounds on a normal curve.",
     "source": "sources/normal-95-rule.html",
-    "category": "Probability",
+    "category": "Normal distributions",
     "kind": "visualization"
   },
   {
@@ -46,7 +46,7 @@
     "title": "Bootstrap CI",
     "description": "Compare bootstrap intervals across sample sizes.",
     "source": "sources/bootstrap-ci.html",
-    "category": "Confidence intervals",
+    "category": "Sampling & inference",
     "kind": "visualization"
   },
   {
@@ -54,7 +54,7 @@
     "title": "Three distributions",
     "description": "Compare sampling, bootstrap, and null distributions.",
     "source": "sources/three-distributions.html",
-    "category": "Simulation",
+    "category": "Sampling & inference",
     "kind": "visualization"
   },
   {
@@ -62,7 +62,7 @@
     "title": "Sample size & p-values",
     "description": "Hold the observed proportion fixed and vary the sample size.",
     "source": "sources/sample-size-p-values.html",
-    "category": "Hypothesis tests",
+    "category": "Sampling & inference",
     "kind": "visualization"
   }
 ]

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import csv
 import html
+import hashlib
 import io
 import json
 import math
@@ -225,6 +226,10 @@ def build(root: Path) -> int:
 
     payload = json.dumps(site | {"visualizations": catalog}, ensure_ascii=True, indent=2)
     output["assets/catalog.js"] = f"window.STAT250_SITE = {payload};\n"
+    # A new page must load matching styles, navigation code, and registry data.
+    for asset in ("assets/theme.css", "assets/site.css", "assets/site.js", "assets/catalog.js"):
+        version = hashlib.sha256(output[asset].encode("utf-8")).hexdigest()[:12]
+        output["index.html"] = output["index.html"].replace(f'"{asset}"', f'"{asset}?v={version}"')
     output[".nojekyll"] = ""
 
     destination = root / "dist"
