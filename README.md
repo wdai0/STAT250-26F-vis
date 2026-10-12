@@ -134,12 +134,11 @@ The build validates paths, metadata, and required markers; it does not prove tha
 
 ## Authorship
 
-The exact author name is deferred.
-The current visible credit is “Ideas and instructional design: The course author” and “Implementation: ChatGPT-6 Astra”.
-Update `authorship.ideas` in `site.json` when the display name is decided, then rebuild.
+The visible credit is “Ideas and instructional design: [wdai0](https://wdai0.github.io)” and “Implementation: ChatGPT-6 Astra”.
+Update `authorship.ideas` and the optional HTTPS link `authorship.ideas_url` in `site.json`, then rebuild.
 The hub reads the same configuration, and every downloaded file includes visible credit and an HTML source comment.
 The existing repository `LICENSE` is also embedded unchanged in a separate HTML source comment in every download and copied to `dist/LICENSE`.
-This retains the MIT copyright and permission notice independently of the deferred display credit.
+This retains the MIT copyright and permission notice independently of the display credit.
 
 ## GitHub Pages
 

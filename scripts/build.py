@@ -12,6 +12,7 @@ from pathlib import Path, PurePosixPath
 import re
 import shutil
 import sys
+from urllib.parse import urlsplit
 
 
 THEME_MARKER = "<!-- SHARED_THEME -->"
@@ -57,6 +58,10 @@ def load_site(root: Path) -> dict:
         raise BuildError("site.authorship must contain an object")
     for field in ("ideas", "implementation"):
         require_text(authorship.get(field), f"site.authorship.{field}")
+    if "ideas_url" in authorship:
+        url = urlsplit(require_text(authorship["ideas_url"], "site.authorship.ideas_url"))
+        if url.scheme != "https" or not url.hostname:
+            raise BuildError("site.authorship.ideas_url must be an absolute HTTPS URL")
     return site
 
 
@@ -147,6 +152,8 @@ def embed_dataset(source: str, root: Path, entry: dict) -> str:
 
 def attribution(authorship: dict) -> str:
     ideas = html.escape(authorship["ideas"])
+    if authorship.get("ideas_url"):
+        ideas = f'<a href="{html.escape(authorship["ideas_url"], quote=True)}">{ideas}</a>'
     implementation = html.escape(authorship["implementation"])
     comment = (
         f"Ideas and instructional design: {authorship['ideas']}; "

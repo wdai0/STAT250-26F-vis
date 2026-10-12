@@ -27,9 +27,20 @@
     document.querySelectorAll(`[data-site-${attribute}]`).forEach(node => { node.textContent = value; });
   }
   const credit = document.querySelector('#site-authorship');
-  for (const [label, value] of [['Ideas and instructional design', site.authorship.ideas], ['Implementation', site.authorship.implementation]]) {
+  for (const [label, value, url] of [
+    ['Ideas and instructional design', site.authorship.ideas, site.authorship.ideas_url],
+    ['Implementation', site.authorship.implementation]
+  ]) {
     const span = element('span', '', `${label}: `);
-    span.append(element('strong', '', value));
+    const name = element('strong', '', value);
+    if (url) {
+      const link = element('a');
+      link.href = url;
+      link.append(name);
+      span.append(link);
+    } else {
+      span.append(name);
+    }
     credit.append(span);
   }
 
