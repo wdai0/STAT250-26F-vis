@@ -1,10 +1,68 @@
 [
   {
-    "id": "interface-preview",
-    "title": "Interface preview",
-    "description": "Check the shared controls, plot layout, and offline download. This is a design preview, not a course lesson.",
-    "source": "sources/interface-preview.html",
-    "category": "Design preview",
-    "kind": "preview"
+    "id": "cars",
+    "title": "Cars",
+    "description": "Compare car measurements by vehicle type.",
+    "source": "sources/cars.html",
+    "category": "Data exploration",
+    "kind": "visualization",
+    "dataset": {
+      "source": "data/cars20.csv",
+      "text_columns": [
+        "Make",
+        "Model",
+        "Type",
+        "Drive",
+        "Size"
+      ]
+    }
+  },
+  {
+    "id": "nba",
+    "title": "NBA",
+    "description": "Explore player statistics by team and position.",
+    "source": "sources/nba.html",
+    "category": "Data exploration",
+    "kind": "visualization",
+    "dataset": {
+      "source": "data/nba23.csv",
+      "text_columns": [
+        "Player",
+        "POS",
+        "Team"
+      ]
+    }
+  },
+  {
+    "id": "normal-95-rule",
+    "title": "95% rule",
+    "description": "Compare the central 95% interval with fixed bounds on a normal curve.",
+    "source": "sources/normal-95-rule.html",
+    "category": "Probability",
+    "kind": "visualization"
+  },
+  {
+    "id": "bootstrap-ci",
+    "title": "Bootstrap CI",
+    "description": "Compare bootstrap intervals across sample sizes.",
+    "source": "sources/bootstrap-ci.html",
+    "category": "Confidence intervals",
+    "kind": "visualization"
+  },
+  {
+    "id": "three-distributions",
+    "title": "Three distributions",
+    "description": "Compare sampling, bootstrap, and null distributions.",
+    "source": "sources/three-distributions.html",
+    "category": "Simulation",
+    "kind": "visualization"
+  },
+  {
+    "id": "sample-size-p-values",
+    "title": "Sample size & p-values",
+    "description": "Hold the observed proportion fixed and vary the sample size.",
+    "source": "sources/sample-size-p-values.html",
+    "category": "Hypothesis tests",
+    "kind": "visualization"
   }
 ]

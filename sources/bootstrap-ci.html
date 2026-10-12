@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bootstrap CI · STAT 250</title>
+  <style>
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .wrap h1 { font-size: 1.5rem; margin-bottom: 8px; }
+    .heading { margin-bottom: 20px; }
+    .subtitle { color: var(--muted); font-size: .85rem; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; min-width: 0; }
+    .controls, .slider-row { display: grid; gap: 14px; }
+    .slider-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .slider-top label { font-size: .9rem; font-weight: 600; color: var(--ink); }
+    .slider-value { font-size: .88rem; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 5px 10px; border-radius: var(--radius); font-variant-numeric: tabular-nums; }
+    .tick-row { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; font-size: .78rem; color: var(--muted); text-align: center; }
+    .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+    .stat { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; }
+    .stat .label { font-size: .75rem; color: var(--muted); margin-bottom: 4px; }
+    .stat .value { font-size: 1.1rem; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .plot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+    .card h2 { font-size: 1rem; margin-bottom: 8px; }
+    .plot-note, .caption { color: var(--muted); font-size: .78rem; }
+    .plot-note { margin-bottom: 12px; }
+    .caption { margin-top: 8px; }
+    svg { width: 100%; height: auto; display: block; background: var(--surface); font-family: var(--font); }
+    .plot-scroll { min-width: 0; max-width: 100%; overflow-x: auto; }
+    .plot-scroll svg { min-width: 500px; }
+    svg text { font-family: var(--font); }
+    .table-card { margin-top: 18px; }
+    .table-wrap { overflow: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; font-variant-numeric: tabular-nums; }
+    th, td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    thead th { font-size: .78rem; font-weight: 600; color: var(--muted); }
+    tbody tr.selected { background: var(--accent-soft); }
+    .loader { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .8rem; }
+    .progress { width: 160px; height: 6px; background: var(--plot-grid); overflow: hidden; flex: 0 0 auto; }
+    .progress > div { width: 0%; height: 100%; background: var(--accent); }
+    details { margin-top: 18px; color: var(--muted); font-size: .8rem; }
+    summary { cursor: pointer; color: var(--ink); font-weight: 600; }
+    details p { margin-top: 8px; }
+    @media (max-width: 900px) { .plot-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .wrap { padding: 18px 14px; } .card { padding: 14px; } .stats { grid-template-columns: 1fr 1fr; } .loader { flex-wrap: wrap; } }
+  </style>
+  <!-- SHARED_THEME -->
+</head>
+<body>
+  <main class="wrap">
+    <header class="heading">
+      <h1>Bootstrap CI</h1>
+      <p class="subtitle">95% percentile intervals · Observed proportion p̂ = 0.75 · 10,000 resamples per sample size</p>
+    </header>
+    <section class="card controls" aria-label="Sample size and interval summary">
+      <div class="slider-row">
+        <div class="slider-top"><label for="nSlider">Original sample size</label><div class="slider-value">n = <span id="selectedN">68</span></div></div>
+        <input id="nSlider" type="range" min="0" max="5" step="1" value="0" />
+        <div class="tick-row" aria-hidden="true"><span>68</span><span>200</span><span>400</span><span>800</span><span>1200</span><span>1868</span></div>
+      </div>
+      <div class="stats" aria-live="polite">
+        <div class="stat"><div class="label">Observed proportion</div><div class="value" id="statPhat">0.7500</div></div>
+        <div class="stat"><div class="label">Lower endpoint</div><div class="value" id="statLower">Loading…</div></div>
+        <div class="stat"><div class="label">Upper endpoint</div><div class="value" id="statUpper">Loading…</div></div>
+        <div class="stat"><div class="label">Interval width</div><div class="value" id="statWidth">Loading…</div></div>
+      </div>
+      <div class="loader" id="loader" role="status"><div class="progress"><div id="progressBar"></div></div><div id="progressText">Building bootstrap distributions…</div></div>
+    </section>
+    <section class="plot-grid" aria-label="Bootstrap plots">
+      <div class="card plot-card">
+        <h2>Bootstrap distribution</h2>
+        <p class="plot-note">Shading: 95% interval · Solid line: p̂ = 0.75</p>
+        <div class="plot-scroll" tabindex="0" aria-label="Scrollable bootstrap chart"><svg id="histSvg" viewBox="0 0 560 320" role="img" aria-label="Bootstrap histogram for the selected sample size"></svg></div>
+        <div class="caption" id="histCaption"></div>
+      </div>
+      <div class="card plot-card">
+        <h2>Interval comparison</h2>
+        <p class="plot-note">95% percentile intervals on a common scale</p>
+        <div class="plot-scroll" tabindex="0" aria-label="Scrollable bootstrap chart"><svg id="ciSvg" viewBox="0 0 560 320" role="img" aria-label="Confidence interval comparison across sample sizes"></svg></div>
+      </div>
+    </section>
+    <section class="card table-card">
+      <h2>Interval table</h2>
+      <div class="table-wrap"><table><thead><tr><th scope="col">n</th><th scope="col">Observed p̂</th><th scope="col">2.5%</th><th scope="col">97.5%</th><th scope="col">Width</th></tr></thead><tbody id="resultsBody"></tbody></table></div>
+    </section>
+    <details><summary>Method</summary><p>Each n has its own original binary sample with exactly 75% successes.
+    For each sample, 10,000 resamples of size n are drawn with replacement; the 2.5th and 97.5th percentiles give the interval.
+    Changing n selects a different original sample, not a larger resample from one fixed sample.
+    Seeds are fixed for reproducibility.</p></details>
+    <!-- AUTHORSHIP -->
+  </main>
+
+  <script>
+    const SAMPLE_SIZES = [68, 200, 400, 800, 1200, 1868];
+    const PHAT = 0.75;
+    const B = 10000;
+
+    const slider = document.getElementById('nSlider');
+    const selectedNEl = document.getElementById('selectedN');
+    const statLower = document.getElementById('statLower');
+    const statUpper = document.getElementById('statUpper');
+    const statWidth = document.getElementById('statWidth');
+    const histCaption = document.getElementById('histCaption');
+    const resultsBody = document.getElementById('resultsBody');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const loader = document.getElementById('loader');
+
+    const state = {
+      results: [],
+      xMin: 0.60,
+      xMax: 0.90,
+      ready: false
+    };
+
+    slider.disabled = true;
+
+    function mulberry32(seed) {
+      let a = seed >>> 0;
+      return function() {
+        a |= 0;
+        a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function fmt(x, digits = 4) {
+      return Number(x).toFixed(digits);
+    }
+
+    function quantile(sorted, q) {
+      const pos = (sorted.length - 1) * q;
+      const base = Math.floor(pos);
+      const rest = pos - base;
+      if (sorted[base + 1] !== undefined) {
+        return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
+      }
+      return sorted[base];
+    }
+
+    function buildOriginalSample(n, phat) {
+      // Each n gets its own original sample.
+      // This makes it explicit that we are NOT taking one fixed sample and simply making larger resamples from it.
+      const successes = Math.round(n * phat);
+      const sample = new Uint8Array(n);
+      for (let i = 0; i < successes; i++) sample[i] = 1;
+      for (let i = successes; i < n; i++) sample[i] = 0;
+      return sample;
+    }
+
+    function bootstrapFromOwnSample(originalSample, B, rng) {
+      // Bootstrap resamples are drawn WITH replacement from this particular original sample only.
+      // Resample size equals original sample size n.
+      const n = originalSample.length;
+      const props = new Float64Array(B);
+
+      for (let b = 0; b < B; b++) {
+        let count = 0;
+        for (let i = 0; i < n; i++) {
+          count += originalSample[Math.floor(rng() * n)];
+        }
+        props[b] = count / n;
+      }
+
+      const sorted = Array.from(props).sort((a, b) => a - b);
+      const lower = quantile(sorted, 0.025);
+      const upper = quantile(sorted, 0.975);
+
+      return {
+        props: sorted,
+        lower,
+        upper,
+        width: upper - lower
+      };
+    }
+
+    function xScale(x, width, margin) {
+      return margin.left + ((x - state.xMin) / (state.xMax - state.xMin)) * (width - margin.left - margin.right);
+    }
+
+    function makeSvgLine(x1, y1, x2, y2, stroke, strokeWidth = 1.5, dash = '') {
+      return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 +
+        '" stroke="' + stroke + '" stroke-width="' + strokeWidth + '"' +
+        (dash ? ' stroke-dasharray="' + dash + '"' : '') + ' />';
+    }
+
+    function makeSvgRect(x, y, w, h, fill, stroke = 'none', rx = 0, opacity = 1) {
+      return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h +
+        '" fill="' + fill + '" stroke="' + stroke + '" rx="' + rx + '" opacity="' + opacity + '" />';
+    }
+
+    function makeSvgText(x, y, text, fill, size = 12, anchor = 'middle', weight = 500) {
+      return '<text x="' + x + '" y="' + y + '" fill="' + fill + '" font-size="' + size +
+        '" text-anchor="' + anchor + '" font-weight="' + weight + '">' + text + '</text>';
+    }
+
+    function makeSvgCircle(cx, cy, r, fill, stroke = 'none', strokeWidth = 1) {
+      return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="' + fill +
+        '" stroke="' + stroke + '" stroke-width="' + strokeWidth + '" />';
+    }
+
+    function renderHistogram(result) {
+      const svg = document.getElementById('histSvg');
+      const W = 560, H = 320;
+      const margin = { top: 20, right: 20, bottom: 46, left: 46 };
+
+      const bins = 26;
+      const edges = [];
+      for (let i = 0; i <= bins; i++) {
+        edges.push(state.xMin + (i / bins) * (state.xMax - state.xMin));
+      }
+      const counts = new Array(bins).fill(0);
+      for (const v of result.props) {
+        if (v < state.xMin || v > state.xMax) continue;
+        let idx = Math.floor(((v - state.xMin) / (state.xMax - state.xMin)) * bins);
+        if (idx === bins) idx = bins - 1;
+        counts[idx]++;
+      }
+      const maxCount = Math.max(...counts, 1);
+
+      let html = '';
+      html += makeSvgRect(0, 0, W, H, 'var(--surface)');
+
+      for (let g = 0; g <= 4; g++) {
+        const y = margin.top + g * ((H - margin.top - margin.bottom) / 4);
+        html += makeSvgLine(margin.left, y, W - margin.right, y, 'var(--plot-grid)', 1);
+      }
+
+      const bandX = xScale(result.lower, W, margin);
+      const bandX2 = xScale(result.upper, W, margin);
+      html += makeSvgRect(bandX, margin.top, Math.max(0, bandX2 - bandX), H - margin.top - margin.bottom, 'var(--accent-soft)', 'none', 0, 0.85);
+
+      const plotH = H - margin.top - margin.bottom;
+      const innerW = W - margin.left - margin.right;
+
+      for (let i = 0; i < bins; i++) {
+        const x1 = margin.left + (i / bins) * innerW;
+        const x2 = margin.left + ((i + 1) / bins) * innerW;
+        const barW = Math.max(1, x2 - x1 - 2);
+        const h = (counts[i] / maxCount) * (plotH - 8);
+        const y = H - margin.bottom - h;
+        const edgeMid = edges[i] + (edges[i + 1] - edges[i]) / 2;
+        const inBand = edgeMid >= result.lower && edgeMid <= result.upper;
+        html += makeSvgRect(x1 + 1, y, barW, h, inBand ? 'var(--plot)' : 'var(--plot-muted)', 'none', 3, 0.95);
+      }
+
+      const phatX = xScale(PHAT, W, margin);
+      const lowerX = xScale(result.lower, W, margin);
+      const upperX = xScale(result.upper, W, margin);
+
+      html += makeSvgLine(phatX, margin.top, phatX, H - margin.bottom, 'var(--warm)', 3);
+      html += makeSvgLine(lowerX, margin.top, lowerX, H - margin.bottom, 'var(--accent)', 2, '6 5');
+      html += makeSvgLine(upperX, margin.top, upperX, H - margin.bottom, 'var(--accent)', 2, '6 5');
+
+      html += makeSvgLine(margin.left, H - margin.bottom, W - margin.right, H - margin.bottom, 'var(--plot-axis)', 1.5);
+      html += makeSvgLine(margin.left, margin.top, margin.left, H - margin.bottom, 'var(--plot-axis)', 1.5);
+
+      for (let t = 0; t <= 5; t++) {
+        const value = state.xMin + (t / 5) * (state.xMax - state.xMin);
+        const x = xScale(value, W, margin);
+        html += makeSvgLine(x, H - margin.bottom, x, H - margin.bottom + 6, 'var(--plot-axis)', 1.2);
+        html += makeSvgText(x, H - 12, fmt(value, 2), 'var(--muted)', 12, 'middle', 500);
+      }
+
+      html += makeSvgText(20, margin.top + 8, 'count', 'var(--muted)', 12, 'start', 600);
+      html += makeSvgText(W / 2, H - 4, 'bootstrap sample proportion', 'var(--muted)', 12, 'middle', 600);
+
+      html += makeSvgText(Math.min(W - 28, phatX + 8), margin.top + 16, 'p̂ = 0.75', 'var(--warm)', 12, phatX > W - 100 ? 'end' : 'start', 700);
+      html += makeSvgText(Math.max(44, lowerX), margin.top + 16, '2.5%', 'var(--accent)', 12, 'middle', 700);
+      html += makeSvgText(Math.min(W - 36, upperX), margin.top + 16, '97.5%', 'var(--accent)', 12, 'middle', 700);
+
+      svg.innerHTML = html;
+
+      histCaption.textContent =
+        'n = ' + result.n + ' · 95% CI: [' +
+        fmt(result.lower, 4) + ', ' + fmt(result.upper, 4) +
+        '] · Width: ' + fmt(result.width, 4);
+    }
+
+    function renderCIPlot(selectedIndex) {
+      const svg = document.getElementById('ciSvg');
+      const W = 560, H = 320;
+      const margin = { top: 20, right: 28, bottom: 46, left: 70 };
+      const innerH = H - margin.top - margin.bottom;
+
+      let html = '';
+      html += makeSvgRect(0, 0, W, H, 'var(--surface)');
+
+      for (let t = 0; t <= 5; t++) {
+        const value = state.xMin + (t / 5) * (state.xMax - state.xMin);
+        const x = xScale(value, W, margin);
+        html += makeSvgLine(x, margin.top, x, H - margin.bottom, 'var(--plot-grid)', 1);
+      }
+
+      const phatX = xScale(PHAT, W, margin);
+      html += makeSvgLine(phatX, margin.top, phatX, H - margin.bottom, 'var(--warm)', 2.5, '6 5');
+
+      state.results.forEach((r, idx) => {
+        const y = margin.top + (idx + 0.5) * (innerH / state.results.length);
+        const x1 = xScale(r.lower, W, margin);
+        const x2 = xScale(r.upper, W, margin);
+        const isSelected = idx === selectedIndex;
+        const stroke = isSelected ? 'var(--accent)' : 'var(--plot-muted)';
+        const labelColor = isSelected ? 'var(--ink)' : 'var(--muted)';
+
+        html += makeSvgText(margin.left - 12, y + 4, String(r.n), labelColor, 12, 'end', isSelected ? 800 : 600);
+        html += makeSvgLine(x1, y, x2, y, stroke, isSelected ? 6 : 4);
+        html += makeSvgCircle(x1, y, isSelected ? 5 : 4, 'var(--surface)', stroke, 2);
+        html += makeSvgCircle(x2, y, isSelected ? 5 : 4, 'var(--surface)', stroke, 2);
+        html += makeSvgCircle(phatX, y, isSelected ? 4.5 : 3.5, 'var(--warm)');
+        html += makeSvgText(W - margin.right + 2, y + 4, fmt(r.width, 4), labelColor, 11, 'start', isSelected ? 700 : 500);
+      });
+
+      html += makeSvgLine(margin.left, H - margin.bottom, W - margin.right, H - margin.bottom, 'var(--plot-axis)', 1.5);
+
+      for (let t = 0; t <= 5; t++) {
+        const value = state.xMin + (t / 5) * (state.xMax - state.xMin);
+        const x = xScale(value, W, margin);
+        html += makeSvgLine(x, H - margin.bottom, x, H - margin.bottom + 6, 'var(--plot-axis)', 1.2);
+        html += makeSvgText(x, H - 12, fmt(value, 2), 'var(--muted)', 12, 'middle', 500);
+      }
+
+      html += makeSvgText(margin.left - 12, margin.top - 4, 'n', 'var(--muted)', 12, 'end', 700);
+      html += makeSvgText(W - margin.right + 2, margin.top - 4, 'width', 'var(--muted)', 12, 'start', 700);
+      html += makeSvgText(W / 2, H - 4, 'proportion scale', 'var(--muted)', 12, 'middle', 600);
+
+      svg.innerHTML = html;
+    }
+
+    function renderTable(selectedIndex) {
+      resultsBody.innerHTML = state.results.map((r, idx) => {
+        return '<tr class="' + (idx === selectedIndex ? 'selected' : '') + '">' +
+          '<td><strong>' + r.n + '</strong></td>' +
+          '<td>' + fmt(PHAT, 4) + '</td>' +
+          '<td>' + fmt(r.lower, 4) + '</td>' +
+          '<td>' + fmt(r.upper, 4) + '</td>' +
+          '<td>' + fmt(r.width, 4) + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    function updateSelection() {
+      if (!state.ready) return;
+      const idx = Number(slider.value);
+      const result = state.results[idx];
+      selectedNEl.textContent = result.n;
+      statLower.textContent = fmt(result.lower, 4);
+      statUpper.textContent = fmt(result.upper, 4);
+      statWidth.textContent = fmt(result.width, 4);
+      renderHistogram(result);
+      renderCIPlot(idx);
+      renderTable(idx);
+    }
+
+    async function buildAllBootstraps() {
+      const results = [];
+      for (let i = 0; i < SAMPLE_SIZES.length; i++) {
+        const n = SAMPLE_SIZES[i];
+        progressText.textContent = 'Building bootstrap distribution for n = ' + n + ' (' + (i + 1) + ' of ' + SAMPLE_SIZES.length + ')…';
+        progressBar.style.width = ((i / SAMPLE_SIZES.length) * 100).toFixed(1) + '%';
+
+        await new Promise(requestAnimationFrame);
+
+        // Important teaching point:
+        // For each sample size, we build a DIFFERENT original sample.
+        // We do not grow one sample and keep resampling from it.
+        const originalSample = buildOriginalSample(n, PHAT);
+        const rng = mulberry32(20261001 + n);
+        const boot = bootstrapFromOwnSample(originalSample, B, rng);
+
+        results.push({
+          n,
+          props: boot.props,
+          lower: boot.lower,
+          upper: boot.upper,
+          width: boot.width
+        });
+      }
+
+      progressBar.style.width = '100%';
+      progressText.textContent = 'Bootstrap distributions ready.';
+      await new Promise(resolve => setTimeout(resolve, 250));
+
+      state.results = results;
+      const lowers = results.map(r => r.lower);
+      const uppers = results.map(r => r.upper);
+      state.xMin = Math.max(0, Math.min(...lowers) - 0.03);
+      state.xMax = Math.min(1, Math.max(...uppers) + 0.03);
+      state.ready = true;
+      slider.disabled = false;
+
+      loader.style.display = 'none';
+      updateSelection();
+    }
+
+    slider.addEventListener('input', updateSelection);
+    buildAllBootstraps();
+    </script>
+</body>
+</html>

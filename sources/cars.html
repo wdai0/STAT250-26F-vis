@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cars · STAT 250</title>
+<style>
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 24px; }
+  .wrap h1 { margin-bottom: 20px; font-size: 1.4rem; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+  .controls { display: grid; grid-template-columns: 1.3fr 1.5fr auto; gap: 20px; align-items: start; }
+  .wrap .control-group { display: flex; flex-direction: column; gap: 8px; margin: 0; min-width: 0; }
+  .wrap .control-group label { margin: 0; font-size: .83rem; font-weight: 600; }
+  select, button { min-height: 40px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--text); font-size: .86rem; }
+  select { width: 100%; }
+  button:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .checkbox-grid { display: flex; flex-wrap: wrap; gap: 8px 12px; }
+  .wrap .checkbox-item { display: inline-flex; justify-content: start; align-items: center; gap: 7px; padding: 4px 0; font-size: .83rem; font-weight: 400; }
+  .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: 0 0 auto; }
+  .range-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+  .small-note, .footnote { color: var(--muted); font-size: .78rem; }
+  .status-bar { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: .78rem; color: var(--muted); margin-top: 18px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .status-bar strong { font-weight: 600; }
+  .chart-title { font-size: 1rem; margin: 0 0 5px; }
+  .chart-subtitle { margin: 0 0 10px; color: var(--muted); font-size: .78rem; }
+  .chart-scroll { min-width: 0; max-width: 100%; overflow-x: auto; }
+  .chart-scroll svg { min-width: 960px; }
+  svg text { font-family: var(--font); }
+  svg { width: 100%; height: auto; display: block; background: var(--surface); }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; font-size: .81rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+  thead th { background: var(--plot-grid); font-weight: 600; }
+  tbody tr.hidden-row { color: var(--muted); background: var(--plot-grid); }
+  tbody tr:last-child td { border-bottom: 0; }
+  details { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+  summary { cursor: pointer; color: var(--muted); font-size: .8rem; }
+  .footnote { margin-top: 8px; }
+  .tooltip { position: fixed; pointer-events: none; opacity: 0; background: var(--ink); color: var(--surface); font-size: .8rem; padding: 8px 10px; border-radius: var(--radius); transform: translate(10px, 10px); z-index: 20; max-width: 240px; }
+  .legend-row { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; font-size: .78rem; color: var(--muted); }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  @media (max-width: 760px) {
+    .wrap { padding: 20px 14px; }
+    .controls { grid-template-columns: 1fr; gap: 16px; }
+    .panel { padding: 14px; }
+    .reset-label { display: none; }
+  }
+</style>
+<!-- SHARED_THEME -->
+</head>
+<body>
+<div class="wrap">
+  <h1>Cars</h1>
+
+  <div class="panel">
+    <div class="controls">
+      <div class="control-group">
+        <label for="variableSelect">Numerical variable</label>
+        <select id="variableSelect" aria-label="Select numerical variable">
+          <option value="CityMPG">City MPG</option>
+          <option value="LowPrice">Starting price</option>
+          <option value="Braking">Braking distance</option>
+          <option value="Weight">Weight</option>
+        </select>
+
+        <label for="binWidth">Histogram bin width</label>
+        <div class="range-row">
+          <input id="binWidth" type="range" min="1" max="6" step="1" value="2" aria-label="Adjust histogram bin width">
+          <div><strong id="binWidthValue">2</strong></div>
+        </div>
+        <div class="small-note" id="binWidthNote">Histogram only; summaries are unchanged.</div>
+      </div>
+
+      <div class="control-group">
+        <label>Show vehicle types</label>
+        <div class="checkbox-grid" id="typeCheckboxes"></div>
+
+        <label class="checkbox-item" style="width:max-content;">
+          <input type="checkbox" id="showPoints">
+          <span>Show observations</span>
+        </label>
+      </div>
+
+      <div class="control-group">
+        <label class="reset-label" aria-hidden="true">&nbsp;</label>
+        <button id="resetBtn" type="button">Reset view</button>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <div><strong>Variable:</strong> <span id="selectedVariableLabel"></span></div>
+      <div><strong>Units:</strong> <span id="unitsNote"></span></div>
+      <div><strong>Missing:</strong> <span id="overallMissing"></span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 class="chart-title">Histogram</h2>
+    <p class="chart-subtitle">Stacked by type. Hiding a type preserves bins and scales.</p>
+    <div class="chart-scroll" tabindex="0" aria-label="Scrollable chart">    <svg id="histogram" viewBox="0 0 1100 360" role="img" aria-label="Histogram of selected variable"></svg></div>
+    <div class="legend-row" id="histLegend"></div>
+  </div>
+
+  <div class="panel">
+    <h2 class="chart-title">Boxplots by vehicle type</h2>
+    <p class="chart-subtitle">Shared scale; hidden types keep their positions.</p>
+    <div class="chart-scroll" tabindex="0" aria-label="Scrollable chart">    <svg id="boxplot" viewBox="0 0 1100 440" role="img" aria-label="Boxplots of selected variable by vehicle type"></svg></div>
+  </div>
+
+  <div class="panel">
+    <h2 class="chart-title">Summary by vehicle type</h2>
+    <p class="chart-subtitle">Valid observations only.</p>
+    <div class="table-wrap">
+      <table id="summaryTable">
+        <thead>
+          <tr>
+            <th>Vehicle type</th>
+            <th>Status</th>
+            <th>Valid n</th>
+            <th>Missing</th>
+            <th>Mean</th>
+            <th>Median</th>
+            <th>SD</th>
+            <th>IQR</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <details><summary>Methods</summary><div class="footnote" id="methodsNote"></div></details>
+  </div>
+  <!-- AUTHORSHIP -->
+</div>
+
+<div id="tooltip" class="tooltip"></div>
+
+<script>
+// The build embeds all rows and columns from data/cars20.csv.
+const SOURCE_DATA = /* EMBEDDED_DATA */ [];
+const DATA = SOURCE_DATA.map(row => ({...row, Label: `${row.Make.trim()} ${row.Model.trim()}`}));
+const TYPE_ORDER = ["SUV", "Sedan", "Sporty", "Hatchback", "Minivan", "Wagon"];
+const COLORS = {
+  SUV: "var(--plot)",
+  Sedan: "var(--warm)",
+  Sporty: "#95658a",
+  Hatchback: "#538f94",
+  Minivan: "#698859",
+  Wagon: "#a89150"
+};
+const VAR_META = {
+  CityMPG: {
+    label: "City MPG",
+    longLabel: "City MPG",
+    unitsNote: "Miles per gallon (from field name).",
+    axisLabel: "City MPG (miles per gallon)",
+    slider: { min: 1, max: 6, step: 1, value: 2 },
+    digits: 1
+  },
+  LowPrice: {
+    label: "Starting price",
+    longLabel: "Starting price (LowPrice)",
+    unitsNote: "Currency unit unverified.",
+    axisLabel: "Starting price (LowPrice; unit unverified)",
+    slider: { min: 1, max: 20, step: 0.5, value: 5 },
+    digits: 2
+  },
+  Braking: {
+    label: "Braking distance",
+    longLabel: "Braking distance (Braking)",
+    unitsNote: "Distance unit unverified.",
+    axisLabel: "Braking distance (Braking; unit unverified)",
+    slider: { min: 1, max: 12, step: 1, value: 5 },
+    digits: 1
+  },
+  Weight: {
+    label: "Weight",
+    longLabel: "Weight",
+    unitsNote: "Weight unit unverified.",
+    axisLabel: "Weight (Weight; unit unverified)",
+    slider: { min: 50, max: 1000, step: 50, value: 250 },
+    digits: 1
+  }
+};
+
+const state = {
+  variable: "CityMPG",
+  binWidth: VAR_META.CityMPG.slider.value,
+  visibleTypes: new Set(TYPE_ORDER),
+  showPoints: false
+};
+
+const el = {
+  variableSelect: document.getElementById("variableSelect"),
+  binWidth: document.getElementById("binWidth"),
+  binWidthValue: document.getElementById("binWidthValue"),
+  binWidthNote: document.getElementById("binWidthNote"),
+  typeCheckboxes: document.getElementById("typeCheckboxes"),
+  showPoints: document.getElementById("showPoints"),
+  resetBtn: document.getElementById("resetBtn"),
+  selectedVariableLabel: document.getElementById("selectedVariableLabel"),
+  unitsNote: document.getElementById("unitsNote"),
+  overallMissing: document.getElementById("overallMissing"),
+  histogram: document.getElementById("histogram"),
+  histLegend: document.getElementById("histLegend"),
+  boxplot: document.getElementById("boxplot"),
+  summaryTableBody: document.querySelector("#summaryTable tbody"),
+  methodsNote: document.getElementById("methodsNote"),
+  tooltip: document.getElementById("tooltip")
+};
+
+function init() {
+  buildTypeCheckboxes();
+  attachEvents();
+  setVariableControls("CityMPG");
+  renderAll();
+}
+
+function buildTypeCheckboxes() {
+  el.typeCheckboxes.innerHTML = "";
+  TYPE_ORDER.forEach(type => {
+    const wrapper = document.createElement("label");
+    wrapper.className = "checkbox-item";
+    wrapper.innerHTML = `
+      <input type="checkbox" data-type="${type}" checked>
+      <span class="swatch" style="background:${COLORS[type] || "#999"}"></span>
+      <span>${type}</span>
+    `;
+    el.typeCheckboxes.appendChild(wrapper);
+  });
+}
+
+function attachEvents() {
+  el.variableSelect.addEventListener("change", () => {
+    state.variable = el.variableSelect.value;
+    setVariableControls(state.variable);
+    renderAll();
+  });
+
+  el.binWidth.addEventListener("input", () => {
+    state.binWidth = parseFloat(el.binWidth.value);
+    updateBinWidthLabel();
+    renderHistogram();
+  });
+
+  el.typeCheckboxes.addEventListener("change", (event) => {
+    const box = event.target;
+    if (!box.matches("input[type=checkbox][data-type]")) return;
+    const type = box.getAttribute("data-type");
+    if (box.checked) {
+      state.visibleTypes.add(type);
+    } else {
+      state.visibleTypes.delete(type);
+    }
+    renderAll();
+  });
+
+  el.showPoints.addEventListener("change", () => {
+    state.showPoints = el.showPoints.checked;
+    renderBoxplot();
+  });
+
+  el.resetBtn.addEventListener("click", resetView);
+}
+
+function resetView() {
+  state.variable = "CityMPG";
+  state.visibleTypes = new Set(TYPE_ORDER);
+  state.showPoints = false;
+  el.variableSelect.value = state.variable;
+  el.showPoints.checked = false;
+  Array.from(el.typeCheckboxes.querySelectorAll("input[type=checkbox][data-type]")).forEach(cb => {
+    cb.checked = true;
+  });
+  setVariableControls(state.variable);
+  renderAll();
+}
+
+function setVariableControls(variable) {
+  const meta = VAR_META[variable];
+  el.binWidth.min = meta.slider.min;
+  el.binWidth.max = meta.slider.max;
+  el.binWidth.step = meta.slider.step;
+  el.binWidth.value = meta.slider.value;
+  state.binWidth = meta.slider.value;
+  updateBinWidthLabel();
+}
+
+function updateBinWidthLabel() {
+  const digits = Number(el.binWidth.step) < 1 ? 1 : 0;
+  el.binWidthValue.textContent = Number(state.binWidth).toFixed(digits).replace(/\.0$/, "");
+}
+
+function renderAll() {
+  updateTopNotes();
+  renderHistogram();
+  renderBoxplot();
+  renderTable();
+  renderMethodsNote();
+}
+
+function updateTopNotes() {
+  const meta = VAR_META[state.variable];
+  const valid = DATA.filter(d => isValid(d[state.variable]));
+  const missing = DATA.length - valid.length;
+  el.selectedVariableLabel.textContent = meta.longLabel;
+  el.unitsNote.textContent = meta.unitsNote;
+  el.overallMissing.textContent = `${missing} of ${DATA.length}`;
+}
+
+function renderHistogram() {
+  const svg = el.histogram;
+  svg.innerHTML = "";
+  const W = 1100, H = 360;
+  const margin = { top: 22, right: 20, bottom: 58, left: 64 };
+  const innerW = W - margin.left - margin.right;
+  const innerH = H - margin.top - margin.bottom;
+
+  const variable = state.variable;
+  const meta = VAR_META[variable];
+  const allValid = DATA.filter(d => isValid(d[variable]));
+  if (!allValid.length) {
+    drawNoData(svg, W, H);
+    return;
+  }
+
+  const values = allValid.map(d => +d[variable]);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const width = +state.binWidth;
+  const bins = buildBins(min, max, width);
+
+  TYPE_ORDER.forEach(type => {
+    bins.forEach(bin => bin.counts[type] = 0);
+  });
+
+  allValid.forEach(d => {
+    const v = +d[variable];
+    const i = Math.min(bins.length - 1, Math.floor((v - min) / width));
+    const idx = Math.max(0, i);
+    bins[idx].counts[d.Type] += 1;
+  });
+
+  bins.forEach(bin => {
+    bin.totalAll = TYPE_ORDER.reduce((sum, type) => sum + (bin.counts[type] || 0), 0);
+  });
+
+  const yMax = Math.max(1, ...bins.map(bin => bin.totalAll));
+  const xScale = value => margin.left + ((value - min) / (bins[bins.length - 1].x1 - min || 1)) * innerW;
+  const yScale = count => margin.top + innerH - (count / yMax) * innerH;
+
+  drawRect(svg, margin.left, margin.top, innerW, innerH, "none", "#ffffff");
+
+  const yTicks = integerTicks(0, yMax, 5);
+  yTicks.forEach(t => {
+    const y = yScale(t);
+    drawLine(svg, margin.left, y, margin.left + innerW, y, "var(--plot-grid)", 1);
+    drawText(svg, String(t), margin.left - 10, y + 4, "end", 12, "var(--muted)");
+  });
+
+  const xTicks = numericTicks(min, bins[bins.length - 1].x1, 6);
+  xTicks.forEach(t => {
+    const x = xScale(t);
+    drawLine(svg, x, margin.top + innerH, x, margin.top + innerH + 6, "var(--muted)", 1);
+    drawText(svg, formatValue(t, variable), x, margin.top + innerH + 22, "middle", 12, "var(--muted)");
+  });
+
+  drawLine(svg, margin.left, margin.top + innerH, margin.left + innerW, margin.top + innerH, "var(--ink)", 1.5);
+  drawLine(svg, margin.left, margin.top, margin.left, margin.top + innerH, "var(--ink)", 1.5);
+
+  bins.forEach(bin => {
+    const x0 = xScale(bin.x0) + 1;
+    const x1 = xScale(bin.x1) - 1;
+    const barW = Math.max(1, x1 - x0);
+    let cumulative = 0;
+    TYPE_ORDER.forEach(type => {
+      if (!state.visibleTypes.has(type)) return;
+      const c = bin.counts[type] || 0;
+      if (c <= 0) return;
+      const y0 = yScale(cumulative);
+      const y1 = yScale(cumulative + c);
+      const rect = drawRect(svg, x0, y1, barW, y0 - y1, COLORS[type], "white");
+      rect.setAttribute("opacity", "0.9");
+      rect.addEventListener("mousemove", evt => {
+        showTooltip(evt, `
+          <strong>${type}</strong><br>
+          Bin: ${formatValue(bin.x0, variable)} to ${formatValue(bin.x1, variable)}<br>
+          Count: ${c}
+        `);
+      });
+      rect.addEventListener("mouseleave", hideTooltip);
+      cumulative += c;
+    });
+    if (barW >= 18) {
+      drawLine(svg, x0, margin.top + innerH, x0, margin.top + innerH - 4, "#ffffff", 0.4);
+    }
+  });
+
+  drawText(svg, meta.axisLabel, margin.left + innerW / 2, H - 12, "middle", 14, "var(--ink)", 700);
+  const yTitle = drawText(svg, "Count", 18, margin.top + innerH / 2, "middle", 14, "var(--ink)", 700);
+  yTitle.setAttribute("transform", `rotate(-90 18 ${margin.top + innerH / 2})`);
+
+  renderLegend();
+}
+
+function renderLegend() {
+  el.histLegend.innerHTML = "";
+  TYPE_ORDER.forEach(type => {
+    const item = document.createElement("div");
+    item.className = "legend-item";
+    item.style.opacity = state.visibleTypes.has(type) ? "1" : "0.45";
+    item.innerHTML = `<span class="swatch" style="background:${COLORS[type] || "#999"}"></span><span>${type}</span>`;
+    el.histLegend.appendChild(item);
+  });
+}
+
+function renderBoxplot() {
+  const svg = el.boxplot;
+  svg.innerHTML = "";
+  const W = 1100, H = 440;
+  const margin = { top: 20, right: 24, bottom: 70, left: 74 };
+  const innerW = W - margin.left - margin.right;
+  const innerH = H - margin.top - margin.bottom;
+  const variable = state.variable;
+  const meta = VAR_META[variable];
+
+  const allValid = DATA.filter(d => isValid(d[variable]));
+  if (!allValid.length) {
+    drawNoData(svg, W, H);
+    return;
+  }
+
+  const allValues = allValid.map(d => +d[variable]);
+  let min = Math.min(...allValues);
+  let max = Math.max(...allValues);
+  const span = max - min;
+  const pad = span === 0 ? 1 : span * 0.07;
+  min -= pad;
+  max += pad;
+
+  const xStep = innerW / TYPE_ORDER.length;
+  const groupWidth = Math.min(92, xStep * 0.55);
+  const yScale = value => margin.top + innerH - ((value - min) / (max - min || 1)) * innerH;
+
+  const yTicks = numericTicks(min, max, 6);
+  yTicks.forEach(t => {
+    const y = yScale(t);
+    drawLine(svg, margin.left, y, margin.left + innerW, y, "var(--plot-grid)", 1);
+    drawText(svg, formatValue(t, variable), margin.left - 10, y + 4, "end", 12, "var(--muted)");
+  });
+
+  drawLine(svg, margin.left, margin.top + innerH, margin.left + innerW, margin.top + innerH, "var(--ink)", 1.5);
+  drawLine(svg, margin.left, margin.top, margin.left, margin.top + innerH, "var(--ink)", 1.5);
+
+  TYPE_ORDER.forEach((type, idx) => {
+    const cx = margin.left + xStep * idx + xStep / 2;
+    const groupData = DATA.filter(d => d.Type === type && isValid(d[variable]));
+    const values = groupData.map(d => +d[variable]).sort((a, b) => a - b);
+    const visible = state.visibleTypes.has(type);
+
+    drawText(svg, type, cx, H - 24, "middle", 13, visible ? "var(--ink)" : "var(--muted)", 700);
+    drawLine(svg, cx, margin.top + innerH, cx, margin.top + innerH + 6, "var(--muted)", 1);
+
+    if (!values.length) {
+      return;
+    }
+
+    const stats = boxStats(values);
+    const color = COLORS[type] || "#777";
+    if (visible) {
+      drawLine(svg, cx, yScale(stats.whiskerLow), cx, yScale(stats.whiskerHigh), color, 2);
+      drawLine(svg, cx - groupWidth * 0.22, yScale(stats.whiskerLow), cx + groupWidth * 0.22, yScale(stats.whiskerLow), color, 2);
+      drawLine(svg, cx - groupWidth * 0.22, yScale(stats.whiskerHigh), cx + groupWidth * 0.22, yScale(stats.whiskerHigh), color, 2);
+      const box = drawRect(svg, cx - groupWidth / 2, yScale(stats.q3), groupWidth, yScale(stats.q1) - yScale(stats.q3), color, color);
+      box.setAttribute("fill-opacity", "0.22");
+      box.setAttribute("stroke-width", "2");
+      drawLine(svg, cx - groupWidth / 2, yScale(stats.median), cx + groupWidth / 2, yScale(stats.median), color, 3);
+
+      const hitbox = drawRect(svg, cx - groupWidth / 2, yScale(stats.q3), groupWidth, yScale(stats.q1) - yScale(stats.q3), "transparent", "transparent");
+      hitbox.addEventListener("mousemove", evt => {
+        showTooltip(evt, `
+          <strong>${type}</strong><br>
+          n = ${stats.n}<br>
+          Q1 = ${formatValue(stats.q1, variable)}<br>
+          Median = ${formatValue(stats.median, variable)}<br>
+          Q3 = ${formatValue(stats.q3, variable)}<br>
+          IQR = ${formatValue(stats.iqr, variable)}<br>
+          Whiskers: ${formatValue(stats.whiskerLow, variable)} to ${formatValue(stats.whiskerHigh, variable)}
+        `);
+      });
+      hitbox.addEventListener("mouseleave", hideTooltip);
+
+      if (state.showPoints) {
+        groupData.forEach((d, pointIdx) => {
+          const value = +d[variable];
+          const xJitter = deterministicJitter(`${d.Label}-${pointIdx}`, groupWidth * 0.72);
+          const circle = drawCircle(svg, cx + xJitter, yScale(value), 4.4, color, "white");
+          circle.setAttribute("fill-opacity", "0.78");
+          circle.addEventListener("mousemove", evt => {
+            showTooltip(evt, `
+              <strong>${d.Label}</strong><br>
+              Type: ${d.Type}<br>
+              ${meta.label}: ${formatValue(value, variable)}
+            `);
+          });
+          circle.addEventListener("mouseleave", hideTooltip);
+        });
+      }
+    } else {
+      const faded = drawRect(svg, cx - groupWidth / 2, yScale(stats.q3), groupWidth, yScale(stats.q1) - yScale(stats.q3), "var(--plot-grid)", "var(--line)");
+      faded.setAttribute("stroke-dasharray", "4 3");
+      faded.setAttribute("fill-opacity", "0.6");
+      drawLine(svg, cx, yScale(stats.whiskerLow), cx, yScale(stats.whiskerHigh), "var(--line)", 1.5);
+      drawLine(svg, cx - groupWidth * 0.22, yScale(stats.whiskerLow), cx + groupWidth * 0.22, yScale(stats.whiskerLow), "var(--line)", 1.5);
+      drawLine(svg, cx - groupWidth * 0.22, yScale(stats.whiskerHigh), cx + groupWidth * 0.22, yScale(stats.whiskerHigh), "var(--line)", 1.5);
+      drawLine(svg, cx - groupWidth / 2, yScale(stats.median), cx + groupWidth / 2, yScale(stats.median), "var(--line)", 2);
+    }
+  });
+
+  drawText(svg, meta.axisLabel, margin.left + innerW / 2, H - 6, "middle", 14, "var(--ink)", 700);
+  const yTitle = drawText(svg, meta.axisLabel, 20, margin.top + innerH / 2, "middle", 14, "var(--ink)", 700);
+  yTitle.setAttribute("transform", `rotate(-90 20 ${margin.top + innerH / 2})`);
+}
+
+function renderTable() {
+  const variable = state.variable;
+  const tbody = el.summaryTableBody;
+  tbody.innerHTML = "";
+
+  TYPE_ORDER.forEach(type => {
+    const group = DATA.filter(d => d.Type === type);
+    const valid = group.filter(d => isValid(d[variable])).map(d => +d[variable]).sort((a, b) => a - b);
+    const missing = group.length - valid.length;
+    const row = document.createElement("tr");
+    if (!state.visibleTypes.has(type)) row.classList.add("hidden-row");
+
+    let mean = "—", median = "—", sd = "—", iqr = "—";
+    if (valid.length) {
+      const stats = boxStats(valid);
+      mean = formatValue(arithmeticMean(valid), variable);
+      median = formatValue(stats.median, variable);
+      sd = valid.length > 1 ? formatValue(sampleSD(valid), variable) : "—";
+      iqr = formatValue(stats.iqr, variable);
+    }
+
+    row.innerHTML = `
+      <td><span class="swatch" style="background:${COLORS[type] || "#999"}; vertical-align:middle; margin-right:6px;"></span>${type}</td>
+      <td>${state.visibleTypes.has(type) ? "Shown" : "Hidden"}</td>
+      <td>${valid.length}</td>
+      <td>${missing}</td>
+      <td>${mean}</td>
+      <td>${median}</td>
+      <td>${sd}</td>
+      <td>${iqr}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function renderMethodsNote() {
+  const variable = VAR_META[state.variable];
+  el.methodsNote.innerHTML = `
+    Quartiles: linear interpolation (Type 7). Whiskers: extreme observations within 1.5 × IQR of Q1 and Q3. Sample SD: denominator <em>n − 1</em>. Data: cars20.csv (${DATA.length} vehicles). Missing values are excluded per variable. ${variable.unitsNote}
+  `;
+}
+
+function boxStats(sortedValues) {
+  const q1 = quantileSorted(sortedValues, 0.25);
+  const median = quantileSorted(sortedValues, 0.5);
+  const q3 = quantileSorted(sortedValues, 0.75);
+  const iqr = q3 - q1;
+  const lowFence = q1 - 1.5 * iqr;
+  const highFence = q3 + 1.5 * iqr;
+  let whiskerLow = sortedValues.find(v => v >= lowFence);
+  let whiskerHigh = [...sortedValues].reverse().find(v => v <= highFence);
+  return {
+    n: sortedValues.length,
+    q1, median, q3, iqr,
+    whiskerLow: whiskerLow ?? sortedValues[0],
+    whiskerHigh: whiskerHigh ?? sortedValues[sortedValues.length - 1]
+  };
+}
+
+function quantileSorted(sorted, p) {
+  if (!sorted.length) return NaN;
+  if (sorted.length === 1) return sorted[0];
+  const pos = (sorted.length - 1) * p;
+  const base = Math.floor(pos);
+  const rest = pos - base;
+  const lower = sorted[base];
+  const upper = sorted[Math.min(base + 1, sorted.length - 1)];
+  return lower + rest * (upper - lower);
+}
+
+function arithmeticMean(values) {
+  return values.reduce((a, b) => a + b, 0) / values.length;
+}
+
+function sampleSD(values) {
+  const m = arithmeticMean(values);
+  const ss = values.reduce((sum, v) => sum + Math.pow(v - m, 2), 0);
+  return Math.sqrt(ss / (values.length - 1));
+}
+
+function buildBins(min, max, width) {
+  const n = Math.max(1, Math.ceil((max - min) / width));
+  const bins = [];
+  for (let i = 0; i < n; i++) {
+    const x0 = min + i * width;
+    const x1 = (i === n - 1) ? min + n * width : min + (i + 1) * width;
+    bins.push({ x0, x1, counts: {} });
+  }
+  return bins;
+}
+
+function isValid(value) {
+  return value !== null && value !== undefined && value !== "" && !Number.isNaN(+value);
+}
+
+function formatValue(value, variable) {
+  if (!isFinite(value)) return "—";
+  const digits = VAR_META[variable].digits;
+  return Number(value).toFixed(digits).replace(/\.0$/, "");
+}
+
+function integerTicks(min, max, targetCount) {
+  if (max <= min) return [min];
+  const raw = Math.max(1, Math.round((max - min) / Math.max(1, targetCount - 1)));
+  const ticks = [];
+  for (let v = min; v <= max; v += raw) ticks.push(v);
+  if (ticks[ticks.length - 1] !== max) ticks.push(max);
+  return [...new Set(ticks)];
+}
+
+function numericTicks(min, max, targetCount) {
+  if (max === min) return [min];
+  const step = (max - min) / Math.max(1, targetCount - 1);
+  const ticks = [];
+  for (let i = 0; i < targetCount; i++) ticks.push(min + i * step);
+  return ticks;
+}
+
+function deterministicJitter(seed, width) {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  const u = ((h >>> 0) / 4294967295);
+  return (u - 0.5) * width;
+}
+
+function drawLine(svg, x1, y1, x2, y2, stroke, strokeWidth) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  el.setAttribute("x1", x1);
+  el.setAttribute("y1", y1);
+  el.setAttribute("x2", x2);
+  el.setAttribute("y2", y2);
+  el.setAttribute("stroke", stroke);
+  el.setAttribute("stroke-width", strokeWidth);
+  svg.appendChild(el);
+  return el;
+}
+
+function drawRect(svg, x, y, w, h, fill, stroke) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  el.setAttribute("x", x);
+  el.setAttribute("y", y);
+  el.setAttribute("width", Math.max(0, w));
+  el.setAttribute("height", Math.max(0, h));
+  el.setAttribute("fill", fill);
+  el.setAttribute("stroke", stroke);
+  svg.appendChild(el);
+  return el;
+}
+
+function drawCircle(svg, cx, cy, r, fill, stroke) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  el.setAttribute("cx", cx);
+  el.setAttribute("cy", cy);
+  el.setAttribute("r", r);
+  el.setAttribute("fill", fill);
+  el.setAttribute("stroke", stroke);
+  el.setAttribute("stroke-width", "1");
+  svg.appendChild(el);
+  return el;
+}
+
+function drawText(svg, text, x, y, anchor, size, fill, weight = 400) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  el.textContent = text;
+  el.setAttribute("x", x);
+  el.setAttribute("y", y);
+  el.setAttribute("text-anchor", anchor);
+  el.setAttribute("font-size", size);
+  el.setAttribute("fill", fill);
+  el.setAttribute("font-weight", weight);
+  el.setAttribute("font-family", "Arial, Helvetica, sans-serif");
+  svg.appendChild(el);
+  return el;
+}
+
+function drawNoData(svg, W, H) {
+  drawText(svg, "No valid observations for the selected variable.", W / 2, H / 2, "middle", 18, "var(--muted)", 700);
+}
+
+function showTooltip(evt, html) {
+  el.tooltip.innerHTML = html.trim();
+  el.tooltip.style.opacity = 1;
+  el.tooltip.style.left = `${evt.clientX}px`;
+  el.tooltip.style.top = `${evt.clientY}px`;
+}
+
+function hideTooltip() {
+  el.tooltip.style.opacity = 0;
+}
+
+init();
+</script>
+</body>
+</html>

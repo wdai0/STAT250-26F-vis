@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Three distributions · STAT 250</title>
+<style>
+  :root {
+    --bg:#f5f7fa; --paper:#fff; --ink:#17212e; --muted:#566578;
+    --line:#dbe1e8; --blue:#416db4; --blue-faint:#eaf0f9;
+    --orange:#a16d45; --orange-faint:#f7f1eb;
+    --purple:#6b6594; --purple-dark:#514b77; --purple-faint:#f0eef5;
+    --black:#18202a; --shadow:0 5px 22px rgba(26,44,66,.045);
+    --radius:15px; --sidebar-w:262px;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+    color:var(--ink); background:var(--bg); font-size:16px;
+  }
+  * {box-sizing:border-box}
+  [hidden] {display:none !important}
+  body {margin:0}
+  button,input,select {font:inherit}
+  button {cursor:pointer}
+  button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible {
+    outline:3px solid #3d86e4; outline-offset:3px;
+  }
+  .app {display:grid; grid-template-columns:var(--sidebar-w) minmax(0,1fr); min-height:0}
+  .sidebar {position:sticky; top:0; height:auto; overflow-y:auto; background:#fff;
+    border-right:1px solid var(--line); display:flex; flex-direction:column; padding:27px 17px 23px; z-index:3}
+  .brand {display:flex; gap:11px; align-items:center; padding:1px 10px 27px; border-bottom:1px solid var(--line)}
+  .brand-icon {width:36px;height:36px;border:1px solid #cad6e4;border-radius:11px;
+    display:flex;align-items:flex-end;justify-content:center;gap:4px;padding:8px;background:#f7f9fc}
+  .brand-icon i{width:5px; border-radius:2px 2px 0 0;display:block}
+  .brand-icon i:nth-child(1){height:10px;background:var(--blue)}
+  .brand-icon i:nth-child(2){height:16px;background:var(--orange)}
+  .brand-icon i:nth-child(3){height:13px;background:var(--purple)}
+  .brand .tiny {font-size:11px;color:var(--muted);letter-spacing:.14em;font-weight:800;text-transform:uppercase}
+  .brand strong {display:block;font-size:18px;letter-spacing:-.03em;line-height:1.15;margin-top:2px}
+  .side-label {padding:27px 11px 10px;color:#657489;text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:800}
+  .nav {display:flex;flex-direction:column;gap:5px}
+  .nav button {position:relative;display:flex;align-items:center;text-align:left;gap:12px;width:100%;
+    background:transparent;border:1px solid transparent;border-radius:11px;color:var(--ink);padding:12px 11px;min-height:67px}
+  .nav button:hover{background:#f5f7fa}
+  .nav button[aria-current="page"] {border-color:#d9e1eb;background:#f1f5f9;box-shadow:inset 3px 0 var(--sel,#3b506e)}
+  .nav-dot {width:11px;height:11px;flex:none;background:var(--sel,#7a8797);border-radius:3px}
+  .nav-copy {flex:1;min-width:0}
+  .nav-copy strong {display:block;font-size:15px;font-weight:720;line-height:1.28}
+  .nav-copy small {display:block;font-size:12px;color:#627185;margin-top:3px;line-height:1.35}
+  .nav-chevron {font-size:19px;color:#96a1b0}
+  .side-bottom {margin-top:auto;padding:23px 10px 0}
+  .side-card {background:#f6f8fa;border:1px solid var(--line);padding:13px;border-radius:12px}
+  .side-card strong {font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#586779}
+  .fixed-row {display:flex;justify-content:space-between;gap:6px;border-bottom:1px solid #e2e6ec;padding:8px 0;font-size:13px}
+  .fixed-row:last-child {border-bottom:none;padding-bottom:0}
+  .fixed-row span {color:#607085}
+  .fixed-row b {font-size:14px;white-space:nowrap}
+  .side-foot {font-size:12px;color:#637285;line-height:1.5;margin:12px 2px 0}
+  .workspace {min-width:0;width:100%;max-width:1460px;margin:0 auto;padding:27px clamp(22px,3vw,46px) 46px}
+  .topline {display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+  .eyebrow {font-size:12px;font-weight:780;letter-spacing:.11em;text-transform:uppercase;color:#607189}
+  .topnote {font-size:13px;color:#607189}
+  h1 {font-size:clamp(28px,3.2vw,40px);line-height:1.15;margin:0 0 10px;letter-spacing:-.048em;font-weight:800}
+  .hero-sub {font-size:18px;line-height:1.5;max-width:980px;margin:0 0 24px;color:#45576d}
+  .hero-sub b {font-weight:750;color:var(--ink)}
+  .controls {background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;
+    box-shadow:var(--shadow);margin-bottom:24px}
+  .controls-grid {display:grid;grid-template-columns:auto minmax(0,1fr);align-items:end;gap:16px 26px}
+  .buttons {display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .btn {min-height:43px;padding:10px 15px;border-radius:9px;font-size:14px;font-weight:740;
+    border:1px solid #cad5e2;background:#fff;color:#23374d;white-space:nowrap}
+  .btn:hover {background:#f5f8fc}
+  .btn-primary {background:#1c3757;color:#fff;border-color:#1c3757}
+  .btn-primary:hover {background:#284b70}
+  .btn-lite {background:transparent;color:#52647c;border-color:transparent}
+  .btn-lite:hover {background:#eef2f6}
+  .config {display:flex;align-items:end;justify-content:flex-end;gap:13px;flex-wrap:wrap}
+  .field label,.p-group label{display:block;font-size:12px;color:#56677b;font-weight:750;margin-bottom:5px;letter-spacing:.012em}
+  .field select,.field input {border-radius:8px;border:1px solid #c9d3df;background:#fff;height:43px;
+    padding:0 11px;min-width:107px;color:var(--ink);font-weight:650}
+  .field input {width:142px;min-width:0;font-variant-numeric:tabular-nums}
+  .field .btn {height:43px}
+  .controls-bottom {display:flex;align-items:center;gap:18px;border-top:1px solid #e8edf2;margin-top:15px;padding-top:13px}
+  .p-group {display:grid;grid-template-columns:auto minmax(140px,220px) auto;align-items:center;gap:12px;min-width:360px}
+  .p-group label {margin:0;white-space:nowrap;font-size:13px}
+  input[type="range"] {width:100%;height:28px;accent-color:var(--blue)}
+  .p-value {font-size:17px;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums;min-width:42px}
+  .p-explain {font-size:13px;color:#62748a;line-height:1.45}
+  .runstatus {font-size:13px;color:#56677b;margin-top:11px;display:flex;align-items:center;gap:8px;line-height:1.5}
+  .runstatus::before {content:"";display:block;flex:none;width:7px;height:7px;border-radius:50%;background:#4e8276}
+  .view {animation:arrive .17s ease-out}
+  @keyframes arrive {from{opacity:.78;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+  .view-head {display:flex;gap:18px;align-items:flex-start;justify-content:space-between;margin:0 0 17px}
+  .view-head h2 {font-size:clamp(22px,2.4vw,28px);line-height:1.15;letter-spacing:-.032em;margin:4px 0 6px}
+  .view-head p {color:#4c5d73;line-height:1.5;font-size:16px;margin:0;max-width:760px}
+  .source-tag {color:var(--theme);font-weight:790}
+  .flow {display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 0 15px}
+  .flow-item {border:1px solid var(--line);border-radius:11px;padding:11px 14px;background:var(--paper);min-width:0}
+  .flow-item small {display:block;text-transform:uppercase;letter-spacing:.09em;font-size:11px;color:#68778b;font-weight:750;margin-bottom:4px}
+  .flow-item b {display:block;font-size:15px;line-height:1.4;font-weight:750}
+  .flow-item em{font-style:normal;color:#63758a;font-size:13px}
+  .chart-card {background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden}
+  .chart-header {display:flex;justify-content:space-between;align-items:center;gap:12px;
+    padding:15px 20px 6px;flex-wrap:wrap}
+  .chart-title {font-size:16px;font-weight:800}
+  .chart-meta {font-size:12px;color:#66768a}
+  .chart-slot {width:100%; min-width:0; max-width:100%; padding:0 12px; overflow-x:auto;}
+  .chart-slot svg {min-width:760px;}
+  svg text {font-family:var(--font);}
+  .chart-slot svg {width:100%;height:auto;display:block;overflow:visible}
+  .legend {display:flex;align-items:center;gap:9px 20px;flex-wrap:wrap;
+    padding:10px 21px 12px;font-size:13px;color:#4d5d70;border-top:1px solid #eef1f5}
+  .legend-item {display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+  .legend-swatch {display:inline-block;width:23px;height:0;border-top:3px solid var(--legend-color,#7a8ba1)}
+  .legend-swatch.dashed {border-top:3px dashed #202630}
+  .legend-triangle {font-size:17px;color:#596978;line-height:12px}
+  .legend-fill {width:18px;height:12px;display:inline-block;background:var(--legend-color);border-radius:2px;opacity:.78}
+  .legend-fill.tail {background:repeating-linear-gradient(45deg,#514b77 0px,#514b77 3px,#b4afcb 3px,#b4afcb 6px);opacity:1}
+  .stat-strip {border-top:1px solid #e9edf2;padding:13px 22px 15px;display:flex;gap:40px;flex-wrap:wrap}
+  .stat {min-width:125px}
+  .stat small {display:block;color:#67778b;font-size:12px;margin-bottom:3px}
+  .stat strong {display:block;font-size:22px;font-weight:800;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+  .interpret {margin-top:13px;padding:14px 18px;background:#fff;border:1px solid var(--line);
+    border-left:4px solid var(--theme);border-radius:10px;font-size:15px;line-height:1.55;color:#47596f}
+  .interpret strong {color:var(--ink)}
+  .tail-callout {margin-top:13px;display:flex;justify-content:space-between;align-items:center;gap:20px;
+    background:#f6f0fb;border:1px solid #dcd0ec;border-radius:12px;padding:14px 19px;flex-wrap:wrap}
+  .tail-callout small {font-size:12px;font-weight:750;letter-spacing:.06em;text-transform:uppercase;color:#624787}
+  .tail-callout strong{display:block;font-size:24px;letter-spacing:-.035em;margin:3px 0}
+  .tail-callout p{font-size:14px;color:#594973;margin:0;line-height:1.5}
+  .tail-value {font-size:29px;font-weight:830;font-variant-numeric:tabular-nums;color:#52307f;white-space:nowrap}
+  .tail-value span {display:block;text-align:right;font-size:12px;color:#6e5887;font-weight:600}
+  .compare-toolbar {display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:13px}
+  .toggle {display:flex;align-items:center;gap:9px;cursor:pointer;background:#fff;border:1px solid var(--line);
+    padding:10px 14px;border-radius:10px;font-size:14px;font-weight:720}
+  .toggle input {accent-color:#1c3757;width:17px;height:17px;margin:0}
+  .compare-stack {display:grid;gap:13px}
+  .compare-mini-head {padding:12px 16px 0;display:flex;justify-content:space-between;gap:12px;align-items:center}
+  .compare-mini-head strong {font-size:17px}
+  .compare-mini-head small{font-size:13px;color:#64768a}
+  .color-square {display:inline-block;width:11px;height:11px;border-radius:2px;background:var(--swatch);margin-right:7px}
+  .overlay-legend {display:flex;gap:12px 24px;padding:9px 20px 14px;flex-wrap:wrap;font-size:14px}
+  .overlay-legend .key {display:flex;gap:8px;align-items:center}
+  .overlay-legend .key i{display:inline-block;width:25px;border-top:4px solid var(--legend-color)}
+  .comparison-table {width:100%;border-collapse:collapse;text-align:left;font-size:14px}
+  .table-wrap {overflow-x:auto}
+  .comparison-table th {text-transform:uppercase;font-size:11px;letter-spacing:.1em;
+    color:#69788a;font-weight:820;background:#f7f9fb}
+  .comparison-table td,.comparison-table th {padding:13px 16px;vertical-align:top;border-bottom:1px solid #e4e9ef}
+  .comparison-table tr:last-child td {border-bottom:0}
+  .comparison-table td:nth-child(3) {font-weight:780;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .subheading {font-size:20px;letter-spacing:-.025em;margin:25px 0 12px}
+  .foot-card {background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:19px 21px;
+    line-height:1.65;font-size:15px;color:#4b5e72}
+  .note-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  .note-tile{background:#fff;border:1px solid var(--line);border-radius:13px;padding:20px}
+  .note-tile h3{margin:0 0 7px;font-size:18px;letter-spacing:-.02em}
+  .note-tile p{margin:0;color:#4b5e72;font-size:15px;line-height:1.65}
+  .note-wide{grid-column:1/-1}
+  .note-wide p+p {margin-top:13px}
+  .view-footer{margin:14px 0 0;font-size:13px;color:#68798d;line-height:1.5}
+  dialog {border:1px solid #cfd9e4;border-radius:17px;padding:0;width:min(790px,calc(100vw - 30px));
+    max-height:min(880px,calc(100vh - 35px));overflow:auto;box-shadow:0 22px 76px rgba(9,24,41,.26);color:var(--ink)}
+  dialog::backdrop {background:rgba(20,31,45,.55)}
+  .modal-head{padding:22px 24px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line)}
+  .modal-head h2 {font-size:25px;letter-spacing:-.04em;margin:3px 0 5px}
+  .modal-head p {font-size:14px;color:#576b81;line-height:1.5;margin:0}
+  .icon-btn {border:1px solid var(--line);width:38px;height:38px;border-radius:9px;background:#fff;color:#40546c;font-size:24px;line-height:1}
+  .modal-main {padding:19px 24px 25px}
+  .modal-topline {display:flex;justify-content:space-between;gap:12px;align-items:end;flex-wrap:wrap}
+  .modal-topline label{display:block;font-size:12px;color:#627287;font-weight:750;margin-bottom:5px}
+  .modal-topline select{padding:9px 11px;border-radius:8px;border:1px solid #bdccdc;background:#fff;min-height:40px}
+  .rep-math{padding:15px 16px;background:#f5f8fb;border:1px solid #dde5ee;border-radius:10px;margin:14px 0 18px;
+    font-size:21px;font-weight:780;line-height:1.5;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+  .rep-math small{display:block;font-size:13px;font-weight:600;color:#53677f;letter-spacing:0}
+  .outcome-grid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px;max-width:540px}
+  .bit{height:33px;border-radius:6px;display:grid;place-items:center;background:#eff2f5;
+    border:1px solid #d4dbe4;color:#657285;font-size:13px;font-weight:800}
+  .bit.success{background:var(--outcome-wash,#eaf0f9);color:var(--outcome-color,#416db4);border-color:var(--outcome-border,#b8cfe8)}
+  .bit-legend {display:flex;gap:22px;flex-wrap:wrap;margin:13px 0 0;font-size:13px;color:#53667b}
+  .bit-legend span {display:flex;align-items:center;gap:8px}
+  .bit-legend b {width:17px;height:17px;border:1px solid #d2dbe4;display:inline-grid;place-items:center;border-radius:4px;font-size:11px}
+  .modal-explainer{font-size:15px;line-height:1.65;color:#4a5f76;margin:18px 0 0}
+  @media (max-width:1150px) {
+    :root{--sidebar-w:224px}
+    .workspace{padding-inline:22px}
+    .controls-grid{grid-template-columns:1fr}
+    .config{justify-content:flex-start}
+  }
+  @media (max-width:780px){
+    .app{display:block}
+    .sidebar{position:relative;width:100%;height:auto;overflow:visible;border-right:0;border-bottom:1px solid var(--line);padding:12px 15px}
+    .brand{padding:5px 3px 12px;border-bottom:0}
+    .side-label,.side-bottom,.nav-copy small,.nav-chevron{display:none}
+    .nav{display:flex;flex-direction:row;overflow-x:auto;gap:7px;padding-bottom:4px;scrollbar-width:thin}
+    .nav button{width:auto;min-width:max-content;min-height:44px;padding:9px 12px;gap:8px}
+    .nav-copy strong{font-size:13px}
+    .nav button[aria-current="page"]{box-shadow:inset 0 -3px var(--sel,#3b506e)}
+    .workspace{padding:23px 14px 45px}
+    h1{font-size:28px}.hero-sub{font-size:16px}
+    .controls{padding:15px}
+    .controls-bottom{display:block}
+    .p-group{min-width:0;grid-template-columns:1fr 1fr auto;gap:8px}
+    .p-group label {font-size:12px;white-space:normal}
+    .p-explain{margin:8px 0 0}
+    .flow{grid-template-columns:1fr;gap:7px}
+    .view-head{flex-wrap:wrap}
+    .stat-strip{gap:14px 24px}
+    .note-grid{grid-template-columns:1fr}.note-wide{grid-column:auto}
+    .legend{font-size:12px;gap:8px 14px}
+    .chart-slot{padding:0 4px}
+    .comparison-table{min-width:620px}
+  }
+  @media (prefers-reduced-motion:reduce){.view{animation:none}}
+
+  /* Collection presentation; the simulation logic is retained from the supplied file. */
+  :root { --bg:var(--page); --paper:var(--surface); --blue:var(--plot); --blue-faint:var(--accent-soft);
+    --orange:var(--warm); --orange-faint:#f7f1eb; --purple:#6b6594; --purple-dark:#514b77;
+    --purple-faint:#f0eef5; --black:var(--ink); --shadow:none; --sidebar-w:218px; }
+  .sidebar { height:auto; min-height:0; padding:24px 14px; }
+  .brand {padding:0 9px 18px;}
+  .brand strong {font-size:1rem; font-weight:650; letter-spacing:0;}
+  .side-label {padding:19px 10px 8px; font-weight:600; letter-spacing:.06em;}
+  .nav button {min-height:44px; border-radius:var(--radius); padding:9px 10px; gap:9px;}
+  .nav-copy strong {font-size:.86rem; font-weight:600;}
+  .nav button[aria-current="page"] {background:var(--accent-soft); box-shadow:none; border-color:var(--line);}
+  .side-card {background:#f8f9fb; border-radius:var(--radius);}
+  .side-bottom {margin-top:24px; padding:0 4px;}
+  .workspace {padding:26px 24px;}
+  .workspace > h1 {font-size:1.4rem; font-weight:650; letter-spacing:-.02em; margin:0 0 8px;}
+  .setup-note {font-size:.82rem; color:var(--muted); margin-bottom:20px;}
+  .controls {padding:16px; margin-bottom:20px;}
+  .btn {border-radius:var(--radius); font-weight:600;}
+  .btn-primary {background:var(--accent); border-color:var(--accent);}
+  .btn-primary:hover {background:var(--accent-hover);}
+  .field select,.field input,.toggle {border-radius:var(--radius); font-weight:500;}
+  .p-value {font-size:1rem; font-weight:600;}
+  .runstatus::before {display:none;}
+  .view {animation:none;}
+  .view-head {align-items:center; margin-bottom:14px;}
+  .view-head h2 {font-size:1.12rem; font-weight:650; letter-spacing:0; margin:0;}
+  .flow-item {border-radius:var(--radius); padding:10px 12px;}
+  .flow-item b {font-size:.84rem; font-weight:600;}
+  .chart-title {font-size:.92rem; font-weight:600;}
+  .chart-meta {font-size:.72rem;}
+  .stat strong {font-size:1.2rem; font-weight:650;}
+  .interpret {padding:10px 0; border:0; border-bottom:1px solid var(--line); border-radius:0; font-size:.8rem;}
+  .tail-callout {background:#f8f9fb; border-color:var(--line); border-radius:var(--radius); padding:12px 16px;}
+  .tail-callout strong,.tail-value {font-size:1.35rem; font-weight:650;}
+  .tail-callout small {letter-spacing:0; text-transform:none;}
+  .tail-callout p {font-size:.8rem;}
+  .compare-mini-head strong {font-size:.95rem; font-weight:650;}
+  .subheading {font-size:1rem; margin:20px 0 10px;}
+  .note-tile {border-radius:var(--radius); padding:16px;}
+  .note-tile h3 {font-size:.95rem; font-weight:650;}
+  .note-tile p {font-size:.84rem; line-height:1.55;}
+  dialog {border-radius:var(--radius); box-shadow:none;}
+  .modal-head h2 {font-size:1.2rem; letter-spacing:0;}
+  .rep-math {font-size:1.1rem; border-radius:var(--radius);}
+  .modal-explainer {font-size:.82rem;}
+  .attribution {max-width:1360px; margin:0 auto; padding:20px 24px;}
+  @media(max-width:780px) {
+    .sidebar {min-height:0; padding:12px;}
+    .brand {display:none;}
+    .workspace {padding:20px 14px;}
+    .nav {gap:4px;}
+    .nav button {min-height:40px; padding:8px 10px;}
+    .nav-copy strong {font-size:.8rem;}
+    .workspace > h1 {font-size:1.25rem;}
+  }
+</style>
+<!-- SHARED_THEME -->
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="brand"><strong>Three distributions</strong></div>
+    <div class="side-label">Explore</div>
+    <nav class="nav" aria-label="Distribution views">
+      <button type="button" data-nav="sampling" aria-current="page" aria-controls="view-sampling" style="--sel:var(--blue)">
+        <span class="nav-dot" aria-hidden="true"></span><span class="nav-copy"><strong>Sampling</strong></span><span class="nav-chevron" aria-hidden="true">›</span></button>
+      <button type="button" data-nav="bootstrap" aria-controls="view-bootstrap" style="--sel:var(--orange)">
+        <span class="nav-dot" aria-hidden="true"></span><span class="nav-copy"><strong>Bootstrap</strong></span><span class="nav-chevron" aria-hidden="true">›</span></button>
+      <button type="button" data-nav="null" aria-controls="view-null" style="--sel:var(--purple)">
+        <span class="nav-dot" aria-hidden="true"></span><span class="nav-copy"><strong>Null</strong></span><span class="nav-chevron" aria-hidden="true">›</span></button>
+      <button type="button" data-nav="compare" aria-controls="view-compare" style="--sel:#4c657e">
+        <span class="nav-dot" aria-hidden="true"></span><span class="nav-copy"><strong>Compare all</strong></span><span class="nav-chevron" aria-hidden="true">›</span></button>
+      <button type="button" data-nav="notes" aria-controls="view-notes" style="--sel:#7a8797">
+        <span class="nav-dot" aria-hidden="true"></span><span class="nav-copy"><strong>Methods</strong></span><span class="nav-chevron" aria-hidden="true">›</span></button>
+    </nav>
+    <div class="side-bottom"><div class="side-card"><strong>Fixed example</strong>
+      <div class="fixed-row"><span>Sample size</span><b>n = 100</b></div>
+      <div class="fixed-row"><span>Observed data</span><b>32 / 100</b></div>
+      <div class="fixed-row"><span>Null claim</span><b>p₀ = 0.20</b></div>
+      <div class="fixed-row"><span>Simulation world</span><b id="side-p">p = 0.28</b></div></div>
+      <p class="side-foot">Observed data are fixed and illustrative.</p>
+    </div>
+  </aside>
+
+  <main class="workspace">
+    <h1>Three distributions</h1>
+    <p class="setup-note">Independent binary outcomes · n = 100 · observed 32/100 · p₀ = 0.20</p>
+
+    <section class="controls" aria-label="Simulation controls">
+      <div class="controls-grid">
+        <div class="buttons">
+          <button type="button" id="run" class="btn btn-primary">Run simulation</button>
+          <button type="button" id="add" class="btn">+ Add one sample</button>
+          <button type="button" id="reset" class="btn btn-lite">Reset</button>
+        </div>
+        <div class="config">
+          <div class="field"><label for="reps">Repetitions (B)</label>
+            <select id="reps"><option value="100">100</option><option value="1000">1,000</option><option value="5000" selected>5,000</option><option value="10000">10,000</option></select></div>
+          <div class="field"><label for="seed">Seed</label><input id="seed" type="number" min="0" max="4294967295" step="1" value="20261008" inputmode="numeric"></div>
+          <div class="field"><span aria-hidden="true">&nbsp;</span><button type="button" id="new-seed" class="btn">New seed</button></div>
+        </div>
+      </div>
+      <div class="controls-bottom">
+        <div class="p-group"><label for="true-p">Hypothetical true p</label><input type="range" id="true-p" min="0.10" max="0.50" step="0.01" value="0.28"><output class="p-value" id="p-output" for="true-p">0.28</output></div>
+        <div class="p-explain">Assumed p; changes <b>sampling only</b>.</div>
+      </div>
+      <div class="runstatus" id="status" role="status" aria-live="polite">Ready.</div>
+    </section>
+
+    <section class="view" id="view-sampling" style="--theme:var(--blue)">
+      <div class="view-head"><div><h2>Sampling distribution</h2></div>
+        <button type="button" class="btn" data-show-repeat="sampling">One repetition</button></div>
+      <div class="flow" aria-label="Sampling procedure">
+        <div class="flow-item"><small>Start from</small><b>Hypothetical population: <span id="sampling-source-p">p = 0.28</span></b></div>
+        <div class="flow-item"><small>Draw</small><b>100 independent binary outcomes</b></div>
+        <div class="flow-item"><small>Record</small><b>One sample proportion</b></div>
+      </div>
+      <article class="chart-card">
+        <div class="chart-header"><span class="chart-title">Distribution of simulated sample proportions</span><span class="chart-meta">0–1 x-axis · relative frequency · 0.01 bins · common y-scale</span></div>
+        <div class="chart-slot" id="chart-sampling" tabindex="0" aria-label="Scrollable distribution chart"></div>
+        <div class="legend" id="legend-sampling"></div>
+        <div class="stat-strip"><div class="stat"><small>Repeated samples</small><strong id="stat-sampling-b">—</strong></div>
+          <div class="stat"><small>Theoretical center</small><strong id="stat-sampling-center">0.28</strong></div>
+          <div class="stat"><small>Simulated mean</small><strong id="stat-sampling-avg">—</strong></div></div>
+      </article>
+      <div class="interpret">One plotted value per sample. Theoretical center: <b id="sampling-center-note">p = 0.28</b>.</div>
+    </section>
+
+    <section class="view" id="view-bootstrap" style="--theme:var(--orange)" hidden>
+      <div class="view-head"><div><h2>Bootstrap distribution</h2></div>
+        <button type="button" class="btn" data-show-repeat="bootstrap">One repetition</button></div>
+      <div class="flow" aria-label="Bootstrap procedure">
+        <div class="flow-item"><small>Start from</small><b>Fixed observed dataset</b><em>32 ones and 68 zeros</em></div>
+        <div class="flow-item"><small>Resample</small><b>100 outcomes WITH replacement</b></div>
+        <div class="flow-item"><small>Record</small><b>One bootstrap proportion</b></div>
+      </div>
+      <article class="chart-card">
+        <div class="chart-header"><span class="chart-title">Distribution of bootstrap sample proportions</span><span class="chart-meta">0–1 x-axis · relative frequency · 0.01 bins · common y-scale</span></div>
+        <div class="chart-slot" id="chart-bootstrap" tabindex="0" aria-label="Scrollable distribution chart"></div>
+        <div class="legend" id="legend-bootstrap"></div>
+        <div class="stat-strip"><div class="stat"><small>Resamples</small><strong id="stat-bootstrap-b">—</strong></div>
+          <div class="stat"><small>Theoretical center</small><strong id="stat-bootstrap-center">0.32</strong></div>
+          <div class="stat"><small>Simulated mean</small><strong id="stat-bootstrap-avg">—</strong></div></div>
+      </article>
+      <div class="interpret">Resamples the 100 observed entries <b>with replacement</b>; theoretical center 0.32.</div>
+    </section>
+
+    <section class="view" id="view-null" style="--theme:var(--purple)" hidden>
+      <div class="view-head"><div><h2>Null distribution</h2></div>
+        <button type="button" class="btn" data-show-repeat="null">One repetition</button></div>
+      <div class="flow" aria-label="Null simulation procedure">
+        <div class="flow-item"><small>Start from</small><b>Null model: p₀ = 0.20</b></div>
+        <div class="flow-item"><small>Draw</small><b>100 independent binary outcomes</b></div>
+        <div class="flow-item"><small>Compare</small><b>Proportions ≥ 0.32</b><em>Ties count as extreme</em></div>
+      </div>
+      <article class="chart-card">
+        <div class="chart-header"><span class="chart-title">Distribution of simulated proportions under p₀ = 0.20</span><span class="chart-meta">0–1 x-axis · relative frequency · 0.01 bins · common y-scale</span></div>
+        <div class="chart-slot" id="chart-null" tabindex="0" aria-label="Scrollable distribution chart"></div>
+        <div class="legend" id="legend-null"></div>
+        <div class="stat-strip"><div class="stat"><small>Null simulations</small><strong id="stat-null-b">—</strong></div>
+          <div class="stat"><small>Theoretical center</small><strong id="stat-null-center">0.20</strong></div>
+          <div class="stat"><small>Simulated mean</small><strong id="stat-null-avg">—</strong></div></div>
+      </article>
+      <div class="tail-callout" aria-label="Right tail p-value"><div><small>Right tail · ties included</small>
+        <strong id="tail-count">— / —</strong><p>Sample proportion ≥ 0.32</p></div>
+        <div class="tail-value"><span>Estimated right-tail p-value</span><div id="tail-p">—</div></div></div>
+      <div class="interpret">Zero simulated extremes does not mean zero tail probability.</div>
+    </section>
+
+    <section class="view" id="view-compare" hidden>
+      <div class="view-head"><div><h2>Compare distributions</h2></div>
+        <button type="button" class="btn" data-show-repeat="sampling">One repetition</button></div>
+      <div class="compare-toolbar"><label class="toggle"><input type="checkbox" id="overlay"><span>Overlay all three distributions</span></label>
+        <span class="chart-meta">Shared scales · same simulated results</span></div>
+      <div id="compare-stack" class="compare-stack">
+        <article class="chart-card"><div class="compare-mini-head"><strong><span class="color-square" style="--swatch:var(--blue)"></span>Sampling</strong><small id="compare-sampling-stat">—</small></div><div class="chart-slot" id="compare-chart-sampling" tabindex="0" aria-label="Scrollable distribution chart"></div></article>
+        <article class="chart-card"><div class="compare-mini-head"><strong><span class="color-square" style="--swatch:var(--orange)"></span>Bootstrap</strong><small id="compare-bootstrap-stat">—</small></div><div class="chart-slot" id="compare-chart-bootstrap" tabindex="0" aria-label="Scrollable distribution chart"></div></article>
+        <article class="chart-card"><div class="compare-mini-head"><strong><span class="color-square" style="--swatch:var(--purple)"></span>Null</strong><small id="compare-null-stat">—</small></div><div class="chart-slot" id="compare-chart-null" tabindex="0" aria-label="Scrollable distribution chart"></div></article>
+      </div>
+      <article id="compare-overlay" class="chart-card" hidden>
+        <div class="chart-header"><strong class="chart-title">Overlaid relative-frequency histograms</strong><span class="chart-meta">Centers shown as solid lines; observed 0.32 is black dashed</span></div>
+        <div class="chart-slot" id="chart-overlay" tabindex="0" aria-label="Scrollable distribution chart"></div>
+        <div class="overlay-legend"><span class="key" style="--legend-color:var(--blue)"><i></i>Sampling</span>
+          <span class="key" style="--legend-color:var(--orange)"><i></i>Bootstrap</span>
+          <span class="key" style="--legend-color:var(--purple)"><i></i>Null</span>
+          <span class="key"><span class="legend-swatch dashed"></span>Observed 0.32</span>
+          <span class="key"><span class="legend-triangle">▼</span>Simulated means in the table below</span></div>
+        <p class="view-footer" style="margin:0;padding:0 20px 15px">Bootstrap and observed markers coincide at 0.32.</p>
+      </article>
+      <h3 class="subheading">Sources and centers</h3>
+      <article class="chart-card table-wrap"><table class="comparison-table">
+        <thead><tr><th scope="col">Distribution</th><th scope="col">Repeated samples drawn from</th><th scope="col">Theoretical center</th><th scope="col">Purpose</th><th scope="col">Simulated mean</th></tr></thead>
+        <tbody><tr><td><b style="color:var(--blue)">Sampling</b></td><td>Population with assumed p</td><td id="table-sampling-center">p = 0.28</td><td>Sampling variability</td><td id="table-sampling-mean">—</td></tr>
+          <tr><td><b style="color:var(--orange)">Bootstrap</b></td><td>32 ones, 68 zeros; with replacement</td><td>p̂ = 0.32</td><td>Estimated variability</td><td id="table-bootstrap-mean">—</td></tr>
+          <tr><td><b style="color:var(--purple)">Null</b></td><td>Null model, p₀ = 0.20</td><td>p₀ = 0.20</td><td>Right-tail p-value</td><td id="table-null-mean">—</td></tr></tbody>
+      </table></article>
+      <p class="view-footer">Each histogram entry is one sample proportion from n = 100.</p>
+    </section>
+
+    <section class="view" id="view-notes" hidden>
+      <div class="view-head"><h2>Methods</h2><button type="button" class="btn" data-show-repeat="sampling">One repetition</button></div>
+      <div class="note-grid">
+        <article class="note-tile"><h3>Sampling sources</h3><p>Sampling: independent Bernoulli draws with assumed p = <span id="notes-p">0.28</span>.
+        Bootstrap: resample the fixed 32 ones and 68 zeros with replacement.
+        Null: independent Bernoulli draws with p₀ = 0.20, rather than label permutations.</p></article>
+        <article class="note-tile"><h3>Repetitions and sample size</h3><p>Each repetition has n = 100 outcomes and contributes one proportion.
+        B counts repetitions; increasing B improves simulation precision while n stays fixed.</p></article>
+        <article class="note-tile"><h3>Reproducibility</h3><p>The three sources use separate seeded random streams.
+        The p slider regenerates sampling only; the same seed and settings reproduce results.</p></article>
+        <article class="note-tile"><h3>Right-tail p-value</h3><p>Count null proportions ≥ 0.32, including ties, and divide by B.
+        This is not the probability the null is true.
+        Zero simulated extremes does not mean zero tail probability.</p></article>
+      </div>
+    </section>
+  </main>
+</div>
+
+<dialog id="repetition-dialog" aria-labelledby="rep-title">
+  <div class="modal-head"><div><h2 id="rep-title">100 outcomes → one proportion</h2>
+    <p>One sample → one plotted proportion.</p></div>
+    <button type="button" id="close-repeat" class="icon-btn" aria-label="Close repetition view">×</button></div>
+  <div class="modal-main">
+    <div class="modal-topline"><div><label for="inspect-source">Which sampling source?</label><select id="inspect-source"><option value="sampling">Sampling (population)</option><option value="bootstrap">Bootstrap (observed data)</option><option value="null">Randomization / null</option></select></div>
+      <span class="chart-meta" id="rep-index">—</span></div>
+    <div id="rep-math" class="rep-math">—</div>
+    <div class="outcome-grid" id="outcome-grid" aria-label="100 binary outcomes arranged in 10 rows by 10 columns"></div>
+    <div class="bit-legend" id="bit-legend"><span><b>1</b> Correct</span><span><b>0</b> Incorrect</span></div>
+    <p class="modal-explainer" id="rep-note">This sample is already included in the histogram.</p>
+  </div>
+</dialog>
+
+<script>
+'use strict';
+(() => {
+  // All simulation state is kept locally. Each distribution owns an independent
+  // reproducible PRNG stream. Changing hypothetical p rebuilds sampling ONLY.
+  const N = 100, OBSERVED_SUCCESSES = 32, OBSERVED_PROP = .32, NULL_PROP = .20;
+  const BASE_SEED = 20261008, BASE_P = .28, BASE_B = 5000;
+  const IDS = ['sampling','bootstrap','null'];
+  const palette = {sampling:'var(--plot)',bootstrap:'var(--warm)',null:'var(--purple)'};
+  // The observed dataset is fixed illustrative data and not drawn by this app.
+  const observedDataset = Uint8Array.from({length:N}, (_,i) => Number(i < OBSERVED_SUCCESSES));
+  const $ = id => document.getElementById(id);
+  const nf = new Intl.NumberFormat('en-US');
+  const fmt2 = x => Number(x).toFixed(2);
+  const fmtMean = x => Number(x).toFixed(4);
+  const state = {seed:BASE_SEED,p:BASE_P,selectedB:BASE_B,active:'sampling',panels:{},overlay:false,sharedYMax:.20};
+  let pTimer = null;
+
+  function hashSeed(seed, name) {
+    let h = 2166136261 >>> 0;
+    const s = `${seed}:${name}`;
+    for (let i=0;i<s.length;i++) { h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0; }
+    return h >>> 0;
+  }
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function newPanel(id) {
+    return {rng:mulberry32(hashSeed(state.seed,id)), counts:new Uint32Array(N+1),
+      total:0,sumSuccesses:0,last:null};
+  }
+  function drawBinarySample(id, rng) {
+    const arr = new Uint8Array(N);
+    let successes = 0;
+    const prob = id === 'sampling' ? state.p : NULL_PROP;
+    for(let i=0;i<N;i++) {
+      const v = id === 'bootstrap' ? observedDataset[Math.floor(rng()*N)] : Number(rng()<prob);
+      arr[i] = v;
+      successes += v;
+    }
+    return {successes,outcomes:arr};
+  }
+  function addToPanel(id) {
+    const panel = state.panels[id];
+    const drawn = drawBinarySample(id, panel.rng);
+    panel.total += 1;
+    panel.counts[drawn.successes] += 1;
+    panel.sumSuccesses += drawn.successes;
+    panel.last = drawn;
+  }
+  function generatePanel(id, repetitions) {
+    state.panels[id] = newPanel(id);
+    for(let i=0;i<repetitions;i++) addToPanel(id);
+  }
+  function validSeed(raw) {
+    const x = Number(raw);
+    return Number.isSafeInteger(x) && x>=0 && x<=4294967295;
+  }
+  function commitSeedFromControl() {
+    if(!validSeed($('seed').value)) {
+      $('seed').value = String(state.seed);
+      setStatus('Invalid seed; restored the previous seed. Choose an integer between 0 and 4,294,967,295.');
+      return false;
+    }
+    state.seed = Number($('seed').value);
+    return true;
+  }
+  function setStatus(message) { $('status').textContent = message; }
+  function runAll() {
+    if(pTimer){clearTimeout(pTimer);pTimer=null;}
+    if(!commitSeedFromControl()) return;
+    state.selectedB = Number($('reps').value);
+    for(const id of IDS) generatePanel(id, state.selectedB);
+    state.sharedYMax = chooseYMax();
+    renderAll();
+    setStatus(`${nf.format(state.selectedB)} repetitions per distribution · seed ${state.seed}`);
+  }
+  function addOne() {
+    for(const id of IDS) addToPanel(id);
+    state.sharedYMax = chooseYMax();
+    renderAll();
+    setStatus(`+1 sample per distribution · ${nf.format(state.panels.sampling.total)} repetitions`);
+  }
+  function resimulateSamplingOnly() {
+    const count = state.panels.sampling ? state.panels.sampling.total : state.selectedB;
+    generatePanel('sampling', count);
+    renderSamplingOnly();
+    setStatus(`Sampling p = ${fmt2(state.p)} · bootstrap and null unchanged · B = ${nf.format(count)}`);
+  }
+  function syncPLabels() {
+    const v = fmt2(state.p);
+    $('p-output').value = v;
+    $('side-p').textContent = `p = ${v}`;
+    $('sampling-source-p').textContent = `p = ${v}`;
+    $('sampling-center-note').textContent = `p = ${v}`;
+    $('notes-p').textContent = v;
+    $('stat-sampling-center').textContent = v;
+    $('table-sampling-center').textContent = `p = ${v}`;
+  }
+  function panelCenter(id) {return id === 'sampling' ? state.p : id === 'bootstrap' ? OBSERVED_PROP : NULL_PROP;}
+  function mean(id) {const s=state.panels[id];return s && s.total>0 ? s.sumSuccesses/(s.total*N) : NaN;}
+  function histogramMax() {
+    let max = 0;
+    for(const id of IDS) {
+      const p=state.panels[id];if(!p || !p.total) continue;
+      for(const n of p.counts) max = Math.max(max, n/p.total);
+    }
+    return max;
+  }
+  function commonYMax() {
+    const m = histogramMax();
+    const steps = [.005,.01,.015,.02,.025,.03,.04,.05,.075,.1,.15,.2,.25,.3];
+    const requested = Math.max(.10,m*1.14)/4;
+    const step = steps.find(x=>x>=requested-1e-10) || Math.ceil(requested*100)/100;
+    return 4*step;
+  }
+  // Freeze a shared, generously padded vertical scale during p-slider changes.
+  // This keeps bootstrap and null charts visually *and* numerically unchanged.
+  function chooseYMax() {
+    const b=state.panels.sampling.total;
+    return Math.max(b>=1000 ? .20 : .40,commonYMax());
+  }
+  function percentLabel(x) {
+    const pct = x*100;
+    return Math.abs(pct-Math.round(pct))<1e-8 ? `${Math.round(pct)}%` : `${pct.toFixed(1)}%`;
+  }
+  // Axes use the same exact domain [0,1] and a globally computed y maximum.
+  function axisSVG(w,h,yMax,plot,uid,id) {
+    const {left,right,top,bottom}=plot;
+    const x = z => left + z*(right-left);
+    const y = z => bottom - z/yMax*(bottom-top);
+    let out = '';
+    for(let j=0;j<=4;j++) {
+      const v = j*yMax/4, py = y(v);
+      out += `<line x1="${left}" y1="${py}" x2="${right}" y2="${py}" stroke="#e3e9ef" stroke-width="${j===0?1.5:1}"/>`;
+      out += `<text x="${left-12}" y="${py+5}" text-anchor="end" fill="#65778d" font-size="15">${percentLabel(v)}</text>`;
+    }
+    for(let j=0;j<=10;j++) {
+      const value = j/10, px = x(value);
+      out += `<line x1="${px}" y1="${bottom}" x2="${px}" y2="${bottom+6}" stroke="#94a2b2" stroke-width="1"/>`;
+      out += `<text x="${px}" y="${bottom+26}" text-anchor="middle" fill="#586b80" font-size="15">${value.toFixed(1)}</text>`;
+    }
+    out += `<text x="${left}" y="${top-12}" fill="#66768a" font-size="14" font-weight="650">Relative frequency</text>`;
+    out += `<text x="${(left+right)/2}" y="${h-12}" text-anchor="middle" fill="#40556b" font-size="16" font-weight="710">Proportion correct in one sample of 100</text>`;
+    return out;
+  }
+  function plotLayout(mode) {
+    const h=mode==='mini'?230:345;
+    const w=1100;
+    return {w,h,plot:{left:91,right:1067,top:mode==='mini'?25:38,bottom:mode==='mini'?162:267}};
+  }
+  function rectBar(k,freq,layout,yMax,color,isTail,uid,overlay=false) {
+    if(freq===0) return '';
+    const {left,right,top,bottom}=layout.plot;
+    const bw=(right-left)/100 * (overlay?.87:.81);
+    const px=left+(k/100)*(right-left);
+    const ht=freq/yMax*(bottom-top);
+    const fill= isTail ? 'var(--purple-dark)' : color;
+    const alpha = overlay ? '.14' : '.89';
+    const outline = overlay ? ` stroke="${color}" stroke-width="1.1"` : '';
+    let html=`<rect x="${(px-bw/2).toFixed(2)}" y="${(bottom-ht).toFixed(2)}" width="${bw.toFixed(2)}" height="${ht.toFixed(2)}" fill="${fill}" fill-opacity="${alpha}"${outline}/>`;
+    if(isTail && !overlay) html += `<rect x="${(px-bw/2).toFixed(2)}" y="${(bottom-ht).toFixed(2)}" width="${bw.toFixed(2)}" height="${ht.toFixed(2)}" fill="url(#${uid}-hatch)" opacity=".8"/>`;
+    return html;
+  }
+  function markerSVG(id, layout, empirical=true) {
+    const {left,right,top,bottom}=layout.plot;
+    const x = z => left+z*(right-left);
+    const center=panelCenter(id),px=x(center),color=palette[id];
+    let out='';
+    if(empirical) {
+      const sampleMean = mean(id);
+      if(Number.isFinite(sampleMean)) {
+        const xm = x(sampleMean);
+        out += `<line x1="${xm}" y1="${top}" x2="${xm}" y2="${bottom}" stroke="#637386" stroke-width="1.8" stroke-dasharray="2,5" opacity=".78"/>`;
+        out += `<path d="M ${xm-7} ${top-6} L ${xm+7} ${top-6} L ${xm} ${top+4} Z" fill="#58697c" stroke="white" stroke-width="1.3"/>`;
+      }
+    }
+    out += `<line x1="${px}" y1="${top}" x2="${px}" y2="${bottom}" stroke="white" stroke-width="6" opacity=".76"/>`;
+    out += `<line x1="${px}" y1="${top}" x2="${px}" y2="${bottom}" stroke="${color}" stroke-width="3.4"/>`;
+    if(id==='null') {
+      const obs=x(OBSERVED_PROP);
+      out += `<line x1="${obs}" y1="${top}" x2="${obs}" y2="${bottom}" stroke="white" stroke-width="6" opacity=".8"/>`;
+      out += `<line x1="${obs}" y1="${top}" x2="${obs}" y2="${bottom}" stroke="#171d26" stroke-width="3.3" stroke-dasharray="10,7"/>`;
+    }
+    return out;
+  }
+  let serial=0;
+  function singleSVG(id,mode='full',yMax=commonYMax()) {
+    const uid=`plot-${++serial}`;
+    const layout=plotLayout(mode);
+    const {w,h,plot}=layout;
+    const panel=state.panels[id],label=id==='null'?'Null':id==='sampling'?'Sampling':'Bootstrap';
+    const pLabel=fmt2(panelCenter(id));
+    let svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" aria-labelledby="${uid}-title ${uid}-desc">`;
+    svg+=`<title id="${uid}-title">${label} distribution: sample proportions</title><desc id="${uid}-desc">${panel.total} simulated proportions, theoretical center ${pLabel}, common relative-frequency scale 0 to ${percentLabel(yMax)}. ${id==='null'?'Black dashed at observed 0.32, shaded bars at 0.32 or above.':''}</desc>`;
+    svg+=`<defs><clipPath id="${uid}-clip"><rect x="${plot.left}" y="${plot.top}" width="${plot.right-plot.left}" height="${plot.bottom-plot.top}"/></clipPath>`;
+    svg+=`<pattern id="${uid}-hatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)"><rect width="7" height="7" fill="none"/><path d="M0 0 V7" stroke="#e5d6f5" stroke-width="2.5"/></pattern></defs>`;
+    if(id==='null') { const x=plot.left+OBSERVED_PROP*(plot.right-plot.left);
+      svg+=`<rect x="${x}" y="${plot.top}" width="${plot.right-x}" height="${plot.bottom-plot.top}" fill="var(--purple-faint)" opacity=".68"/>`;
+    }
+    svg+=axisSVG(w,h,yMax,plot,uid,id);
+    svg+=`<g clip-path="url(#${uid}-clip)">`;
+    for(let k=0;k<=N;k++) svg+=rectBar(k,panel.counts[k]/panel.total,layout,yMax,palette[id],id==='null' && k>=OBSERVED_SUCCESSES,uid);
+    svg+='</g>';
+    svg+=markerSVG(id,layout);
+    svg+='</svg>';
+    return svg;
+  }
+  function overlaySVG(yMax=commonYMax()) {
+    const uid=`overlay-${++serial}`,layout=plotLayout('full');
+    const {w,h,plot}=layout;
+    let svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" aria-labelledby="${uid}-title ${uid}-desc">`;
+    svg+=`<title id="${uid}-title">Comparison overlay of all three distributions</title><desc id="${uid}-desc">Sampling blue, bootstrap orange, null purple; aligned bins, 0–1 proportions, common relative-frequency axis 0 to ${percentLabel(yMax)}. Solid lines indicate theoretical centers and black dashed line indicates the observed proportion 0.32.</desc>`;
+    svg+=`<defs><clipPath id="${uid}-clip"><rect x="${plot.left}" y="${plot.top}" width="${plot.right-plot.left}" height="${plot.bottom-plot.top}"/></clipPath></defs>`;
+    svg+=axisSVG(w,h,yMax,plot,uid,'overlay');
+    svg+=`<g clip-path="url(#${uid}-clip)">`;
+    // Draw the same recorded histograms; overlay does not draw fresh samples.
+    for(const id of ['null','bootstrap','sampling']) {
+      const panel=state.panels[id];
+      for(let k=0;k<=N;k++) svg+=rectBar(k,panel.counts[k]/panel.total,layout,yMax,palette[id],false,uid,true);
+    }
+    svg+='</g>';
+    for(const id of IDS) {
+      const center=panelCenter(id),x=plot.left+center*(plot.right-plot.left);
+      svg+=`<line x1="${x}" y1="${plot.top}" x2="${x}" y2="${plot.bottom}" stroke="${palette[id]}" stroke-width="3"/>`;
+    }
+    const obs=plot.left+OBSERVED_PROP*(plot.right-plot.left);
+    svg+=`<line x1="${obs}" y1="${plot.top}" x2="${obs}" y2="${plot.bottom}" stroke="#171d26" stroke-width="2.6" stroke-dasharray="10,7"/>`;
+    svg+='</svg>';
+    return svg;
+  }
+  function legend(id) {
+    let items = `<span class="legend-item"><span class="legend-fill" style="--legend-color:${palette[id]}"></span>One bar = share of repetitions</span>`;
+    items+=`<span class="legend-item"><span class="legend-swatch" style="--legend-color:${palette[id]}"></span>Theoretical center ${fmt2(panelCenter(id))}</span>`;
+    items+=`<span class="legend-item"><span class="legend-triangle">▼</span>Dotted line + triangle = simulated mean ${fmtMean(mean(id))}</span>`;
+    if(id==='null') items+=`<span class="legend-item"><span class="legend-swatch dashed"></span>Observed 0.32</span><span class="legend-item"><span class="legend-fill tail"></span>Proportion ≥ 0.32 (ties included)</span>`;
+    return items;
+  }
+  function publishDemoState() {
+    // Lightweight, read-only snapshot for reproducibility and teaching checks.
+    window.demoState = () => ({
+      seed:state.seed,p:state.p,active:state.active,sharedYMax:state.sharedYMax,
+      sampling:{total:state.panels.sampling.total,counts:Array.from(state.panels.sampling.counts),mean:mean('sampling')},
+      bootstrap:{total:state.panels.bootstrap.total,counts:Array.from(state.panels.bootstrap.counts),mean:mean('bootstrap')},
+      null:{total:state.panels.null.total,counts:Array.from(state.panels.null.counts),mean:mean('null'),tailCount:state.panels.null.counts.slice(OBSERVED_SUCCESSES).reduce((a,b)=>a+b,0)},
+      centers:{sampling:state.p,bootstrap:OBSERVED_PROP,null:NULL_PROP}
+    });
+  }
+  function renderSamplingOnly() {
+    syncPLabels();
+    const id='sampling',panel=state.panels[id],yMax=state.sharedYMax;
+    $('chart-sampling').innerHTML=singleSVG(id,'full',yMax);
+    $('legend-sampling').innerHTML=legend(id);
+    $('stat-sampling-b').textContent=nf.format(panel.total);
+    $('stat-sampling-avg').textContent=fmtMean(mean(id));
+    $('compare-chart-sampling').innerHTML=singleSVG(id,'mini',yMax);
+    $('compare-sampling-stat').textContent=`${nf.format(panel.total)} samples · mean ${fmtMean(mean(id))}`;
+    $('table-sampling-mean').textContent=fmtMean(mean(id));
+    $('chart-overlay').innerHTML=overlaySVG(yMax);
+    publishDemoState();
+    if($('repetition-dialog').open) renderRepetition();
+  }
+  function renderAll() {
+    syncPLabels();
+    const yMax=state.sharedYMax;
+    for(const id of IDS) {
+      const panel=state.panels[id];
+      $(`chart-${id}`).innerHTML=singleSVG(id,'full',yMax);
+      $(`legend-${id}`).innerHTML=legend(id);
+      $(`stat-${id}-b`).textContent=nf.format(panel.total);
+      $(`stat-${id}-avg`).textContent=fmtMean(mean(id));
+      $(`compare-chart-${id}`).innerHTML=singleSVG(id,'mini',yMax);
+      $(`compare-${id}-stat`).textContent=`${nf.format(panel.total)} samples · mean ${fmtMean(mean(id))}`;
+      $(`table-${id}-mean`).textContent=fmtMean(mean(id));
+    }
+    $('chart-overlay').innerHTML=overlaySVG(yMax);
+    const tailCount=state.panels.null.counts.slice(OBSERVED_SUCCESSES).reduce((a,b)=>a+b,0);
+    const nullB=state.panels.null.total;
+    $('tail-count').textContent=`${nf.format(tailCount)} / ${nf.format(nullB)}`;
+    $('tail-p').textContent=(tailCount/nullB).toFixed(4);
+    publishDemoState();
+    if($('repetition-dialog').open) renderRepetition();
+  }
+  function switchView(id) {
+    state.active=id;
+    for(const button of document.querySelectorAll('[data-nav]')) {
+      if(button.dataset.nav===id) button.setAttribute('aria-current','page');
+      else button.removeAttribute('aria-current');
+    }
+    for(const view of document.querySelectorAll('.view')) view.hidden = view.id !== `view-${id}`;
+    // Move away from long-document scrolling when switching sections.
+    const y = Math.max(0,document.querySelector('.controls').getBoundingClientRect().top + window.scrollY-16);
+    if(window.scrollY>y+240) window.scrollTo({top:y,behavior:'instant'});
+  }
+  function renderRepetition() {
+    const id=$('inspect-source').value,panel=state.panels[id];
+    const last=panel.last;if(!last)return;
+    const k=last.successes;
+    $('rep-index').textContent=`Repetition ${nf.format(panel.total)} of ${nf.format(panel.total)} · already plotted`;
+    const pLabel=id==='sampling'?`Hypothetical population p = ${fmt2(state.p)}`:id==='bootstrap'?'Observed data: 32 ones, 68 zeros':'Null model p₀ = 0.20';
+    $('rep-math').innerHTML=`${k} correct out of ${N} = <strong>${fmt2(k/N)}</strong><small>${pLabel} · one sample proportion = one histogram observation</small>`;
+    const grid=$('outcome-grid');grid.innerHTML='';
+    const wash=id==='sampling'?'var(--accent-soft)':id==='bootstrap'?'var(--orange-faint)':'var(--purple-faint)';
+    const border=id==='sampling'?'#b8cfe8':id==='bootstrap'?'#e9cbb1':'#d6c2e9';
+    grid.style.setProperty('--outcome-color',palette[id]);
+    grid.style.setProperty('--outcome-wash',wash);
+    grid.style.setProperty('--outcome-border',border);
+    const frag=document.createDocumentFragment();
+    for(const v of last.outcomes) {
+      const box=document.createElement('span');box.className=`bit${v?' success':''}`;
+      box.textContent=v?'1':'0';box.setAttribute('aria-label',v?'Correct':'Incorrect');
+      frag.appendChild(box);
+    }
+    grid.appendChild(frag);
+    $('rep-note').textContent=`100 ${id==='bootstrap'?'resampled':'simulated'} outcomes → proportion ${fmt2(k/N)}. Already included in the histogram.`;
+  }
+  function showRepetition(id) {
+    $('inspect-source').value=IDS.includes(id)?id:'sampling';
+    renderRepetition();
+    if(!$('repetition-dialog').open) $('repetition-dialog').showModal();
+  }
+  document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.nav)));
+  document.querySelectorAll('[data-show-repeat]').forEach(b=>b.addEventListener('click',()=>showRepetition(b.dataset.showRepeat)));
+  $('close-repeat').addEventListener('click',()=>$('repetition-dialog').close());
+  $('repetition-dialog').addEventListener('click',e=>{if(e.target===$('repetition-dialog'))e.target.close();});
+  $('inspect-source').addEventListener('change',renderRepetition);
+  $('run').addEventListener('click',runAll);
+  $('add').addEventListener('click',addOne);
+  $('reset').addEventListener('click',()=>{
+    if(pTimer){clearTimeout(pTimer);pTimer=null;}
+    state.seed=BASE_SEED;state.p=BASE_P;state.selectedB=BASE_B;
+    $('seed').value=String(BASE_SEED);$('reps').value=String(BASE_B);$('true-p').value=String(BASE_P);
+    $('overlay').checked=false;state.overlay=false;
+    $('compare-stack').hidden=false;$('compare-overlay').hidden=true;
+    runAll();setStatus('Restored defaults: p = 0.28, B = 5,000, seed 20261008. All three panels rerun.');
+  });
+  $('new-seed').addEventListener('click',()=>{
+    let s;
+    if(globalThis.crypto && crypto.getRandomValues) s=crypto.getRandomValues(new Uint32Array(1))[0];
+    else s=(Math.floor(Math.random()*4294967296))>>>0;
+    if(s===state.seed) s=(s+1)>>>0;
+    $('seed').value=String(s);runAll();
+  });
+  $('reps').addEventListener('change',()=>{
+    state.selectedB=Number($('reps').value);
+    setStatus(`Selected B = ${nf.format(state.selectedB)}; press Run simulation to apply. Plotted B = ${nf.format(state.panels.sampling.total)}.`);
+  });
+  $('seed').addEventListener('change',()=>{
+    if(!validSeed($('seed').value)){$('seed').value=String(state.seed);setStatus('Seed must be an integer between 0 and 4,294,967,295.');return;}
+    setStatus(`Selected seed ${$('seed').value}. Press Run simulation to apply it.`);
+  });
+  $('true-p').addEventListener('input',()=>{
+    state.p=Number($('true-p').value);
+    syncPLabels();
+    if(pTimer)clearTimeout(pTimer);
+    pTimer=setTimeout(()=>{pTimer=null;resimulateSamplingOnly();},85);
+  });
+  $('true-p').addEventListener('change',()=>{
+    state.p=Number($('true-p').value);
+    if(pTimer){clearTimeout(pTimer);pTimer=null;}
+    resimulateSamplingOnly();
+  });
+  $('overlay').addEventListener('change',()=>{
+    state.overlay=$('overlay').checked;
+    $('compare-stack').hidden=state.overlay;
+    $('compare-overlay').hidden=!state.overlay;
+  });
+  runAll();
+})();
+</script>
+<!-- AUTHORSHIP -->
+</body>
+</html>

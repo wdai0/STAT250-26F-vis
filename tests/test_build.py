@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from scripts.build import AUTHORSHIP_MARKER, BuildError, THEME_MARKER, build
+from scripts.build import AUTHORSHIP_MARKER, BuildError, DATA_MARKER, THEME_MARKER, build
 
 
 class BuildTests(unittest.TestCase):
@@ -44,6 +44,17 @@ class BuildTests(unittest.TestCase):
     def catalog(self):
         script = (self.root / "dist/assets/catalog.js").read_text()
         return json.loads(script.removeprefix("window.STAT250_SITE = ").removesuffix(";\n"))
+
+    def add_dataset(self, contents="Name,Value\nExample,1\n", text_columns=None):
+        (self.root / "data").mkdir(exist_ok=True)
+        (self.root / "data/example.csv").write_text(contents)
+        self.entry["dataset"] = {
+            "source": "data/example.csv",
+            "text_columns": ["Name"] if text_columns is None else text_columns,
+        }
+        self.source = self.source.replace("const x = 1;", f"const data = {DATA_MARKER};")
+        (self.root / self.entry["source"]).write_text(self.source)
+        self.write_json("visualizations.json", [self.entry])
 
     def test_embeds_theme_and_credit_in_the_downloadable_file(self):
         self.assertEqual(build(self.root), 1)
@@ -133,6 +144,108 @@ class BuildTests(unittest.TestCase):
         page = (self.root / "dist/visualizations/example.html").read_text()
         self.assertNotIn('<script>alert("name")</script>', page)
         self.assertIn("&lt;script&gt;", page)
+
+    def test_csv_values_are_embedded_and_missing_values_remain_null(self):
+        self.add_dataset(
+            'Name,Value,Other\n"A, B",0,2.5\nC,NA,\nD,N/A,null\nE,-3,4e2\n'
+        )
+        build(self.root)
+        page = (self.root / "dist/visualizations/example.html").read_text()
+        payload = page.split("const data = ", 1)[1].split(";</script>", 1)[0]
+        self.assertEqual(json.loads(payload), [
+            {"Name": "A, B", "Value": 0, "Other": 2.5},
+            {"Name": "C", "Value": None, "Other": None},
+            {"Name": "D", "Value": None, "Other": None},
+            {"Name": "E", "Value": -3, "Other": 400},
+        ])
+        self.assertNotIn(DATA_MARKER, page)
+        self.assertNotIn("dataset", self.catalog()["visualizations"][0])
+        self.assertFalse((self.root / "dist/data/example.csv").exists())
+
+    def test_csv_text_cannot_close_the_script_element(self):
+        self.add_dataset('Name,Value\n"</script><script>alert(1)</script>",1\n')
+        build(self.root)
+        page = (self.root / "dist/visualizations/example.html").read_text()
+        self.assertNotIn("</script><script>alert(1)</script>", page)
+        self.assertIn(r"\u003c/script>", page)
+        payload = page.split("const data = ", 1)[1].split(";</script>", 1)[0]
+        self.assertEqual(json.loads(payload)[0]["Name"], "</script><script>alert(1)</script>")
+
+    def test_csv_rejects_malformed_headers_fields_and_numbers(self):
+        cases = (
+            ("", "headers"),
+            ("Name,Value,Value\nA,1,2\n", "headers"),
+            ("Name,\nA,1\n", "headers"),
+            ("Name,Value\n", "at least one data row"),
+            ("Name,Value\nA\n", "expected 2 fields"),
+            ("Name,Value\nA,1,2\n", "expected 2 fields"),
+            ("Name,Value\nA,text\n", "numeric or missing"),
+            ("Name,Value\nA,NaN\n", "finite"),
+            ("Name,Value\nA,Infinity\n", "finite"),
+            ('Name,Value\n"unterminated,1\n', "Invalid CSV"),
+        )
+        self.add_dataset()
+        for contents, message in cases:
+            with self.subTest(contents=contents):
+                (self.root / "data/example.csv").write_text(contents)
+                with self.assertRaisesRegex(BuildError, message):
+                    build(self.root)
+
+    def test_dataset_text_columns_must_be_unique_existing_names(self):
+        self.add_dataset()
+        for columns in (None, "Name", ["Name", "Name"], ["Name", "Absent"], [""], [1]):
+            with self.subTest(columns=columns):
+                self.entry["dataset"]["text_columns"] = columns
+                self.write_json("visualizations.json", [self.entry])
+                with self.assertRaisesRegex(BuildError, "text_columns"):
+                    build(self.root)
+
+    def test_dataset_paths_cannot_escape_data(self):
+        self.add_dataset()
+        for source in ("../example.csv", "/tmp/example.csv", "data/../example.csv",
+                       "example.csv", "data\\example.csv", "data/example.html"):
+            with self.subTest(source=source):
+                self.entry["dataset"]["source"] = source
+                self.write_json("visualizations.json", [self.entry])
+                with self.assertRaisesRegex(BuildError, "below data"):
+                    build(self.root)
+
+    def test_dataset_symlinks_cannot_point_outside_data(self):
+        self.add_dataset()
+        (self.root / "data/link.csv").symlink_to(self.root / "index.html")
+        self.entry["dataset"]["source"] = "data/link.csv"
+        self.write_json("visualizations.json", [self.entry])
+        with self.assertRaisesRegex(BuildError, "resolves outside data"):
+            build(self.root)
+
+    def test_dataset_requires_one_marker_inside_a_script(self):
+        self.add_dataset()
+        cases = (
+            self.source.replace(DATA_MARKER, "[]"),
+            self.source.replace(DATA_MARKER, f"{DATA_MARKER}; const second = {DATA_MARKER}"),
+            self.source.replace(DATA_MARKER, "[]").replace("</body>", DATA_MARKER + "</body>"),
+        )
+        for source in cases:
+            with self.subTest(source=source):
+                (self.root / self.entry["source"]).write_text(source)
+                with self.assertRaisesRegex(BuildError, "embedded data marker|exactly one"):
+                    build(self.root)
+
+    def test_embedded_data_marker_without_dataset_fails(self):
+        self.add_dataset()
+        del self.entry["dataset"]
+        self.write_json("visualizations.json", [self.entry])
+        with self.assertRaisesRegex(BuildError, "requires a dataset"):
+            build(self.root)
+
+    def test_invalid_dataset_preserves_previous_build(self):
+        self.add_dataset()
+        build(self.root)
+        previous = (self.root / "dist/visualizations/example.html").read_bytes()
+        (self.root / "data/example.csv").write_text("Name,Value\nA,not-a-number\n")
+        with self.assertRaises(BuildError):
+            build(self.root)
+        self.assertEqual((self.root / "dist/visualizations/example.html").read_bytes(), previous)
 
 
 if __name__ == "__main__":

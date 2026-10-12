@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NBA · STAT 250</title>
+<style>
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 24px; }
+  .wrap h1 { font-size: 1.4rem; margin-bottom: 20px; }
+  .panel { border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; background: var(--surface); min-width: 0; }
+  .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end; }
+  .control { min-width: 0; }
+  .control label { display: block; font-size: .83rem; font-weight: 600; margin-bottom: 7px; }
+  .control select, .control button { width: 100%; font-size: .86rem; min-height: 40px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius); color: var(--text); background: var(--surface); }
+  .control button:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .control .checkbox-wrap { display: flex; align-items: center; gap: 8px; min-height: 40px; margin: 0; font-weight: 400; }
+  .range-readout, .dataset-note, .chart-subtitle, .footer-note { color: var(--muted); font-size: .78rem; }
+  .range-readout { font-variant-numeric: tabular-nums; }
+  .dataset-note { margin: 0 0 16px; }
+  .two-col { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 16px; }
+  .chart-title { font-size: 1rem; margin: 0 0 5px; }
+  .chart-subtitle { margin-bottom: 12px; }
+  .chart-scroll, .boxplot-wrap, #groupTableWrap { min-width: 0; max-width: 100%; overflow-x: auto; }
+  svg { display: block; width: 100%; height: auto; min-width: 780px; background: var(--surface); }
+  svg text { font-family: var(--font); }
+  #histogram { min-width: 570px; }
+  #histogram text { font-size: 16px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .stat-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; min-width: 0; }
+  .stat-card .stat-label { font-size: .73rem; }
+  .stat-card .stat-value { font-size: 1rem; overflow-wrap: anywhere; }
+  .footer-note { margin-top: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: .81rem; font-variant-numeric: tabular-nums; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  th { background: var(--plot-grid); font-weight: 600; }
+  tr.empty-group { color: var(--muted); }
+  details { margin-top: 14px; color: var(--muted); font-size: .8rem; }
+  summary { cursor: pointer; }
+  details p { margin-top: 8px; }
+  #tooltip { position: fixed; pointer-events: none; display: none; z-index: 20; max-width: 230px; padding: 8px 10px; border-radius: var(--radius); background: var(--ink); color: var(--surface); font-size: .8rem; }
+  @media (min-width: 1100px) { .two-col { grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); } }
+  @media (max-width: 600px) { .wrap { padding: 20px 14px; } .panel { padding: 14px; } .controls { grid-template-columns: 1fr; } }
+</style>
+<!-- SHARED_THEME -->
+</head>
+<body>
+<main class="wrap">
+  <h1>NBA</h1>
+  <section class="panel">
+    <div class="controls">
+      <div class="control"><label for="variableSelect">Numerical variable</label><select id="variableSelect"></select></div>
+      <div class="control"><label for="groupBySelect">Compare groups by</label><select id="groupBySelect"><option value="POS">Position</option><option value="Team">Team</option></select></div>
+      <div class="control"><label for="teamFilter">Team</label><select id="teamFilter"></select></div>
+      <div class="control"><label for="positionFilter">Position</label><select id="positionFilter"></select></div>
+      <div class="control"><label for="binSlider">Histogram bin width</label><input id="binSlider" type="range" min="0" max="100" step="1" value="45"><div class="range-readout" id="binReadout"></div></div>
+      <div class="control"><label class="checkbox-wrap"><input id="showPoints" type="checkbox" checked>Show player observations</label></div>
+      <div class="control"><button id="resetBtn" type="button">Reset view</button></div>
+    </div>
+  </section>
+  <p class="dataset-note" id="datasetNotice"></p>
+  <section class="two-col">
+    <section class="panel">
+      <h2 class="chart-title">Histogram</h2>
+      <p class="chart-subtitle" id="histSubtitle"></p>
+      <div class="chart-scroll" tabindex="0" aria-label="Scrollable histogram"><svg id="histogram" viewBox="0 0 900 380" role="img" aria-label="Histogram of selected NBA variable"></svg></div>
+      <div class="footer-note" id="histFooter"></div>
+    </section>
+    <section class="panel">
+      <h2 class="chart-title">Selected data summary</h2>
+      <p class="chart-subtitle" id="summarySubtitle"></p>
+      <div class="stats-grid" id="overallStats" aria-live="polite"></div>
+      <div class="footer-note" id="missingNote"></div>
+    </section>
+  </section>
+  <section class="panel">
+    <h2 class="chart-title">Boxplots by group</h2>
+    <p class="chart-subtitle" id="boxSubtitle"></p>
+    <div class="boxplot-wrap" tabindex="0" aria-label="Scrollable group boxplots"><svg id="boxplot" viewBox="0 0 900 420" role="img" aria-label="NBA boxplots by group"></svg></div>
+  </section>
+  <section class="panel">
+    <h2 class="chart-title">Group statistics</h2>
+    <p class="chart-subtitle">Valid observations only; bin width does not change summaries.</p>
+    <div id="groupTableWrap" tabindex="0" aria-label="Scrollable group statistics"></div>
+    <details><summary>Methods and data</summary>
+      <p>Source: supplied nba23.csv.
+      Counts and minutes are totals, not per-game values; no season is inferred from the filename.
+      Salary currency and the FP definition are unverified.</p>
+      <p>Quartiles: linear interpolation (Type 7).
+      Whiskers: extreme observed values within 1.5 × IQR of Q1 and Q3.
+      Sample SD uses n − 1 and is undefined for n &lt; 2.
+      Missing values are excluded by variable and counted after filtering.
+      All groups share the full-data scale; empty groups keep their positions.</p>
+    </details>
+  </section>
+  <!-- AUTHORSHIP -->
+</main>
+<div id="tooltip"></div>
+<script>
+'use strict';
+// Reconstructed from the supplied complete CSV because the original NBA HTML was truncated.
+// Numeric values are embedded directly; no data or assets are fetched at runtime.
+const DATA = /* EMBEDDED_DATA */ [];
+const VARIABLES = [
+  ['PTS', 'Points (total)', 'Points'],
+  ['Salary', 'Salary', 'Currency unit unverified'],
+  ['Age', 'Age', 'Age as recorded'],
+  ['GP', 'Games played', 'Games'],
+  ['W', 'Wins', 'Games'],
+  ['L', 'Losses', 'Games'],
+  ['Min', 'Minutes (total)', 'Minutes'],
+  ['FGM', 'Field goals made (total)', 'Field goals'],
+  ['FGA', 'Field goals attempted (total)', 'Attempts'],
+  ['FG.', 'Field goal percentage', '%'],
+  ['X3PM', 'Three-pointers made (total)', 'Three-pointers'],
+  ['X3PA', 'Three-pointers attempted (total)', 'Attempts'],
+  ['X3P.', 'Three-point percentage', '%'],
+  ['FTM', 'Free throws made (total)', 'Free throws'],
+  ['FTA', 'Free throws attempted (total)', 'Attempts'],
+  ['FT.', 'Free throw percentage', '%'],
+  ['OREB', 'Offensive rebounds (total)', 'Rebounds'],
+  ['DREB', 'Defensive rebounds (total)', 'Rebounds'],
+  ['REB', 'Rebounds (total)', 'Rebounds'],
+  ['AST', 'Assists (total)', 'Assists'],
+  ['TOV', 'Turnovers (total)', 'Turnovers'],
+  ['STL', 'Steals (total)', 'Steals'],
+  ['BLK', 'Blocks (total)', 'Blocks'],
+  ['PF', 'Personal fouls (total)', 'Fouls'],
+  ['FP', 'FP (definition unverified)', 'Definition and unit unverified'],
+  ['DD2', 'Double-doubles (total)', 'Games'],
+  ['TD3', 'Triple-doubles (total)', 'Games'],
+  ['PlusMinus', 'Plus/minus (total)', 'Point differential']
+];
+const META = Object.fromEntries(VARIABLES.map(([key, label, unit]) => [key, {label, unit}]));
+const GROUPS = {
+  POS: [...new Set(DATA.map(row => row.POS))],
+  Team: [...new Set(DATA.map(row => row.Team))].sort()
+};
+const state = {variable: 'PTS', groupBy: 'POS', team: '', position: '', binSetting: 45, showPoints: true};
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+
+function isValid(value) {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+// Linear interpolation at (n - 1) p: the same Type 7 convention as Cars.
+function quantileSorted(sorted, p) {
+  if (!sorted.length) return NaN;
+  const index = (sorted.length - 1) * p;
+  const lower = Math.floor(index), upper = Math.ceil(index);
+  return sorted[lower] + (index - lower) * (sorted[upper] - sorted[lower]);
+}
+
+function summarize(rows, variable) {
+  const values = rows.map(row => row[variable]).filter(isValid).sort((a, b) => a - b);
+  const n = values.length, missing = rows.length - n;
+  if (!n) return {n, missing, mean: NaN, median: NaN, sd: NaN, q1: NaN, q3: NaN, iqr: NaN, low: NaN, high: NaN};
+  const mean = values.reduce((sum, value) => sum + value, 0) / n;
+  const sd = n > 1 ? Math.sqrt(values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (n - 1)) : NaN;
+  const q1 = quantileSorted(values, .25), median = quantileSorted(values, .5), q3 = quantileSorted(values, .75);
+  const iqr = q3 - q1;
+  const low = values.find(value => value >= q1 - 1.5 * iqr);
+  const high = values.findLast(value => value <= q3 + 1.5 * iqr);
+  return {n, missing, mean, median, sd, q1, q3, iqr, low, high};
+}
+
+function filterRows(rows, team, position) {
+  return rows.filter(row => (!team || row.Team === team) && (!position || row.POS === position));
+}
+
+function niceCeil(value) {
+  if (!(value > 0)) return 1;
+  const scale = 10 ** Math.floor(Math.log10(value));
+  const fraction = value / scale;
+  return ([1, 2, 2.5, 5, 10].find(step => step >= fraction) || 10) * scale;
+}
+
+function binWidth(variable, setting) {
+  const values = DATA.map(row => row[variable]).filter(isValid);
+  const span = values.length ? Math.max(...values) - Math.min(...values) : 1;
+  const targetBins = 60 - Math.max(0, Math.min(100, setting)) * .55;
+  return niceCeil((span || 1) / targetBins);
+}
+
+// Domain and edges come from the complete variable, not the filtered rows.
+function buildBins(rows, variable, width) {
+  if (!(width > 0) || !Number.isFinite(width)) throw new RangeError('Bin width must be positive.');
+  const values = rows.map(row => row[variable]).filter(isValid);
+  if (!values.length) return [{low: 0, high: width}];
+  const min = Math.min(...values), max = Math.max(...values);
+  const start = Math.floor(min / width) * width;
+  const count = Math.max(1, Math.ceil((max - start) / width));
+  return Array.from({length: count}, (_, index) => ({low: start + index * width, high: start + (index + 1) * width}));
+}
+
+function countBins(rows, variable, bins) {
+  const counts = Array(bins.length).fill(0);
+  const width = bins[0].high - bins[0].low;
+  for (const row of rows) {
+    const value = row[variable];
+    if (!isValid(value) || value < bins[0].low || value > bins.at(-1).high) continue;
+    const index = Math.min(counts.length - 1, Math.max(0, Math.floor((value - bins[0].low) / width)));
+    counts[index] += 1;
+  }
+  return counts;
+}
+
+function format(value, maximumFractionDigits = 2) {
+  return Number.isFinite(value) ? value.toLocaleString('en-US', {maximumFractionDigits}) : '—';
+}
+
+function axisFormat(value) {
+  const absolute = Math.abs(value);
+  if (absolute >= 1e6) return `${format(value / 1e6, 2)}M`;
+  if (absolute >= 1e4) return `${format(value / 1e3, 1)}k`;
+  return format(value, 2);
+}
+
+function node(tag, className, text) {
+  const result = document.createElement(tag);
+  if (className) result.className = className;
+  if (text !== undefined) result.textContent = text;
+  return result;
+}
+
+function svgNode(tag, attrs = {}, text) {
+  const result = document.createElementNS(NS, tag);
+  for (const [key, value] of Object.entries(attrs)) result.setAttribute(key, value);
+  if (text !== undefined) result.textContent = text;
+  return result;
+}
+
+function line(svg, x1, y1, x2, y2, stroke = 'var(--line)', width = 1) {
+  svg.append(svgNode('line', {x1, y1, x2, y2, stroke, 'stroke-width': width}));
+}
+
+function text(svg, x, y, label, anchor = 'middle', size = 12) {
+  svg.append(svgNode('text', {x, y, 'text-anchor': anchor, 'font-size': size, fill: 'var(--muted)'}, label));
+}
+
+function describe(mark, description) {
+  mark.append(svgNode('title', {}, description));
+  mark.addEventListener('pointermove', event => {
+    const tooltip = $('tooltip');
+    tooltip.textContent = description;
+    tooltip.style.whiteSpace = 'pre-line';
+    tooltip.style.display = 'block';
+    tooltip.style.left = `${Math.max(8, Math.min(event.clientX + 12, window.innerWidth - 242))}px`;
+    tooltip.style.top = `${Math.max(8, Math.min(event.clientY + 12, window.innerHeight - tooltip.offsetHeight - 8))}px`;
+  });
+  mark.addEventListener('pointerleave', () => { $('tooltip').style.display = 'none'; });
+}
+
+function renderHistogram(rows) {
+  const svg = $('histogram'), variable = state.variable;
+  const width = binWidth(variable, state.binSetting);
+  const bins = buildBins(DATA, variable, width);
+  const counts = countBins(rows, variable, bins);
+  const fullCounts = countBins(DATA, variable, bins);
+  const yMax = Math.max(1, ...fullCounts), xMin = bins[0].low, xMax = bins.at(-1).high;
+  const left = 64, right = 875, top = 22, bottom = 312;
+  const x = value => left + (value - xMin) / (xMax - xMin) * (right - left);
+  const y = count => bottom - count / yMax * (bottom - top);
+  svg.replaceChildren();
+  const tickStep = Math.max(1, Math.ceil(yMax / 5));
+  for (let count = 0; count <= yMax; count += tickStep) {
+    line(svg, left, y(count), right, y(count), 'var(--plot-grid)');
+    text(svg, left - 10, y(count) + 4, String(count), 'end');
+  }
+  bins.forEach((bin, index) => {
+    const bar = svgNode('rect', {x: x(bin.low) + 1, y: y(counts[index]), width: Math.max(1, x(bin.high) - x(bin.low) - 2), height: bottom - y(counts[index]), fill: 'var(--plot)'});
+    describe(bar, `${format(bin.low)} ≤ value ${index === bins.length - 1 ? '≤' : '<'} ${format(bin.high)}\nPlayers: ${counts[index]}`);
+    svg.append(bar);
+  });
+  for (let i = 0; i <= 5; i += 1) {
+    const value = xMin + (xMax - xMin) * i / 5;
+    line(svg, x(value), bottom, x(value), bottom + 6, 'var(--plot-axis)');
+    text(svg, x(value), bottom + 24, axisFormat(value));
+  }
+  line(svg, left, bottom, right, bottom, 'var(--plot-axis)');
+  text(svg, left, 14, 'Players', 'start');
+  text(svg, (left + right) / 2, 365, META[variable].label, 'middle', 13);
+  if (!counts.some(count => count > 0)) text(svg, (left + right) / 2, 165, 'No valid observations for these filters.', 'middle', 15);
+  $('binReadout').textContent = format(width);
+  $('histSubtitle').textContent = `${META[variable].label} · ${META[variable].unit}`;
+  $('histFooter').textContent = 'Full-data bins and scales; filters change counts only.';
+}
+
+function renderSummary(rows) {
+  const stats = summarize(rows, state.variable), grid = $('overallStats');
+  grid.replaceChildren();
+  for (const [label, value] of [['Valid n', stats.n], ['Missing', stats.missing], ['Mean', stats.mean], ['Median', stats.median], ['Sample SD', stats.sd], ['IQR', stats.iqr]]) {
+    const card = node('div', 'stat-card');
+    card.append(node('span', 'stat-label', label), node('span', 'stat-value', format(value)));
+    grid.append(card);
+  }
+  $('summarySubtitle').textContent = `${rows.length} of ${DATA.length} players selected`;
+  $('missingNote').textContent = `Missing ${META[state.variable].label}: ${stats.missing} of ${rows.length}.`;
+}
+
+function renderBoxplots(rows) {
+  const svg = $('boxplot'), variable = state.variable, groups = GROUPS[state.groupBy];
+  const values = DATA.map(row => row[variable]).filter(isValid);
+  const fullMin = values.length ? Math.min(...values) : 0, fullMax = values.length ? Math.max(...values) : 1;
+  const padding = (fullMax - fullMin || 1) * .06;
+  const minimum = fullMin - padding, maximum = fullMax + padding;
+  const W = Math.max(900, 100 + groups.length * 64), H = 420;
+  const left = 84, right = W - 22, top = 25, bottom = 325;
+  const step = (right - left) / groups.length;
+  const y = value => bottom - (value - minimum) / (maximum - minimum) * (bottom - top);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.style.minWidth = `${Math.ceil(W * .87)}px`;
+  svg.replaceChildren();
+  for (let i = 0; i <= 5; i += 1) {
+    const value = minimum + (maximum - minimum) * i / 5;
+    line(svg, left, y(value), right, y(value), 'var(--plot-grid)');
+    text(svg, left - 10, y(value) + 4, axisFormat(value), 'end');
+  }
+  groups.forEach((group, index) => {
+    const groupRows = rows.filter(row => row[state.groupBy] === group);
+    const stats = summarize(groupRows, variable), center = left + (index + .5) * step;
+    const color = state.groupBy === 'POS' && index % 2 ? 'var(--warm)' : 'var(--plot)';
+    text(svg, center, bottom + 25, group, 'middle', 13);
+    text(svg, center, bottom + 44, `n=${stats.n}`);
+    if (!stats.n) return;
+    const halfWidth = Math.min(29, step * .28);
+    line(svg, center, y(stats.low), center, y(stats.high), color, 2);
+    line(svg, center - halfWidth * .6, y(stats.low), center + halfWidth * .6, y(stats.low), color, 2);
+    line(svg, center - halfWidth * .6, y(stats.high), center + halfWidth * .6, y(stats.high), color, 2);
+    const box = svgNode('rect', {x: center - halfWidth, y: y(stats.q3), width: halfWidth * 2, height: Math.max(1, y(stats.q1) - y(stats.q3)), fill: color, 'fill-opacity': .18, stroke: color, 'stroke-width': 2});
+    describe(box, `${group} · n=${stats.n}\nQ1: ${format(stats.q1)}\nMedian: ${format(stats.median)}\nQ3: ${format(stats.q3)}\nWhiskers: ${format(stats.low)} to ${format(stats.high)}`);
+    svg.append(box);
+    line(svg, center - halfWidth, y(stats.median), center + halfWidth, y(stats.median), color, 3);
+    if (state.showPoints) groupRows.filter(row => isValid(row[variable])).forEach((row, pointIndex) => {
+      const jitter = (((pointIndex + 1) * 73) % 101 / 100 - .5) * halfWidth * 1.5;
+      const point = svgNode('circle', {cx: center + jitter, cy: y(row[variable]), r: 3.5, fill: color, 'fill-opacity': .65, stroke: 'var(--surface)', 'stroke-width': .6});
+      describe(point, `${row.Player}\n${row.Team} · ${row.POS}\n${META[variable].label}: ${format(row[variable])}`);
+      svg.append(point);
+    });
+  });
+  line(svg, left, bottom, right, bottom, 'var(--plot-axis)');
+  text(svg, (left + right) / 2, 400, META[variable].label, 'middle', 13);
+  if (!rows.some(row => isValid(row[variable]))) text(svg, (left + right) / 2, 170, 'No valid observations for these filters.', 'middle', 15);
+  $('boxSubtitle').textContent = `By ${state.groupBy === 'POS' ? 'position' : 'team'} · shared full-data scale · n = valid players`;
+}
+
+function renderGroupTable(rows) {
+  const table = node('table'), head = node('thead'), header = node('tr'), body = node('tbody');
+  for (const label of [state.groupBy === 'POS' ? 'Position' : 'Team', 'Valid n', 'Missing', 'Mean', 'Median', 'SD', 'IQR']) {
+    const cell = node('th', '', label); cell.scope = 'col'; header.append(cell);
+  }
+  head.append(header);
+  for (const group of GROUPS[state.groupBy]) {
+    const stats = summarize(rows.filter(row => row[state.groupBy] === group), state.variable);
+    const row = node('tr', stats.n ? '' : 'empty-group');
+    for (const value of [group, stats.n, stats.missing, stats.mean, stats.median, stats.sd, stats.iqr]) {
+      row.append(node('td', '', typeof value === 'string' ? value : format(value)));
+    }
+    body.append(row);
+  }
+  table.append(head, body);
+  $('groupTableWrap').replaceChildren(table);
+}
+
+function render() {
+  const rows = filterRows(DATA, state.team, state.position);
+  $('tooltip').style.display = 'none';
+  $('datasetNotice').textContent = `${DATA.length} players · counting stats are totals · ${META[state.variable].unit}`;
+  renderHistogram(rows);
+  renderSummary(rows);
+  renderBoxplots(rows);
+  renderGroupTable(rows);
+}
+
+function addOption(select, value, label) {
+  const option = node('option', '', label); option.value = value; select.append(option);
+}
+
+function init() {
+  VARIABLES.forEach(([key, label]) => addOption($('variableSelect'), key, label));
+  addOption($('teamFilter'), '', 'All teams');
+  GROUPS.Team.forEach(team => addOption($('teamFilter'), team, team));
+  addOption($('positionFilter'), '', 'All positions');
+  GROUPS.POS.forEach(position => addOption($('positionFilter'), position, position));
+  $('variableSelect').value = state.variable;
+  const selectBindings = {variableSelect: 'variable', groupBySelect: 'groupBy', teamFilter: 'team', positionFilter: 'position'};
+  for (const [id, key] of Object.entries(selectBindings)) {
+    $(id).addEventListener('change', event => { state[key] = event.target.value; render(); });
+  }
+  $('binSlider').addEventListener('input', event => {
+    state.binSetting = Number(event.target.value);
+    renderHistogram(filterRows(DATA, state.team, state.position));
+  });
+  $('showPoints').addEventListener('change', event => {
+    state.showPoints = event.target.checked;
+    renderBoxplots(filterRows(DATA, state.team, state.position));
+  });
+  $('resetBtn').addEventListener('click', () => {
+    Object.assign(state, {variable: 'PTS', groupBy: 'POS', team: '', position: '', binSetting: 45, showPoints: true});
+    for (const [id, key] of Object.entries(selectBindings)) $(id).value = state[key];
+    $('binSlider').value = 45; $('showPoints').checked = true;
+    render();
+  });
+  render();
+}
+init();
+</script>
+</body>
+</html>

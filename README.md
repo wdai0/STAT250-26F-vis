@@ -4,7 +4,23 @@
 
 A GitHub Pages collection of self-contained HTML visualizations for Introductory Statistics I, Fall 2026.
 Each visualization opens in a shared tabbed interface and can be downloaded as a complete HTML file to use and edit offline.
-The initial interface preview demonstrates the design and controls; it is not a statistics lesson.
+The collection includes Cars, NBA, 95% rule, Bootstrap CI, Three distributions, and Sample size & p-values.
+Controls and plots take priority; detailed methods are collapsed or placed in a separate view.
+
+## Data sources and adaptations
+
+The supplied `data/cars20.csv` and `data/nba23.csv` are authoritative for the data exploration tabs.
+The build embeds all 110 car records and 332 NBA records directly into the downloadable HTML files.
+Source values and category spellings are retained; only display labels trim surrounding whitespace.
+The Cars data in the original HTML differed from the CSV, so it was replaced.
+The original NBA HTML was truncated before its application code, so its controls and statistical displays were rebuilt around the complete CSV.
+The NBA tab exposes all 28 numeric columns, with team and position filters.
+Unspecified units and definitions remain labelled as unverified rather than inferred from plausible values.
+
+The four probability and inference visualizations retain their supplied calculations and seeded simulations.
+The 95% rule plot expands its vertical scale for narrow normal curves so their peaks remain visible.
+This changes only the display, not the density or probability calculations.
+The original files in Downloads are not modified.
 
 ## Content and design references
 
@@ -47,6 +63,7 @@ The build recreates `dist/`, so edit the sources rather than generated files.
 | `site.json` | Course identity and authorship |
 | `visualizations.json` | Ordered list of visualization metadata and source paths |
 | `sources/` | Editable HTML visualization sources |
+| `data/` | Authoritative CSV inputs for Cars and NBA |
 | `scripts/build.py` | Validation and standalone HTML generation |
 | `tests/test_build.py` | Build-contract tests using temporary fixtures |
 | `dist/` | Generated site uploaded to GitHub Pages |
@@ -78,9 +95,25 @@ Each ID and resolved source path must be unique.
 An empty registry (`[]`) is valid and leaves the hub with its empty collection state.
 Use `kind: "preview"` for design demonstrations so they remain distinct from course visualizations.
 
-The build embeds the shared CSS and authorship into each generated HTML file.
+The build embeds the shared CSS, authorship, and any configured CSV into each generated HTML file.
 The iframe and Download button use that same generated file, so the online and downloadable versions stay aligned.
 The download contains the complete visualization source; it does not capture the current interactive settings or simulation results.
+
+For CSV-backed visualizations, add a `dataset` object to the registry entry:
+
+```json
+"dataset": {
+  "source": "data/nba23.csv",
+  "text_columns": ["Player", "POS", "Team"]
+}
+```
+
+In its source script, use `const DATA = /* EMBEDDED_DATA */ [];` exactly once.
+The build replaces the marker and empty array with complete records.
+Listed text columns retain their original strings; other columns must be finite numbers or missing values (blank, `NA`, `N/A`, or `null`).
+Missing numeric values become `null`, never zero.
+To refresh these visualizations, replace the CSV, keep its column names, rebuild, and check the counts and summaries.
+The generated HTML needs no CSV alongside it and performs no data fetching.
 
 ## Standalone files and consistency
 
@@ -88,6 +121,7 @@ Keep visualization scripts, CSS, and required data inside the HTML file.
 Use inline SVG or embedded data URLs for required images and avoid CDNs, remote fonts, external stylesheets, JavaScript imports, and fetched data.
 Preserve required third-party notices when incorporating existing code or libraries.
 Use `sources/interface-preview.html` as the layout and control reference.
+It remains a source fixture and is not published as a collection tab.
 Add visualization-specific styles only when the shared theme does not cover the need.
 When chart colors are set in JavaScript, read the shared CSS custom properties so charts use the same palette.
 

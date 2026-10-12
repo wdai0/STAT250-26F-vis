@@ -3,8 +3,11 @@
 
 from __future__ import annotations
 
+import csv
 import html
+import io
 import json
+import math
 from pathlib import Path, PurePosixPath
 import re
 import shutil
@@ -13,6 +16,8 @@ import sys
 
 THEME_MARKER = "<!-- SHARED_THEME -->"
 AUTHORSHIP_MARKER = "<!-- AUTHORSHIP -->"
+DATA_TOKEN = "/* EMBEDDED_DATA */"
+DATA_MARKER = f"{DATA_TOKEN} []"
 STATIC_FILES = ("index.html", "assets/theme.css", "assets/site.css", "assets/site.js", "LICENSE")
 ID_PATTERN = re.compile(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)*\Z")
 
@@ -67,6 +72,77 @@ def source_path(root: Path, source: object) -> Path:
     if not path.is_relative_to(root / "sources"):
         raise BuildError(f"Source resolves outside sources/: {source}")
     return path
+
+
+def dataset_rows(root: Path, dataset: object, label: str) -> list[dict]:
+    """Read CSV records without converting missing numeric values into zeroes."""
+    if not isinstance(dataset, dict):
+        raise BuildError(f"{label}.dataset must contain an object")
+    source = require_text(dataset.get("source"), f"{label}.dataset.source")
+    relative = PurePosixPath(source)
+    if (relative.is_absolute() or ".." in relative.parts or "\\" in source
+            or len(relative.parts) < 2 or relative.parts[0] != "data"
+            or relative.suffix != ".csv"):
+        raise BuildError(f"Dataset must be a CSV path below data/: {source}")
+    path = (root / source).resolve()
+    if not path.is_relative_to(root / "data"):
+        raise BuildError(f"Dataset resolves outside data/: {source}")
+    text_columns = dataset.get("text_columns")
+    if (not isinstance(text_columns, list)
+            or any(not isinstance(column, str) or not column.strip() for column in text_columns)
+            or len(set(text_columns)) != len(text_columns)):
+        raise BuildError(f"{label}.dataset.text_columns must be a list of unique column names")
+    try:
+        reader = csv.reader(io.StringIO(read_text(path).removeprefix("\ufeff"), newline=""), strict=True)
+        headers = next(reader, [])
+        if not headers or any(not header.strip() for header in headers) or len(set(headers)) != len(headers):
+            raise BuildError(f"{source}: CSV headers must be nonempty and unique")
+        if not set(text_columns).issubset(headers):
+            raise BuildError(f"{source}: text_columns must name existing CSV headers")
+        rows = []
+        for values in reader:
+            if len(values) != len(headers):
+                raise BuildError(f"{source}, line {reader.line_num}: expected {len(headers)} fields, got {len(values)}")
+            row = {}
+            for header, value in zip(headers, values):
+                if header in text_columns:
+                    row[header] = value
+                    continue
+                value = value.strip()
+                if value.casefold() in ("", "na", "n/a", "null"):
+                    row[header] = None
+                    continue
+                try:
+                    number = float(value)
+                except ValueError as error:
+                    raise BuildError(f"{source}, line {reader.line_num}: {header} must be numeric or missing") from error
+                if not math.isfinite(number):
+                    raise BuildError(f"{source}, line {reader.line_num}: {header} must be finite")
+                row[header] = int(number) if number.is_integer() else number
+            rows.append(row)
+    except csv.Error as error:
+        raise BuildError(f"Invalid CSV in {source}: {error}") from error
+    if not rows:
+        raise BuildError(f"{source}: CSV must contain at least one data row")
+    return rows
+
+
+def embed_dataset(source: str, root: Path, entry: dict) -> str:
+    """Make each downloadable visualization independent of its source CSV."""
+    label = entry["source"]
+    if "dataset" not in entry:
+        if DATA_TOKEN in source:
+            raise BuildError(f"{label}: embedded data marker requires a dataset")
+        return source
+    if source.count(DATA_TOKEN) != 1 or source.count(DATA_MARKER) != 1:
+        raise BuildError(f"{label} must contain exactly one {DATA_MARKER}")
+    scripts = re.findall(r"<script\b[^>]*>(.*?)</script\s*>", source,
+                         flags=re.IGNORECASE | re.DOTALL)
+    if not any(DATA_MARKER in script for script in scripts):
+        raise BuildError(f"{label}: embedded data marker must be inside <script>")
+    rows = dataset_rows(root, entry["dataset"], label)
+    payload = json.dumps(rows, ensure_ascii=True, allow_nan=False, separators=(",", ":"))
+    return source.replace(DATA_MARKER, payload.replace("<", "\\u003c"))
 
 
 def attribution(authorship: dict) -> str:
@@ -135,9 +211,9 @@ def build(root: Path) -> int:
         used_sources.add(source)
         filename = f"visualizations/{identifier}.html"
         output[filename] = render_visualization(
-            read_text(source), theme, site["authorship"], license_text, entry["source"]
+            embed_dataset(read_text(source), root, entry), theme, site["authorship"], license_text, entry["source"]
         )
-        catalog.append({key: value for key, value in entry.items() if key != "source"}
+        catalog.append({key: value for key, value in entry.items() if key not in ("source", "dataset")}
                        | {"file": filename})
 
     payload = json.dumps(site | {"visualizations": catalog}, ensure_ascii=True, indent=2)

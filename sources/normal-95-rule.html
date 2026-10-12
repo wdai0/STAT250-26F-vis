@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>95% rule · STAT 250</title>
+  <style>
+    :root {
+      --std-line: var(--plot); --std-fill: #416db433;
+      --adj-line: var(--warm); --adj-fill: #a16d4530;
+      --fixed-line: #3d796d; --fixed-fill: #3d796d29;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .wrap h1 { font-size: 1.5rem; margin-bottom: 8px; }
+    .subtitle { color: var(--muted); font-size: .85rem; margin-bottom: 20px; }
+    .layout { display: grid; grid-template-columns: 285px minmax(0, 1fr); gap: 18px; align-items: start; }
+    .panel, .viz-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; min-width: 0; }
+    .panel { position: sticky; top: 18px; }
+    .section { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+    .section h2 { font-size: .95rem; margin-bottom: 10px; }
+    .help { color: var(--muted); font-size: .8rem; line-height: 1.5; }
+    label { display: block; font-weight: 600; font-size: .85rem; margin-bottom: 6px; }
+    input[type="number"] { width: 100%; min-width: 0; padding: 8px 10px; border-radius: var(--radius); border: 1px solid var(--line); color: var(--ink); background: var(--surface); }
+    .num-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .radio-row { display: grid; gap: 8px; }
+    .choice { display: flex; gap: 10px; align-items: start; padding: 10px; border: 1px solid var(--line); border-radius: var(--radius); font-weight: 400; background: var(--surface); }
+    .choice input { flex: 0 0 auto; margin: 4px 0 0; accent-color: var(--accent); }
+    .choice strong { display: block; font-weight: 600; }
+    .stat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 12px 0; }
+    .stat { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; }
+    .stat .k { font-size: .73rem; color: var(--muted); margin-bottom: 4px; }
+    .stat .v { font-size: .94rem; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .legend { display: flex; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 14px; color: var(--muted); font-size: .78rem; }
+    .legend-item { display: inline-flex; gap: 7px; align-items: center; }
+    .swatch { width: 18px; height: 10px; border-radius: 2px; display: inline-block; flex: 0 0 auto; }
+    .plot-wrap { min-width: 0; max-width: 100%; overflow-x: auto; }
+    .plot-wrap svg { min-width: 700px; }
+    svg text { font-family: var(--font); font-size: 14px; }
+    svg { display: block; width: 100%; height: auto; background: var(--surface); font-family: var(--font); }
+    .formula { font-variant-numeric: tabular-nums; color: var(--ink); }
+    details { margin-top: 18px; color: var(--muted); font-size: .8rem; }
+    summary { cursor: pointer; color: var(--ink); font-weight: 600; }
+    details p { margin-top: 8px; }
+    @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } .panel { position: static; } }
+    @media (max-width: 600px) { .wrap { padding: 18px 14px; } .panel, .viz-card { padding: 14px; } .stat-grid { grid-template-columns: 1fr; } }
+  </style>
+  <!-- SHARED_THEME -->
+</head>
+<body>
+  <div class="wrap">
+    <h1>95% rule</h1>
+    <p class="subtitle">Normal curves with mean 0; standard deviation and bounds are adjustable.</p>
+    <div class="layout">
+      <aside class="panel" aria-label="Normal distribution controls">
+        <div class="section">
+          <h2>Adjustable curve</h2>
+          <label for="sigmaSlider">Standard deviation σ: <span id="sigmaLabel" class="formula">1.00</span></label>
+          <input id="sigmaSlider" type="range" min="0.40" max="3.00" step="0.01" value="1.00" />
+        </div>
+        <div class="section">
+          <h2>Central interval</h2>
+          <div class="radio-row">
+            <label class="choice"><input type="radio" name="kMode" value="exact" checked /><span><strong>Exact 95%</strong><span class="formula">±1.95996…σ</span></span></label>
+            <label class="choice"><input type="radio" name="kMode" value="shortcut" /><span><strong>±2σ shortcut</strong>About 95.45%</span></label>
+          </div>
+        </div>
+        <div class="section">
+          <h2>Fixed x-bounds</h2>
+          <label class="choice"><input id="showFixedBounds" type="checkbox" checked /><span>Show probability between bounds</span></label>
+          <div class="num-grid">
+            <div><label for="lowerBound">Lower</label><input id="lowerBound" type="number" step="0.1" value="-2" /></div>
+            <div><label for="upperBound">Upper</label><input id="upperBound" type="number" step="0.1" value="2" /></div>
+          </div>
+        </div>
+      </aside>
+      <main class="viz-card">
+        <div class="legend" aria-label="Curve legend">
+          <span class="legend-item"><span class="swatch" style="background:var(--std-fill); border:2px solid var(--std-line)"></span>Standard normal: σ = 1, central 95%</span>
+          <span class="legend-item"><span class="swatch" style="background:var(--adj-fill); border:2px solid var(--adj-line)"></span>Adjustable normal: ±kσ</span>
+          <span class="legend-item"><span class="swatch" style="background:var(--fixed-fill); border:2px solid var(--fixed-line)"></span>Fixed x-bounds</span>
+        </div>
+        <div class="stat-grid" aria-live="polite">
+          <div class="stat"><div class="k">Cutoff rule</div><div class="v" id="kSummary">k = 1.96 (exact)</div></div>
+          <div class="stat"><div class="k">Adjustable curve cutoffs</div><div class="v" id="cutoffSummary">−1.96 to +1.96</div></div>
+          <div class="stat"><div class="k">Central probability</div><div class="v" id="centralPct">95.00%</div></div>
+        </div>
+        <div class="stat-grid" aria-live="polite">
+          <div class="stat"><div class="k">Standard normal reference</div><div class="v">95% within ±1.96</div></div>
+          <div class="stat"><div class="k">Fixed x-bounds</div><div class="v" id="fixedBoundsSummary">−2.00 to +2.00</div></div>
+          <div class="stat"><div class="k">Probability between bounds</div><div class="v" id="fixedProb">95.45%</div></div>
+        </div>
+        <div class="plot-wrap" tabindex="0" aria-label="Scrollable normal distribution chart"><svg id="chart" viewBox="0 0 980 560" role="img" aria-label="Standard and adjustable normal curves with central and fixed-bound probabilities"></svg></div>
+        <details><summary>Method</summary><p>Both means are 0.
+        Exact central 95% uses k = 1.95996…; k = 2 gives about 95.45%.
+        Central cutoffs are ±kσ; fixed x-bounds stay in raw units.
+        Probabilities use a normal CDF approximation.</p></details>
+      </main>
+    </div>
+    <!-- AUTHORSHIP -->
+  </div>
+
+  <script>
+    (function () {
+      const svg = document.getElementById('chart');
+      const sigmaSlider = document.getElementById('sigmaSlider');
+      const sigmaLabel = document.getElementById('sigmaLabel');
+      const kSummary = document.getElementById('kSummary');
+      const cutoffSummary = document.getElementById('cutoffSummary');
+      const centralPct = document.getElementById('centralPct');
+      const fixedBoundsSummary = document.getElementById('fixedBoundsSummary');
+      const fixedProb = document.getElementById('fixedProb');
+      const showFixedBounds = document.getElementById('showFixedBounds');
+      const lowerBoundInput = document.getElementById('lowerBound');
+      const upperBoundInput = document.getElementById('upperBound');
+      const kRadios = Array.from(document.querySelectorAll('input[name="kMode"]'));
+
+      const W = 980;
+      const H = 560;
+      const margin = { top: 24, right: 24, bottom: 64, left: 62 };
+      const innerW = W - margin.left - margin.right;
+      const innerH = H - margin.top - margin.bottom;
+      const xMin = -6;
+      const xMax = 6;
+      const yMin = 0;
+      let yMax = 0.43;
+      const zExact = 1.959963984540054;
+
+      function erf(x) {
+        const sign = x >= 0 ? 1 : -1;
+        x = Math.abs(x);
+        const a1 = 0.254829592;
+        const a2 = -0.284496736;
+        const a3 = 1.421413741;
+        const a4 = -1.453152027;
+        const a5 = 1.061405429;
+        const p = 0.3275911;
+        const t = 1 / (1 + p * x);
+        const y = 1 - (((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-x * x));
+        return sign * y;
+      }
+
+      function normalPdf(x, mu = 0, sigma = 1) {
+        const z = (x - mu) / sigma;
+        return Math.exp(-0.5 * z * z) / (sigma * Math.sqrt(2 * Math.PI));
+      }
+
+      function normalCdf(x, mu = 0, sigma = 1) {
+        return 0.5 * (1 + erf((x - mu) / (sigma * Math.SQRT2)));
+      }
+
+      function xScale(x) {
+        return margin.left + ((x - xMin) / (xMax - xMin)) * innerW;
+      }
+
+      function yScale(y) {
+        return margin.top + innerH - ((y - yMin) / (yMax - yMin)) * innerH;
+      }
+
+      function fmt(x, digits = 2) {
+        const n = Number(x);
+        if (!Number.isFinite(n)) return '—';
+        return n.toFixed(digits);
+      }
+
+      function fmtPct(p, digits = 2) {
+        return (100 * p).toFixed(digits) + '%';
+      }
+
+      function pathForCurve(fn, step = 0.03) {
+        let d = '';
+        for (let x = xMin; x <= xMax + 1e-9; x += step) {
+          const px = xScale(x);
+          const py = yScale(fn(x));
+          d += (d ? ' L ' : 'M ') + px.toFixed(2) + ' ' + py.toFixed(2);
+        }
+        return d;
+      }
+
+      function shadedAreaPath(fn, a, b, step = 0.03) {
+        const left = Math.max(xMin, Math.min(a, b));
+        const right = Math.min(xMax, Math.max(a, b));
+        const baseline = yScale(0);
+        if (right <= left) return '';
+        let d = 'M ' + xScale(left).toFixed(2) + ' ' + baseline.toFixed(2);
+        for (let x = left; x <= right + 1e-9; x += step) {
+          d += ' L ' + xScale(x).toFixed(2) + ' ' + yScale(fn(x)).toFixed(2);
+        }
+        d += ' L ' + xScale(right).toFixed(2) + ' ' + baseline.toFixed(2) + ' Z';
+        return d;
+      }
+
+      function line(x1, y1, x2, y2, attrs = {}) {
+        const el = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        el.setAttribute('x1', x1);
+        el.setAttribute('y1', y1);
+        el.setAttribute('x2', x2);
+        el.setAttribute('y2', y2);
+        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+        return el;
+      }
+
+      function text(x, y, str, attrs = {}) {
+        const el = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        el.setAttribute('x', x);
+        el.setAttribute('y', y);
+        el.textContent = str;
+        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+        return el;
+      }
+
+      function path(d, attrs = {}) {
+        const el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        el.setAttribute('d', d);
+        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+        return el;
+      }
+
+      function rect(x, y, w, h, attrs = {}) {
+        const el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        el.setAttribute('x', x);
+        el.setAttribute('y', y);
+        el.setAttribute('width', w);
+        el.setAttribute('height', h);
+        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+        return el;
+      }
+
+      function clearSVG() {
+        while (svg.firstChild) svg.removeChild(svg.firstChild);
+      }
+
+      function getKMode() {
+        return kRadios.find(r => r.checked)?.value || 'exact';
+      }
+
+      function draw() {
+        let sigma = parseFloat(sigmaSlider.value);
+        if (!Number.isFinite(sigma) || sigma <= 0) sigma = 1;
+        // Keep the full density curve visible when the standard deviation is small.
+        yMax = Math.max(0.43, normalPdf(0, 0, sigma) * 1.12);
+        sigmaSlider.value = sigma.toFixed(2);
+        sigmaLabel.textContent = sigma.toFixed(2);
+
+        let lower = parseFloat(lowerBoundInput.value);
+        let upper = parseFloat(upperBoundInput.value);
+        if (!Number.isFinite(lower)) lower = -2;
+        if (!Number.isFinite(upper)) upper = 2;
+        if (lower > upper) {
+          const tmp = lower;
+          lower = upper;
+          upper = tmp;
+        }
+        lowerBoundInput.value = lower;
+        upperBoundInput.value = upper;
+
+        const mode = getKMode();
+        const k = mode === 'shortcut' ? 2 : zExact;
+        const kLabel = mode === 'shortcut' ? 'k = 2.00 (shortcut)' : 'k = 1.96 (exact)';
+        const lowerCut = -k * sigma;
+        const upperCut = k * sigma;
+        const central = normalCdf(upperCut, 0, sigma) - normalCdf(lowerCut, 0, sigma);
+        const fixed = normalCdf(upper, 0, sigma) - normalCdf(lower, 0, sigma);
+
+        kSummary.textContent = kLabel;
+        cutoffSummary.textContent = `${fmt(lowerCut)} to +${fmt(Math.abs(upperCut))}`.replace('+ -', '-');
+        centralPct.textContent = fmtPct(central);
+        fixedBoundsSummary.textContent = `${fmt(lower)} to ${upper >= 0 ? '+' : ''}${fmt(upper)}`;
+        fixedProb.textContent = fmtPct(fixed);
+
+        clearSVG();
+
+        svg.appendChild(rect(0, 0, W, H, { fill: 'transparent' }));
+
+        for (let gx = Math.ceil(xMin); gx <= Math.floor(xMax); gx += 1) {
+          const px = xScale(gx);
+          svg.appendChild(line(px, margin.top, px, margin.top + innerH, {
+            stroke: gx === 0 ? 'var(--plot-axis)' : 'var(--plot-grid)',
+            'stroke-width': gx === 0 ? '1.2' : '1',
+            'stroke-dasharray': gx === 0 ? '0' : '3 5'
+          }));
+        }
+
+        for (let gy = 0.1; gy < yMax; gy += 0.1) {
+          const py = yScale(gy);
+          svg.appendChild(line(margin.left, py, margin.left + innerW, py, {
+            stroke: 'var(--plot-grid)',
+            'stroke-width': '1'
+          }));
+          svg.appendChild(text(margin.left - 10, py + 4, gy.toFixed(1), {
+            'text-anchor': 'end',
+            'font-size': '12',
+            fill: 'var(--muted)'
+          }));
+        }
+
+        const baseY = yScale(0);
+        svg.appendChild(line(margin.left, baseY, margin.left + innerW, baseY, {
+          stroke: 'var(--ink)',
+          'stroke-width': '1.8'
+        }));
+        svg.appendChild(line(xScale(0), margin.top, xScale(0), baseY, {
+          stroke: 'var(--ink)',
+          'stroke-width': '1.8'
+        }));
+
+        for (let gx = Math.ceil(xMin); gx <= Math.floor(xMax); gx += 1) {
+          const px = xScale(gx);
+          svg.appendChild(line(px, baseY, px, baseY + 6, {
+            stroke: 'var(--ink)',
+            'stroke-width': '1.2'
+          }));
+          svg.appendChild(text(px, baseY + 22, gx.toString(), {
+            'text-anchor': 'middle',
+            'font-size': '12',
+            fill: 'var(--muted)'
+          }));
+        }
+
+        svg.appendChild(text(margin.left + innerW / 2, H - 16, 'x (raw units)', {
+          'text-anchor': 'middle',
+          'font-size': '14',
+          'font-weight': '600',
+          fill: 'var(--ink)'
+        }));
+
+        svg.appendChild(text(18, margin.top + innerH / 2, 'density', {
+          transform: `rotate(-90 18 ${margin.top + innerH / 2})`,
+          'text-anchor': 'middle',
+          'font-size': '14',
+          'font-weight': '600',
+          fill: 'var(--ink)'
+        }));
+
+        const stdPdf = x => normalPdf(x, 0, 1);
+        const adjPdf = x => normalPdf(x, 0, sigma);
+
+        const stdShade = shadedAreaPath(stdPdf, -zExact, zExact);
+        svg.appendChild(path(stdShade, {
+          fill: 'var(--std-fill)',
+          stroke: 'none'
+        }));
+
+        const adjShade = shadedAreaPath(adjPdf, lowerCut, upperCut);
+        svg.appendChild(path(adjShade, {
+          fill: 'var(--adj-fill)',
+          stroke: 'none'
+        }));
+
+        if (showFixedBounds.checked) {
+          const fixedShade = shadedAreaPath(adjPdf, lower, upper);
+          svg.appendChild(path(fixedShade, {
+            fill: 'var(--fixed-fill)',
+            stroke: 'none'
+          }));
+        }
+
+        const stdCurve = pathForCurve(stdPdf);
+        svg.appendChild(path(stdCurve, {
+          fill: 'none',
+          stroke: 'var(--std-line)',
+          'stroke-width': '3'
+        }));
+
+        const adjCurve = pathForCurve(adjPdf);
+        svg.appendChild(path(adjCurve, {
+          fill: 'none',
+          stroke: 'var(--adj-line)',
+          'stroke-width': '3'
+        }));
+
+        [-zExact, zExact].forEach((xVal, idx) => {
+          const px = xScale(xVal);
+          svg.appendChild(line(px, baseY, px, yScale(normalPdf(xVal, 0, 1)), {
+            stroke: 'var(--std-line)',
+            'stroke-width': '2',
+            'stroke-dasharray': '5 4'
+          }));
+          svg.appendChild(text(px, margin.top + 20 + idx * 0, xVal < 0 ? '−1.96' : '+1.96', {
+            'text-anchor': 'middle',
+            'font-size': '13',
+            'font-weight': '700',
+            fill: 'var(--std-line)'
+          }));
+        });
+
+        [-2, 2].forEach((xVal) => {
+          const px = xScale(xVal);
+          svg.appendChild(line(px, baseY, px, yScale(0.11), {
+            stroke: 'var(--plot-muted)',
+            'stroke-width': '1.5',
+            'stroke-dasharray': '2 6'
+          }));
+          svg.appendChild(text(px, yScale(0.11) - 8, xVal < 0 ? '−2' : '+2', {
+            'text-anchor': 'middle',
+            'font-size': '12',
+            fill: 'var(--muted)'
+          }));
+        });
+
+        [lowerCut, upperCut].forEach((xVal, i) => {
+          if (xVal < xMin || xVal > xMax) return;
+          const px = xScale(xVal);
+          svg.appendChild(line(px, baseY, px, yScale(adjPdf(xVal)), {
+            stroke: 'var(--adj-line)',
+            'stroke-width': '2',
+            'stroke-dasharray': '6 4'
+          }));
+          const label = (i === 0 ? '' : '') + (xVal >= 0 ? '+' : '') + fmt(xVal);
+          svg.appendChild(text(px, yScale(adjPdf(xVal)) - 10, label, {
+            'text-anchor': 'middle',
+            'font-size': '12',
+            'font-weight': '700',
+            fill: 'var(--adj-line)'
+          }));
+        });
+
+        if (showFixedBounds.checked) {
+          [lower, upper].forEach((xVal) => {
+            if (xVal < xMin || xVal > xMax) return;
+            const px = xScale(xVal);
+            svg.appendChild(line(px, baseY, px, yScale(adjPdf(xVal)), {
+              stroke: 'var(--fixed-line)',
+              'stroke-width': '2',
+              'stroke-dasharray': '8 5'
+            }));
+            const label = (xVal >= 0 ? '+' : '') + fmt(xVal);
+            svg.appendChild(text(px, baseY - 8, label, {
+              'text-anchor': 'middle',
+              'font-size': '12',
+              'font-weight': '700',
+              fill: 'var(--fixed-line)'
+            }));
+          });
+        }
+
+        const peakStdX = xScale(0);
+        const peakStdY = yScale(normalPdf(0, 0, 1));
+        const peakAdjY = yScale(normalPdf(0, 0, sigma));
+
+        svg.appendChild(text(peakStdX + 12, peakStdY - 12, 'Standard normal', {
+          'font-size': '13',
+          'font-weight': '700',
+          fill: 'var(--std-line)'
+        }));
+
+        svg.appendChild(text(peakStdX + 12, peakAdjY + (sigma < 1 ? -14 : 18), `Adjustable normal (σ = ${fmt(sigma)})`, {
+          'font-size': '13',
+          'font-weight': '700',
+          fill: 'var(--adj-line)'
+        }));
+
+
+      }
+
+      sigmaSlider.addEventListener('input', draw);
+      showFixedBounds.addEventListener('change', draw);
+      lowerBoundInput.addEventListener('input', draw);
+      upperBoundInput.addEventListener('input', draw);
+      kRadios.forEach(r => r.addEventListener('change', draw));
+
+      draw();
+    })();
+    </script>
+</body>
+</html>

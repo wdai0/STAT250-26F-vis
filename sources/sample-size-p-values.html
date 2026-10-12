@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Sample size &amp; p-values · STAT 250</title>
+<style>
+  :root {
+    color-scheme: light;
+    --ink:#17283c; --muted:#536479; --faint:#738397;
+    --page:#f3f6fb; --surface:#fff; --border:#dbe3ee;
+    --blue:#416db4; --blue-deep:#365fa0; --blue-pale:#eaf3fb;
+    --orange:#a16d45; --orange-dark:#795134; --orange-pale:#f7f1eb;
+    --track:#e6ebf2; --focus:#1460ae;
+    --shadow:0 7px 25px rgba(29,48,73,.045);
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--page)}
+  body{margin:0;color:var(--ink);background:var(--page);font-size:15px;line-height:1.4}
+  button,input,summary{font:inherit}
+  button{cursor:pointer}
+  :focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:4px}
+  .app{max-width:1366px;padding:13px 28px 16px;margin:auto}
+  .masthead{display:flex;justify-content:space-between;gap:20px;align-items:center}
+  .masthead .brand{min-width:0}
+  .kicker{font-size:11px;letter-spacing:.14em;font-weight:800;color:#526d86;text-transform:uppercase}
+  h1{font-size:clamp(22px,2.25vw,30px);line-height:1.17;letter-spacing:-.035em;margin:4px 0 4px;font-weight:790}
+  .deck{font-size:14px;color:var(--muted);margin:0;line-height:1.35}
+  .masthead-note{flex:0 0 auto;max-width:245px;padding:9px 12px;border-left:3px solid var(--blue);font-weight:650;font-size:13px;line-height:1.3;color:#344b61;background:#e8eef6}
+  .tabs{display:flex;gap:5px;border-bottom:1px solid #cad7e4;margin:12px 0 11px}
+  .tab{border:0;background:transparent;min-height:39px;padding:8px 20px 10px;color:#526277;font-weight:720;font-size:15px;position:relative}
+  .tab[aria-selected="true"]{color:var(--blue-deep)}
+  .tab[aria-selected="true"]::after{content:"";position:absolute;left:10px;right:10px;height:3px;border-radius:3px 3px 0 0;bottom:-1px;background:var(--blue-deep)}
+  .tab:hover{background:#e8eef5}
+  [hidden]{display:none!important}
+  .view{min-width:0}
+  .controls{display:grid;grid-template-columns:minmax(300px,1.05fr) minmax(280px,.8fr) auto;gap:16px;align-items:center;background:var(--surface);padding:12px 16px;border:1px solid var(--border);border-radius:13px;box-shadow:var(--shadow)}
+  .size-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+  .control-label{font-weight:730;color:var(--ink)}
+  .size-value{font-size:19px;font-weight:800;letter-spacing:-.01em;color:var(--blue-deep);font-variant-numeric:tabular-nums}
+  .range-row{display:flex;align-items:center;gap:10px}
+  .range-limit{font-size:12px;color:var(--faint);font-weight:650;font-variant-numeric:tabular-nums}
+  input[type="range"]{min-width:0;flex:1;accent-color:var(--blue-deep);cursor:pointer}
+  .fixed-conditions{display:flex;flex-direction:column;gap:3px;border-left:1px solid var(--border);padding-left:17px}
+  .fixed-conditions .control-label{font-size:13px}
+  .fixed-row{display:flex;gap:12px;flex-wrap:wrap;color:#41556b;font-size:13px}
+  .fixed-row b{color:#223b54}
+  .button-set{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .btn{background:#fff;border:1px solid #c6d2df;border-radius:8px;padding:9px 12px;white-space:nowrap;font-size:13px;font-weight:770;color:#29445f;min-height:37px}
+  .btn.primary{color:#fff;background:var(--blue-deep);border-color:var(--blue-deep)}
+  .btn:hover{filter:brightness(.97)}
+  .btn:active{transform:translateY(1px)}
+  .seed-details{position:relative;color:#4c6176}
+  .seed-details>summary{display:block;list-style:none;cursor:pointer;font-size:12px;font-weight:720;white-space:nowrap;padding:5px 4px;border-radius:5px;text-align:right}
+  .seed-details>summary::-webkit-details-marker{display:none}
+  .seed-details>summary::after{content:" ▾"}
+  .seed-details[open]>summary::after{content:" ▴"}
+  .seed-pop{position:absolute;top:calc(100% + 6px);right:0;z-index:12;background:white;border:1px solid var(--border);border-radius:10px;box-shadow:0 14px 35px #152b4240;padding:13px;width:258px}
+  .seed-pop label{display:block;font-size:13px;font-weight:720;margin-bottom:7px}
+  .seed-edit{display:flex;gap:7px}
+  .seed-edit input{width:100%;min-width:0;border:1px solid #9eafc2;border-radius:6px;padding:8px;font-variant-numeric:tabular-nums;font-size:14px}
+  .seed-edit .btn{padding:7px 9px}
+  .seed-help{font-size:11px;color:var(--muted);margin-top:7px;line-height:1.35}
+  .seed-error{font-size:12px;color:#a51a1a;font-weight:700;margin-top:5px;min-height:0}
+  .results{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:10px;margin:10px 0}
+  .result-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:11px 16px 12px;box-shadow:var(--shadow);min-width:0}
+  .result-card .caption{font-size:12px;letter-spacing:.035em;text-transform:uppercase;font-weight:810;color:#50677c}
+  .result-card .big{font-size:clamp(19px,2vw,26px);font-variant-numeric:tabular-nums;font-weight:820;letter-spacing:-.035em;line-height:1.18;margin:5px 0 4px;white-space:nowrap}
+  .result-card .big.wordy{font-size:clamp(17px,1.6vw,22px)}
+  .result-card .sub{font-size:12px;line-height:1.25;color:#51667a;min-height:15px}
+  .result-card.exact{border-top:3px solid var(--blue)}
+  .result-card.sim{border-top:3px solid var(--orange)}
+  .result-card.obs{border-top:3px solid #29394b}
+  .chart-card{background:#fff;border:1px solid var(--border);border-radius:13px;overflow:hidden;box-shadow:var(--shadow)}
+  .chart-heading{padding:11px 16px 5px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  h2{font-size:18px;margin:0;letter-spacing:-.015em}
+  .chart-description{font-size:12.5px;color:var(--muted);margin:2px 0 0;line-height:1.35}
+  .chart-legend{display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:8px 16px;font-size:12px;font-weight:680;color:#4b5f72}
+  .legend{display:flex;align-items:center;gap:6px;white-space:nowrap}
+  .legend .swatch{width:14px;height:10px;background:#7da9ca;border-radius:2px;display:inline-block}
+  .legend .swatch.tail{background:var(--orange)}
+  .legend .line{width:18px;display:inline-block;border-top:3px solid var(--blue-deep)}
+  .legend .line.observed{border-top:2px dashed #182633}
+  .chart-window{padding:0 7px 0 3px;overflow-x:auto}
+  svg.plot{display:block;width:100%;height:auto;overflow:visible}
+  .svg-axis{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#475c73}
+  .chart-bottom{min-height:39px;border-top:1px solid #e8edf3;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 16px 9px;background:#fbfcfe}
+  .tail-summary{font-weight:760;font-size:12.5px;color:#354e67}
+  .chart-hint{font-size:11.5px;color:#627287;line-height:1.3;text-align:right}
+  .below-note{margin:6px 3px 0;color:#4b6075;font-size:12.5px;line-height:1.4}
+  .below-note strong{color:#233b55}
+  .compare-header{display:flex;align-items:end;justify-content:space-between;gap:15px;padding:4px 0 12px}
+  .compare-header h2{font-size:23px}
+  .compare-header p{margin:4px 0 0;color:var(--muted);font-size:14px}
+  .compare-selected{text-align:right;border-left:3px solid var(--orange);padding-left:14px}
+  .compare-selected span{font-size:12px;color:var(--muted);font-weight:730}
+  .compare-selected strong{display:block;font-size:24px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .compare-chart{padding:10px 10px 3px 5px}
+  .compare-window{overflow-x:auto}
+  .chart-window,.compare-window {min-width:0; max-width:100%;}
+  .chart-window svg,.compare-window svg {min-width:960px;}
+  svg text, svg .svg-axis {font-family:var(--font);}
+  .compare-footer{margin-top:13px;display:grid;grid-template-columns:1fr 1fr;gap:15px}
+  .compare-note{padding:16px;background:white;border:1px solid var(--border);border-radius:12px;line-height:1.48}
+  .compare-note strong{font-size:15px;color:#263f55}
+  .compare-note p{color:var(--muted);margin:5px 0 0;font-size:13px}
+  .guide-intro{background:#edf4fa;border:1px solid #d6e4f2;border-radius:13px;padding:16px 20px;margin:2px 0 13px}
+  .guide-intro h2{font-size:22px;margin-bottom:3px}
+  .guide-intro p{font-size:15px;margin:0;color:#435a70}
+  .guide-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+  .guide-card{background:white;border:1px solid var(--border);border-radius:12px;padding:16px 17px;min-width:0}
+  .guide-card h3{font-size:16px;margin:0 0 8px;color:#183d66}
+  .guide-card p,.guide-card li{font-size:13px;color:#425a72;line-height:1.53}
+  .guide-card p{margin:0 0 7px}
+  .guide-card ul{margin:0;padding-left:18px}
+  .guide-card li{margin-bottom:5px}
+  .formula{background:#f1f6fb;font-size:13px;font-weight:720;color:#243f5a;border-radius:8px;padding:11px;line-height:1.5;margin:10px 0;overflow-wrap:anywhere}
+  .guide-bottom{padding:12px 16px;border-left:3px solid var(--orange);background:#fff7f0;margin-top:13px;font-size:14px;color:#5e4632}
+  .footer{font-size:11.5px;color:#6c7a8d;padding:5px 2px 0}
+  .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+  @media (max-width:1180px) {
+    .masthead-note{display:none}
+    .controls{grid-template-columns:minmax(280px,1fr) auto;gap:10px}
+    .fixed-conditions{grid-column:1;grid-row:2;border-left:0;padding:0;flex-direction:row;gap:9px;align-items:center}
+    .button-set{grid-column:2;grid-row:1/3;max-width:300px}
+    .chart-heading{flex-wrap:wrap}
+  }
+  @media (max-width:710px) {
+    .app{padding:12px 12px 22px}
+    h1{font-size:24px}
+    .deck{font-size:14px}
+    .tabs{gap:0;margin-top:14px}
+    .tab{padding:9px 12px;font-size:13px;flex:1}
+    .controls{display:block;padding:13px 14px}
+    .fixed-conditions{display:flex;flex-wrap:wrap;padding:11px 0 7px}
+    .button-set{justify-content:flex-start;max-width:none}
+    .results{grid-template-columns:1fr;gap:7px}
+    .result-card{padding:9px 13px}
+    .result-card .big,.result-card .big.wordy{font-size:22px}
+    .chart-heading{padding:13px 13px 9px}
+    .chart-legend{justify-content:flex-start}
+    .chart-bottom{display:block;padding:10px 13px}
+    .chart-hint{text-align:left;margin-top:4px}
+    .compare-header{align-items:start;flex-wrap:wrap}
+    .compare-selected{text-align:left}
+    .compare-footer,.guide-grid{grid-template-columns:1fr}
+    .guide-intro h2{font-size:20px}
+  }
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}}
+
+  /* Collection presentation; the binomial calculation and seeded simulation are unchanged. */
+  :root {--border:var(--line); --blue:var(--plot); --blue-deep:var(--accent); --blue-pale:var(--accent-soft);
+    --orange:var(--warm); --orange-dark:#795134; --orange-pale:#f7f1eb; --focus:var(--accent); --shadow:none;}
+  .app {padding:26px 24px; max-width:1280px;}
+  .masthead h1 {font-size:1.4rem; font-weight:650; letter-spacing:-.02em; margin:0 0 8px;}
+  .deck {font-size:.82rem;}
+  .tabs {margin:20px 0 16px; border-color:var(--line);}
+  .tab {font-size:.86rem; font-weight:600; border-radius:var(--radius) var(--radius) 0 0;}
+  .tab:hover {background:var(--accent-soft);}
+  .controls {border-radius:var(--radius); padding:16px;}
+  .control-label {font-weight:600; font-size:.85rem;}
+  .size-value {font-size:1.05rem; font-weight:650;}
+  .btn {font-weight:600; border-radius:var(--radius);}
+  .btn:hover {filter:none; background:var(--accent-soft);}
+  .btn.primary:hover {background:var(--accent-hover);}
+  .seed-pop {box-shadow:none; border-radius:var(--radius);}
+  .result-card,.chart-card,.guide-card {border-radius:var(--radius);}
+  .results {margin:14px 0;}
+  .result-card .caption {text-transform:none; letter-spacing:0; font-weight:600;}
+  .result-card .big,.result-card .big.wordy {font-size:1.35rem; font-weight:650; letter-spacing:0;}
+  .chart-heading h2,.compare-header h2 {font-size:1.05rem; font-weight:650;}
+  .chart-legend,.tail-summary {font-weight:500;}
+  .chart-bottom {background:var(--surface);}
+  .compare-header p {font-size:.82rem;}
+  .compare-selected strong {font-size:1.25rem; font-weight:650;}
+  .guide-card h3 {font-size:.95rem; color:var(--ink); font-weight:650;}
+  .guide-card p {font-size:.84rem; line-height:1.55;}
+  .formula {font-weight:600; border-radius:var(--radius); background:var(--accent-soft);}
+  .footer {padding:18px 0 0; font-size:.75rem;}
+  .attribution {max-width:1232px; margin:0 auto; padding:20px 24px;}
+  @media(max-width:710px) {
+    .app {padding:20px 14px;}
+    .masthead h1 {font-size:1.25rem;}
+    .result-card .big,.result-card .big.wordy {font-size:1.2rem;}
+  }
+</style>
+<!-- SHARED_THEME -->
+</head>
+<body>
+<div class="app">
+  <header class="masthead">
+    <div class="brand">
+      <h1>Sample size &amp; p-values</h1>
+      <p class="deck">Separate hypothetical studies · observed proportion 0.32 · null p₀ = 0.20</p>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Demonstration sections">
+    <button type="button" class="tab" id="tab-explore" role="tab" aria-controls="panel-explore" aria-selected="true" tabindex="0" data-tab="explore">Explore</button>
+    <button type="button" class="tab" id="tab-compare" role="tab" aria-controls="panel-compare" aria-selected="false" tabindex="-1" data-tab="compare">Compare</button>
+    <button type="button" class="tab" id="tab-guide" role="tab" aria-controls="panel-guide" aria-selected="false" tabindex="-1" data-tab="guide">Methods</button>
+  </nav>
+
+  <main>
+    <section class="view" id="panel-explore" role="tabpanel" aria-labelledby="tab-explore">
+      <div class="controls">
+        <div>
+          <div class="size-top"><label class="control-label" for="n-slider">Guesses per hypothetical study</label><output for="n-slider" class="size-value" id="n-display">n = 100</output></div>
+          <div class="range-row"><span class="range-limit">25</span><input id="n-slider" type="range" min="0" max="10" step="1" value="3" list="sizes" aria-label="Sample size, number of guesses per study"><span class="range-limit">2,000</span></div>
+          <datalist id="sizes"><option value="0"></option><option value="1"></option><option value="2"></option><option value="3"></option><option value="4"></option><option value="5"></option><option value="6"></option><option value="7"></option><option value="8"></option><option value="9"></option><option value="10"></option></datalist>
+        </div>
+        <div class="fixed-conditions">
+          <span class="control-label">Held fixed</span>
+          <div class="fixed-row"><span>Null <b>p₀ = 0.20</b></span><span>Observed <b>0.32</b></span><span><b>B = 10,000</b> simulations</span></div>
+        </div>
+        <div class="button-set">
+          <button class="btn primary" type="button" id="rerun-btn">Rerun simulation</button>
+          <button class="btn" type="button" id="reset-btn">Reset</button>
+          <details class="seed-details" id="seed-details">
+            <summary>Seed: <span id="seed-visible">20261008</span> <span class="sr-only">Edit random seed</span></summary>
+            <div class="seed-pop">
+              <label for="seed-input">Reproducible random seed</label>
+              <div class="seed-edit"><input id="seed-input" type="text" inputmode="numeric" maxlength="10" value="20261008" aria-describedby="seed-description"><button type="button" class="btn" id="seed-apply">Apply</button></div>
+              <div id="seed-description" class="seed-help">Integer 0–4,294,967,295. Same seed and n reproduce the histogram.</div>
+              <div class="seed-error" id="seed-error" role="status" aria-live="polite"></div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="results" aria-live="polite" aria-atomic="true">
+        <div class="result-card obs"><div class="caption">Observed result</div><div class="big wordy" id="observed-count">32 correct out of 100</div><div class="sub">Observed 0.32 − null 0.20 = +0.12</div></div>
+        <div class="result-card sim"><div class="caption">Simulation-based p-value</div><div class="big" id="sim-p">—</div><div class="sub" id="sim-details">—</div></div>
+        <div class="result-card exact"><div class="caption">Exact binomial p-value</div><div class="big" id="exact-p">—</div><div class="sub">P(X ≥ observed count | p = 0.20)</div></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-heading">
+          <div><h2>Null distribution · <span id="chart-n">n = 100</span></h2><p class="chart-description">10,000 sample proportions · 0.01-wide bins</p></div>
+          <div class="chart-legend" aria-label="Chart legend">
+            <span class="legend"><span class="swatch"></span>Null simulations</span>
+            <span class="legend"><span class="swatch tail"></span>At or above 0.32</span>
+            <span class="legend"><span class="line"></span>Null 0.20</span>
+            <span class="legend"><span class="line observed"></span>Observed 0.32</span>
+          </div>
+        </div>
+        <div class="chart-window" tabindex="0" aria-label="Scrollable null distribution chart"><svg id="hist-chart" class="plot" role="img" viewBox="0 0 1160 205" aria-labelledby="hist-title hist-desc"><title id="hist-title">Distribution of null sample proportions</title><desc id="hist-desc">Histogram for 10,000 simulated binomial studies.</desc></svg></div>
+        <div class="chart-bottom">
+          <div class="tail-summary" id="tail-summary" aria-live="polite">—</div>
+          <div class="chart-hint">p-value = right-tail probability mass</div>
+        </div>
+      </div>
+      <p class="below-note">Each n is a separate hypothetical study; B = 10,000 is the number of simulation repetitions.</p>
+    </section>
+
+    <section class="view" id="panel-compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
+      <div class="compare-header">
+        <div><h2>Compare sample sizes</h2><p>Exact right-tail p-values · logarithmic y-axis · select a point to explore</p></div>
+        <div class="compare-selected"><span id="selected-label">Selected: n = 100</span><strong id="selected-exact">—</strong></div>
+      </div>
+      <div class="chart-card">
+        <div class="compare-chart"><div class="compare-window" tabindex="0" aria-label="Scrollable sample-size comparison chart"><svg id="compare-chart" class="plot" role="img" viewBox="0 0 1160 300" aria-labelledby="compare-title compare-desc"><title id="compare-title">Exact p-value by sample size</title><desc id="compare-desc">Logarithmically scaled chart of exact right-tailed binomial p-values for 11 sample sizes.</desc></svg></div></div>
+        <div class="chart-bottom"><span class="tail-summary">Only n changes · p₀ = 0.20 · observed proportion = 0.32</span><span class="chart-hint">Equally spaced sample-size categories</span></div>
+      </div>
+      <p class="below-note">Observed difference stays at +0.12 for every study size.</p>
+    </section>
+
+    <section class="view" id="panel-guide" role="tabpanel" aria-labelledby="tab-guide" hidden>
+      <div class="guide-grid">
+        <article class="guide-card"><h3>Null model</h3>
+          <div class="formula">X ~ Binomial(n, 0.20)<br>Sample proportion = X / n</div>
+          <p>Independent binary outcomes.
+          Each n represents a separate hypothetical study with observed count k = 0.32n.</p>
+        </article>
+        <article class="guide-card"><h3>Right-tail p-value</h3>
+          <div class="formula">Simulated p = #{X ≥ k} / 10,000<br>Exact p = P(X ≥ k | p = 0.20)</div>
+          <p>Ties included; exact binomial probabilities, with no normal approximation.
+          The p-value is not the probability that the null is true.</p>
+        </article>
+        <article class="guide-card"><h3>Simulation precision</h3>
+          <p>B = 10,000 counts repetitions, not study size n.
+          Same seed and n reproduce the histogram.</p>
+          <p>Zero simulated extremes does not mean zero tail probability; the exact value remains available.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">Right-tailed alternative: p &gt; 0.20 · no decision threshold</footer>
+</div>
+<script>
+(()=>{'use strict';
+  const SIZES=[25,50,75,100,150,200,300,500,750,1000,2000];
+  const B=10000, P0=0.20, OBS_NUM=8, OBS_DEN=25, OBS=0.32, DEFAULT_SEED=20261008;
+  const $=id=>document.getElementById(id);
+  const fmtN=n=>n.toLocaleString('en-US');
+  const state={index:3,seed:DEFAULT_SEED,tab:'explore'};
+  const cache=new Map();
+  const logFact=new Float64Array(SIZES[SIZES.length-1]+1);
+  for(let j=1;j<logFact.length;j++)logFact[j]=logFact[j-1]+Math.log(j);
+  const exact=new Map(),cdfCache=new Map();
+  function cutoff(n){return (n*OBS_NUM)/OBS_DEN;}
+  for(const n of SIZES){
+    if(!Number.isInteger(cutoff(n)))throw Error('Non-integer observed count for n='+n);
+  }
+  // Stable upper tail: begin at P(X=k) on the log scale, then sum terms for x=k,...,n.
+  // No subtraction from a cumulative probability near one and no normal approximation.
+  function exactTail(n,k){
+    const logP=logFact[n]-logFact[k]-logFact[n-k]+k*Math.log(P0)+(n-k)*Math.log1p(-P0);
+    let logTerm=logP,logSum=logP;
+    for(let x=k;x<n;x++){
+      logTerm+=Math.log(n-x)-Math.log(x+1)+Math.log(P0)-Math.log1p(-P0);
+      const m=Math.max(logSum,logTerm);
+      logSum=m+Math.log(Math.exp(logSum-m)+Math.exp(logTerm-m));
+    }
+    return Math.exp(logSum);
+  }
+  for(const n of SIZES) exact.set(n,exactTail(n,cutoff(n)));
+  function buildCDF(n){
+    if(cdfCache.has(n))return cdfCache.get(n);
+    const probs=new Float64Array(n+1),cdf=new Float64Array(n+1);
+    // P(X=0)=(.8)^n is safely representable for n <= 2,000.
+    probs[0]=Math.pow(1-P0,n);
+    let total=probs[0];
+    for(let x=0;x<n;x++){
+      probs[x+1]=probs[x]*(n-x)/(x+1)*(P0/(1-P0));
+      total+=probs[x+1];
+    }
+    let running=0;
+    for(let x=0;x<=n;x++){
+      running+=probs[x]/total;
+      cdf[x]=Math.min(1,running);
+    }
+    cdf[n]=1;
+    cdfCache.set(n,cdf);
+    return cdf;
+  }
+  function mixSeed(seed,n){
+    let x=(seed^Math.imul(n,0x9e3779b1))>>>0;
+    x^=x>>>16;x=Math.imul(x,0x85ebca6b);x^=x>>>13;x=Math.imul(x,0xc2b2ae35);x^=x>>>16;
+    return x>>>0;
+  }
+  function mulberry32(a){return ()=>{
+    let t=a+=0x6d2b79f5;t=Math.imul(t^t>>>15,t|1);
+    t^=t+Math.imul(t^t>>>7,t|61);
+    return ((t^t>>>14)>>>0)/4294967296;
+  };}
+  function sampleOne(cdf,rng){
+    const u=rng();let lo=0,hi=cdf.length-1;
+    while(lo<hi){const mid=(lo+hi)>>>1;if(u<cdf[mid])hi=mid;else lo=mid+1;}
+    return lo;
+  }
+  function simulate(n){
+    if(cache.has(n))return cache.get(n);
+    const cdf=buildCDF(n),rng=mulberry32(mixSeed(state.seed,n));
+    const bins=new Uint32Array(100),countByX=new Uint32Array(n+1);
+    const k=cutoff(n);let exceed=0;
+    for(let i=0;i<B;i++){
+      const x=sampleOne(cdf,rng);
+      countByX[x]++;
+      // Integer bin assignment prevents floating-point uncertainty at 0.32.
+      const bin=Math.min(99,Math.floor((x*100)/n));
+      bins[bin]++;
+      if(x>=k)exceed++; // Equality is intentionally included.
+    }
+    const result={n,k,bins,countByX,exceed,seed:state.seed};
+    cache.set(n,result);return result;
+  }
+  function scientific(value){
+    if(value===0)return '0';
+    if(value>=1e-4)return value.toPrecision(7);
+    const [mantissa,power]=value.toExponential(4).split('e');
+    return `${mantissa} × 10${superscript(Number(power))}`;
+  }
+  function superscript(n){const map={'-':'⁻','+':'⁺','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};return String(n).split('').map(x=>map[x]).join('');}
+  function pct(x){let v=x*100;return v>=1?`${+(v.toFixed(1))}%`:`${+(v.toFixed(2))}%`;}
+  function niceYAxis(peak){
+    const target=Math.max(1e-4,peak*1.12/6),base=Math.pow(10,Math.floor(Math.log10(target)));
+    let step=10*base;
+    for(const unit of [1,2,2.5,5,10]){if(unit*base>=target){step=unit*base;break;}}
+    return {step,max:step*6};
+  }
+  function renderHistogram(data){
+    const svg=$('hist-chart');
+    const L=80,R=1126,T=27,D=154,W=R-L,H=D-T;
+    const project=x=>L+x*W;
+    const peak=Math.max(...data.bins)/B;
+    const axis=niceYAxis(peak),y=v=>D-(v/axis.max)*H;
+    let s=`<title id="hist-title">Null distribution for n=${data.n}</title><desc id="hist-desc">10,000 simulated binomial studies with null p=0.20. ${data.exceed} simulated studies had proportions at or above 0.32. Exactly one sample proportion per simulated study. Fixed x-axis from zero to one.</desc>`;
+    s+=`<rect x="${project(OBS)}" y="${T}" width="${R-project(OBS)}" height="${H}" fill="var(--orange-pale)"/>`;
+    for(let t=0;t<=6;t++){
+      const f=t*axis.step,Y=y(f);
+      s+=`<line x1="${L}" x2="${R}" y1="${Y}" y2="${Y}" stroke="${t===0?'#74899d':'#e3eaf1'}" stroke-width="${t===0?1.4:1}"/>`;
+      s+=`<text x="${L-12}" y="${Y+5}" text-anchor="end" class="svg-axis" font-size="13">${pct(f)}</text>`;
+    }
+    for(let i=0;i<100;i++){
+      const f=data.bins[i]/B;if(!f)continue;
+      const x=project(i/100)+0.5, w=(W/100)-1,top=y(f);
+      s+=`<rect x="${x.toFixed(3)}" y="${top.toFixed(3)}" width="${w.toFixed(3)}" height="${Math.max(.5,D-top).toFixed(3)}" rx="0.5" fill="${i>=32?'var(--warm)':'var(--plot-muted)'}"/>`;
+    }
+    const nullX=project(P0),obsX=project(OBS);
+    s+=`<line x1="${nullX}" x2="${nullX}" y1="${T}" y2="${D}" stroke="var(--accent)" stroke-width="3"/>`;
+    s+=`<line x1="${obsX}" x2="${obsX}" y1="${T}" y2="${D}" stroke="#17283c" stroke-width="2.5" stroke-dasharray="7 5"/>`;
+    // Line labels are text as well as color/style markers.
+    s+=`<text x="${nullX-7}" y="19" text-anchor="end" fill="var(--accent)" font-weight="780" font-size="14">Null 0.20</text>`;
+    s+=`<text x="${obsX+8}" y="19" text-anchor="start" fill="#17283c" font-weight="780" font-size="14">Observed 0.32</text>`;
+    s+=`<text x="${R-4}" y="19" text-anchor="end" fill="var(--orange-dark)" font-weight="740" font-size="12.5">As extreme or more extreme: proportion ≥ 0.32</text>`;
+    for(let j=0;j<=10;j++){
+      const x=project(j/10);
+      s+=`<line x1="${x}" x2="${x}" y1="${D}" y2="${D+5}" stroke="#778a9c"/>`;
+      s+=`<text x="${x}" y="${D+23}" text-anchor="middle" class="svg-axis" font-size="13">${(j/10).toFixed(1)}</text>`;
+    }
+    s+=`<text x="${(L+R)/2}" y="199" class="svg-axis" font-weight="650" font-size="14" text-anchor="middle">Proportion correct in one simulated study</text>`;
+    s+=`<text transform="translate(20 91) rotate(-90)" class="svg-axis" font-size="14" font-weight="650" text-anchor="middle">Relative frequency</text>`;
+    svg.innerHTML=s;
+  }
+  function renderExplore(){
+    const n=SIZES[state.index],data=simulate(n),pExact=exact.get(n);
+    $('n-slider').value=state.index;
+    $('n-display').textContent=`n = ${fmtN(n)}`;
+    $('observed-count').textContent=`${fmtN(data.k)} correct out of ${fmtN(n)}`;
+    $('chart-n').textContent=`n = ${fmtN(n)}`;
+    $('sim-p').textContent=(data.exceed/B).toFixed(5);
+    $('sim-details').textContent=`${fmtN(data.exceed)} / ${fmtN(B)} simulations at or above cutoff`;
+    $('exact-p').textContent=scientific(pExact);
+    $('tail-summary').textContent=data.exceed===0
+      ?'0 of 10,000 simulations reached the cutoff. This does not imply zero probability.'
+      :`${fmtN(data.exceed)} of 10,000 at or above 0.32 (ties included)`;
+    $('seed-visible').textContent=String(state.seed);
+    $('seed-input').value=String(state.seed);
+    renderHistogram(data);
+  }
+  function renderCompare(){
+    const selected=SIZES[state.index];
+    $('selected-label').textContent=`Selected: n = ${fmtN(selected)}`;
+    $('selected-exact').textContent=scientific(exact.get(selected));
+    const svg=$('compare-chart');
+    const L=87,R=1120,T=31,D=232,W=R-L,H=D-T;
+    const values=SIZES.map(n=>exact.get(n));
+    const minPower=Math.floor(Math.log10(Math.min(...values))/5)*5;
+    const bound=Math.max(5,-minPower);
+    const xAt=i=>L+i*W/(SIZES.length-1);
+    const yAt=p=>T+(-Math.log10(p)/bound)*H;
+    let s=`<title id="compare-title">Exact binomial p-values across 11 sample sizes</title><desc id="compare-desc">The observed proportion 0.32 and null 0.20 stay fixed. The exact upper-tail binomial probability decreases as sample size increases. Values are plotted with a logarithmic vertical axis and equally spaced sample-size categories.</desc>`;
+    for(let power=0;power>=-bound;power-=5){
+      const Y=T+(-power/bound)*H;
+      s+=`<line x1="${L}" x2="${R}" y1="${Y}" y2="${Y}" stroke="${power===0?'#91a3b6':'#e0e9f2'}"/>`;
+      s+=`<text x="${L-13}" y="${Y+4}" class="svg-axis" font-size="14" text-anchor="end">10${superscript(power)}</text>`;
+    }
+    const ix=state.index,selectedX=xAt(ix);
+    s+=`<rect x="${selectedX-14}" y="${T}" width="28" height="${H}" fill="var(--orange-pale)" rx="8"/>`;
+    s+=`<line x1="${selectedX}" x2="${selectedX}" y1="${T}" y2="${D}" stroke="#c57945" stroke-dasharray="4 6" stroke-width="1.4"/>`;
+    const path=values.map((p,i)=>`${i?'L':'M'}${xAt(i).toFixed(2)},${yAt(p).toFixed(2)}`).join(' ');
+    s+=`<path d="${path}" fill="none" stroke="var(--plot)" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    for(let i=0;i<SIZES.length;i++){
+      const X=xAt(i),Y=yAt(values[i]),active=i===ix;
+      s+=`<g data-idx="${i}" tabindex="0" role="button" aria-label="Select n=${SIZES[i]} to compare; exact p-value ${values[i].toExponential(5)}" style="cursor:pointer" class="chart-point">`;
+      s+=`<circle cx="${X}" cy="${Y}" r="17" fill="transparent"/>`;
+      if(active)s+=`<circle cx="${X}" cy="${Y}" r="10.5" fill="#fff" stroke="var(--warm)" stroke-width="3.5"/>`;
+      s+=`<circle cx="${X}" cy="${Y}" r="${active?5.3:5.1}" fill="${active?'var(--orange-dark)':'var(--plot)'}" stroke="white" stroke-width="1.3"/>`;
+      s+=`<title>n=${SIZES[i]} · exact p=${scientific(values[i])}</title></g>`;
+      s+=`<text x="${X}" y="${D+25}" text-anchor="middle" font-size="13.5" class="svg-axis" font-weight="${active?850:600}" fill="${active?'#ae551f':'#475c73'}">${fmtN(SIZES[i])}</text>`;
+    }
+    s+=`<line x1="${L}" x2="${R}" y1="${D}" y2="${D}" stroke="#8da1b3" stroke-width="1.4"/>`;
+    s+=`<text x="${(L+R)/2}" y="294" text-anchor="middle" font-weight="700" font-size="15" class="svg-axis">Sample size n (listed options, equally spaced)</text>`;
+    s+=`<text transform="translate(19 ${(T+D)/2}) rotate(-90)" text-anchor="middle" font-size="14.5" font-weight="700" class="svg-axis">Exact p-value · logarithmic scale</text>`;
+    svg.innerHTML=s;
+  }
+  function selectTab(tab){
+    state.tab=tab;
+    for(const t of ['explore','compare','guide']){
+      const active=t===tab;
+      $('tab-'+t).setAttribute('aria-selected',String(active));
+      $('tab-'+t).tabIndex=active?0:-1;
+      $('panel-'+t).hidden=!active;
+    }
+    if(tab==='compare')renderCompare();
+    if(tab==='explore')renderExplore();
+  }
+  for(const btn of document.querySelectorAll('[role="tab"]')){
+    btn.addEventListener('click',()=>selectTab(btn.dataset.tab));
+    btn.addEventListener('keydown',e=>{
+      const tabs=['explore','compare','guide'];let i=tabs.indexOf(btn.dataset.tab);
+      if(e.key==='ArrowRight')i=(i+1)%tabs.length;
+      else if(e.key==='ArrowLeft')i=(i+tabs.length-1)%tabs.length;
+      else if(e.key==='Home')i=0;
+      else if(e.key==='End')i=tabs.length-1;
+      else return;
+      e.preventDefault();selectTab(tabs[i]);$('tab-'+tabs[i]).focus();
+    });
+  }
+  $('n-slider').addEventListener('input',e=>{state.index=Number(e.target.value);renderExplore();});
+  $('rerun-btn').addEventListener('click',()=>{
+    let next=0;
+    if(window.crypto&&window.crypto.getRandomValues){
+      const a=new Uint32Array(1);window.crypto.getRandomValues(a);next=a[0]>>>0;
+    }else next=Math.floor(Math.random()*4294967296)>>>0;
+    if(next===state.seed)next=(next+1)>>>0;
+    state.seed=next;cache.clear();$('seed-error').textContent='';renderExplore();
+  });
+  function applySeed(){
+    const raw=$('seed-input').value.trim();
+    const valid=/^\d+$/.test(raw) && Number(raw)<=4294967295 && Number.isSafeInteger(Number(raw));
+    if(!valid){$('seed-error').textContent='Enter a whole number from 0 through 4,294,967,295.';return;}
+    state.seed=Number(raw)>>>0;cache.clear();$('seed-error').textContent='';$('seed-details').open=false;renderExplore();
+  }
+  $('seed-apply').addEventListener('click',applySeed);
+  $('seed-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();applySeed();}});
+  $('reset-btn').addEventListener('click',()=>{
+    state.index=3;state.seed=DEFAULT_SEED;cache.clear();
+    $('seed-details').open=false;$('seed-error').textContent='';
+    selectTab('explore');
+  });
+  $('compare-chart').addEventListener('click',e=>{
+    const g=e.target.closest('[data-idx]');if(!g)return;
+    state.index=Number(g.dataset.idx);renderCompare();
+  });
+  $('compare-chart').addEventListener('keydown',e=>{
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    const g=e.target.closest('[data-idx]');if(!g)return;
+    e.preventDefault();state.index=Number(g.dataset.idx);renderCompare();
+    const newPoint=$('compare-chart').querySelector(`[data-idx="${state.index}"]`);if(newPoint)newPoint.focus();
+  });
+  // Exposes only a read-only test interface; has no effect on normal teaching interactions.
+  Object.defineProperty(window,'__demoDebug',{value:Object.freeze({
+    getState:()=>({n:SIZES[state.index],seed:state.seed,tab:state.tab,B,p0:P0,observed:OBS}),
+    exactFor:n=>exact.get(n),
+    countsFor:n=>{const d=simulate(n);return {k:d.k,exceed:d.exceed,bins:Array.from(d.bins),counts:Array.from(d.countByX)}}
+  }),writable:false,configurable:false});
+  renderExplore();
+})();
+</script>
+<!-- AUTHORSHIP -->
+</body>
+</html>
