@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Three published studies: read the reported p-value, interpret it in context, and understand a significance threshold.">
+  <meta name="description" content="Four research examples: read the reported p-value, interpret it in context, and understand a significance threshold.">
   <title>Real-world p-values · STAT 250</title>
   <!-- SHARED_THEME -->
   <style>
@@ -11,7 +11,7 @@
     .papers-heading { margin-bottom: 26px; }
     .papers-heading .eyebrow { margin-bottom: 8px; }
     .papers-heading > p:last-child { margin-top: 10px; max-width: 730px; color: var(--muted); font-size: .94rem; }
-    .discipline-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding-bottom: 24px; }
+    .discipline-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding-bottom: 24px; }
     .discipline-tab { text-align: left; padding: 14px 18px; min-height: 72px; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: var(--radius); }
     .discipline-tab strong { display: block; font-size: .97rem; }
     .discipline-tab span { display: block; margin-top: 2px; font-size: .76rem; color: var(--muted); }
@@ -73,6 +73,7 @@
     .math { color: var(--ink); font-size: 1rem; }
     @media (max-width: 700px) {
       .reading-grid, .threshold-section { grid-template-columns: 1fr; gap: 22px; }
+      .discipline-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .discipline-tab { padding: 12px 10px; min-height: 68px; }
       .discipline-tab strong { font-size: .86rem; }
       .discipline-tab span { font-size: .7rem; }
@@ -92,13 +93,14 @@
     <header class="papers-heading">
       <p class="eyebrow">STAT 250 / Reading research</p>
       <h1>Real-world <var class="stat-symbol">p</var>-values</h1>
-      <p>Read a published result, put its <var class="stat-symbol">p</var>-value into context, and connect it to the same statistical idea across three disciplines.</p>
+      <p>Read a published result, put its <var class="stat-symbol">p</var>-value into context, and connect it to the same statistical idea across four fields.</p>
     </header>
 
     <div class="discipline-tabs" role="tablist" aria-label="Research discipline" hidden>
       <button class="discipline-tab" type="button" role="tab" id="tab-business" aria-controls="business" aria-selected="true" tabindex="0"><strong>Business</strong><span>Hybrid work &amp; retention</span></button>
       <button class="discipline-tab" type="button" role="tab" id="tab-physics" aria-controls="physics" aria-selected="false" tabindex="-1"><strong>Physics</strong><span>A new particle</span></button>
       <button class="discipline-tab" type="button" role="tab" id="tab-medicine" aria-controls="medicine" aria-selected="false" tabindex="-1"><strong>Medicine</strong><span>Weight reduction</span></button>
+      <button class="discipline-tab" type="button" role="tab" id="tab-technology" aria-controls="technology" aria-selected="false" tabindex="-1"><strong>Technology</strong><span>Microsoft/Bing A/B testing</span></button>
     </div>
 
     <article class="paper-panel" id="business" data-p="0.043" data-relation="equal" data-p-label="p = 0.043" data-discipline="Business">
@@ -216,6 +218,45 @@
       The protocol’s detailed multiplicity procedure has not been independently audited for this teaching example.</p></details>
     </article>
 
+    <article class="paper-panel" id="technology" data-p="0.029" data-relation="equal" data-p-label="p = 0.029" data-discipline="Technology">
+      <header class="paper-header">
+        <p class="eyebrow">Technology · Microsoft/Bing · KDD 2017</p>
+        <h2><a href="https://doi.org/10.1145/3097983.3098024" target="_blank" rel="noopener">A Dirty Dozen: Twelve Common Metric Interpretation Pitfalls in Online Controlled Experiments</a></h2>
+        <p class="citation">Pavel Dmitriev, Somit Gupta, Dong Woo Kim &amp; Garnet Vaz · Microsoft Analysis and Experimentation Team · <cite>KDD ’17</cite>.</p>
+        <div class="paper-links">
+          <a class="button button-secondary" href="https://www.microsoft.com/en-us/research/wp-content/uploads/2020/08/2017-08-KDDMetricInterpretationPitfalls.pdf" target="_blank" rel="noopener">Read the paper ↗</a>
+          <a href="https://doi.org/10.1145/3097983.3098024" target="_blank" rel="noopener">DOI ↗</a>
+          <a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2020/08/2017-08-KDDMetricInterpretationPitfalls.pdf#page=5" target="_blank" rel="noopener">Result in PDF, pp. 5–6 ↗</a>
+        </div>
+      </header>
+      <div class="reading-grid">
+        <section class="source-reading" aria-labelledby="technology-source">
+          <h3 class="section-label" id="technology-source">01 / Read the published result</h3>
+          <p class="context">A Bing A/B experiment measured a <strong>user-satisfaction metric</strong> used as a leading indicator of retention.
+          Microsoft then repeated the experiment independently with twice the traffic.</p>
+          <span class="quote-label">Exact <var class="stat-symbol">p</var>-value excerpt · first experiment</span>
+          <blockquote class="reported-p" cite="https://www.microsoft.com/en-us/research/wp-content/uploads/2020/08/2017-08-KDDMetricInterpretationPitfalls.pdf">“<var class="stat-symbol">p</var>-value of 0.029”</blockquote>
+          <span class="quote-label">Authors’ follow-up result · exact sentence fragment</span>
+          <blockquote class="author-quote" cite="https://www.microsoft.com/en-us/research/wp-content/uploads/2020/08/2017-08-KDDMetricInterpretationPitfalls.pdf">“observed that there were no statistically significant changes for the same metric.”</blockquote>
+          <p class="source-location">Section 5.5 reports the initial result on PDF p. 5 and the independent rerun on p. 6.<br><a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2020/08/2017-08-KDDMetricInterpretationPitfalls.pdf#page=5" target="_blank" rel="noopener">Read the complete result sentences ↗</a></p>
+        </section>
+        <section class="interpretation" aria-labelledby="technology-meaning">
+          <h3 class="section-label" id="technology-meaning">02 / Interpret it · instructor wording</h3>
+          <h3>The null claim</h3>
+          <p>The treatment has no effect on the user-satisfaction metric relative to control.</p>
+          <h3>The observed result</h3>
+          <p>The first experiment reported an increase with <strong><var class="stat-symbol">p</var> = 0.029</strong>.
+          The independent rerun found no statistically significant change; its exact <var class="stat-symbol">p</var>-value is not reported.</p>
+          <h3>What <var class="stat-symbol">p</var> = 0.029 means here</h3>
+          <p class="meaning">If the treatment had no effect on this metric, and the test assumptions held, a test statistic at least this extreme would occur with probability <strong>2.9%</strong>.</p>
+        </section>
+      </div>
+      <p class="context-boundary"><strong>Keep the experiment in view.</strong> The threshold control below uses the first experiment’s <var class="stat-symbol">p</var>-value.
+      It is not the probability that the effect is real or will replicate.</p>
+      <details><summary>Study overview, replication, and reporting limits</summary><p><strong>Overview — paraphrase:</strong> Microsoft uses real experiments to illustrate twelve pitfalls in interpreting online metrics.</p><p>The Bing example does not disclose the tested feature, exact metric definition, effect size, sample size, or test sidedness.</p><p><strong>Instructor note:</strong> A nonsignificant rerun does not prove no effect.
+      One significant and one nonsignificant result do not, by themselves, establish that the two effects differ.</p></details>
+    </article>
+
     <section class="common-idea" aria-labelledby="common-heading">
       <p class="section-label">03 / The common statistical idea</p>
       <h2 id="common-heading">Assume the null. Then ask how unusual the result is.</h2>
@@ -279,6 +320,7 @@
       Follow the links beside each excerpt for the complete result sentence and abstract.</p>
       <p>Adapted from the STAT 250 three-paper teaching handoff dated October 13, 2026.
       The handoff records checks of the primary publication records, quotations, and result locations on that date.
+      The Microsoft/Bing example was added from Section 5.5 of the original KDD 2017 paper, checked October 13, 2026.
       No raw data were analyzed and no reported <var class="stat-symbol">p</var>-values were recomputed.</p>
       <p>For the interpretation cautions, see the <a href="https://www.amstat.org/asa/files/pdfs/p-valuestatement.pdf" target="_blank" rel="noopener">American Statistical Association’s statement on <var class="stat-symbol">p</var>-values ↗</a>.</p>
       <p>This page works offline; opening the external papers requires an internet connection.</p>

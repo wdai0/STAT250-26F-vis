@@ -7,7 +7,7 @@ Each visualization opens through a searchable, topic-grouped collection and can 
 The homepage is an animated Galton board in the **Tactile paper** style: warm ivory, graphite, and matte brass, with gentle peg recoil and a soft settling motion.
 The collection also includes Cars, NBA, 95% rule, Bootstrap CI, Three distributions, and Sample size & p-values.
 The separate **Create your own** guide contains the original exploration principles and a copyable prompt template.
-The **Real-world p-values** guide has Business, Physics, and Medicine tabs with paper links, labeled exact excerpts, contextual interpretations, and a shared classroom threshold control.
+The **Real-world p-values** guide has Business, Physics, Medicine, and Technology tabs with paper links, labeled exact excerpts, contextual interpretations, and a shared classroom threshold control.
 Controls and plots take priority; detailed methods are collapsed or placed in a separate view.
 
 ## Data sources and adaptations
@@ -35,6 +35,8 @@ The standalone file requires no external assets or data.
 
 The **Real-world p-values** guide is adapted from the October 13, 2026 three-paper teaching handoff (`stat250-real-world-p-values-handoff.md`).
 It retains the original publication links and locations, separates author excerpts from instructor wording, and does not reproduce full abstracts or long result sentences.
+The fourth tab uses the Microsoft/Bing A/B experiment in Section 5.5 of [Dmitriev et al. (KDD 2017)](https://doi.org/10.1145/3097983.3098024), checked against the original paper on October 13, 2026.
+It distinguishes the initial p-value of 0.029 from an independent rerun with no statistically significant change; the rerun's exact p-value is not reported.
 The threshold control illustrates a hypothetical decision rule, including the indeterminate case when a reported upper bound cannot settle a stricter cutoff; it does not reconstruct the papers' testing protocols.
 Open it at `#real-world-p-values`; external paper links need a network connection, while the guide and its controls work offline.
 
