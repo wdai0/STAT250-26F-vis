@@ -26,6 +26,7 @@ h1 { font-size: 1.8rem; letter-spacing: -.02em; font-weight: 650; }
 h2 { font-size: 1.15rem; font-weight: 650; }
 h3 { font-size: 1rem; font-weight: 650; }
 a { color: var(--accent); text-underline-offset: 4px; }
+.stat-symbol { font-family: "Cambria Math", "STIX Two Math", "Times New Roman", serif; font-style: italic; }
 button, input, select { font: inherit; }
 button, a, input, select { -webkit-tap-highlight-color: transparent; }
 button { cursor: pointer; }

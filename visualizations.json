@@ -74,6 +74,14 @@
     "kind": "visualization"
   },
   {
+    "id": "real-world-p-values",
+    "title": "Real-world p-values",
+    "description": "Read published results in business, physics, and medicine; interpret p-values and compare decision thresholds.",
+    "source": "sources/real-world-p-values.html",
+    "category": "Sampling & inference",
+    "kind": "guide"
+  },
+  {
     "id": "create-your-own",
     "title": "Create your own",
     "description": "Guidelines for exploration, verification, and a ready-to-copy prompt.",

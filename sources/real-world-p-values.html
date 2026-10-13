@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Three published studies: read the reported p-value, interpret it in context, and understand a significance threshold.">
+  <title>Real-world p-values · STAT 250</title>
+  <!-- SHARED_THEME -->
+  <style>
+    .papers-shell { max-width: 1000px; }
+    .papers-heading { margin-bottom: 26px; }
+    .papers-heading .eyebrow { margin-bottom: 8px; }
+    .papers-heading > p:last-child { margin-top: 10px; max-width: 730px; color: var(--muted); font-size: .94rem; }
+    .discipline-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding-bottom: 24px; }
+    .discipline-tab { text-align: left; padding: 14px 18px; min-height: 72px; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: var(--radius); }
+    .discipline-tab strong { display: block; font-size: .97rem; }
+    .discipline-tab span { display: block; margin-top: 2px; font-size: .76rem; color: var(--muted); }
+    .discipline-tab:hover { background: #f8faff; border-color: var(--accent); }
+    .discipline-tab[aria-selected="true"] { background: var(--accent-soft); border-color: var(--accent); box-shadow: inset 0 -3px var(--accent); color: var(--ink); }
+    .paper-header { padding: 24px 0; border-top: 1px solid var(--line); }
+    .paper-header .eyebrow { margin-bottom: 10px; }
+    .paper-header h2 { max-width: 880px; font-size: clamp(1.18rem, 2.8vw, 1.5rem); line-height: 1.35; }
+    .paper-header h2 a { color: var(--ink); text-decoration-thickness: 1px; text-decoration-color: var(--plot-muted); }
+    .citation { margin-top: 10px; color: var(--muted); font-size: .8rem; }
+    .paper-links { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 16px; font-size: .8rem; }
+    .paper-links .button { min-height: 40px; }
+    .reading-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+    .section-label { color: var(--muted); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 12px; }
+    .source-reading { padding: 22px 0 0; border-top: 2px solid var(--line); }
+    .source-reading p, .interpretation p { font-size: .9rem; }
+    .context { margin-bottom: 20px; }
+    .context strong { color: var(--ink); }
+    .quote-label { display: block; font-size: .74rem; color: var(--muted); margin-bottom: 7px; }
+    blockquote { margin: 0; }
+    .reported-p { font-size: 1.65rem; line-height: 1.3; color: var(--ink); font-weight: 650; font-variant-numeric: tabular-nums; margin-bottom: 18px; }
+    .reported-p.long { font-size: 1.25rem; }
+    .author-quote { padding-left: 15px; border-left: 3px solid var(--line); font: 1.05rem/1.65 Georgia, serif; color: var(--ink); }
+    .source-location { margin-top: 16px; font-size: .76rem !important; color: var(--muted); }
+    .source-location a { display: inline-block; margin-top: 5px; }
+    .interpretation { background: #f4f7fc; padding: 23px 24px; border-radius: var(--radius); border-top: 2px solid var(--accent); }
+    .interpretation h3 { font-size: .88rem; margin-bottom: 7px; }
+    .interpretation p + h3 { margin-top: 22px; }
+    .interpretation .meaning { font-size: 1rem; line-height: 1.75; }
+    .context-boundary { margin-top: 18px; font-size: .8rem; padding: 13px 0; border-bottom: 1px solid var(--line); color: var(--muted); }
+    .context-boundary strong { color: var(--ink); }
+    details { margin-top: 15px; font-size: .83rem; }
+    summary { padding: 7px 0; color: var(--ink); font-weight: 600; cursor: pointer; }
+    details > p { margin-top: 9px; }
+    .common-idea { margin-top: 32px; padding-top: 26px; border-top: 1px solid var(--line); }
+    .common-idea h2 { margin-bottom: 14px; }
+    .definition { font-size: 1.04rem; max-width: 870px; line-height: 1.75; }
+    .definition strong { color: var(--ink); }
+    .reasoning-path { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 18px 0; font-size: .83rem; color: var(--ink); }
+    .reasoning-path span:not(.arrow) { padding: 7px 10px; background: #f5f7fa; border-radius: 4px; }
+    .reasoning-path .arrow { color: var(--muted); }
+    .explanation { font-size: .84rem; color: var(--muted); }
+    .threshold-section { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 28px; padding: 24px 0; border-block: 1px solid var(--line); }
+    .threshold-section h2 { margin-bottom: 12px; }
+    .threshold-section p { font-size: .85rem; }
+    .threshold-section p + p { margin-top: 10px; }
+    .threshold-control { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+    .threshold-control label { font-size: .82rem; font-weight: 600; color: var(--ink); }
+    select { padding: 7px 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--plot-muted); border-radius: 5px; min-height: 42px; }
+    .decision { padding: 16px 18px; background: var(--accent-soft); border-radius: var(--radius); }
+    .decision strong { display: block; margin-bottom: 6px; color: var(--ink); }
+    .decision p { font-size: .85rem; }
+    .threshold-note { margin-top: 12px; font-size: .76rem !important; color: var(--muted); }
+    .guardrails { margin-top: 24px; }
+    .guardrails h2 { margin-bottom: 12px; }
+    .guardrails ul { margin: 0; padding-left: 21px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 30px; font-size: .84rem; }
+    .instructor-notes { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 9px; color: var(--muted); }
+    .instructor-notes li + li { margin-top: 8px; }
+    .math { color: var(--ink); font-size: 1rem; }
+    @media (max-width: 700px) {
+      .reading-grid, .threshold-section { grid-template-columns: 1fr; gap: 22px; }
+      .discipline-tab { padding: 12px 10px; min-height: 68px; }
+      .discipline-tab strong { font-size: .86rem; }
+      .discipline-tab span { font-size: .7rem; }
+      .guardrails ul { grid-template-columns: 1fr; }
+      .interpretation { padding: 20px; }
+    }
+    @media print {
+      .discipline-tabs, .threshold-section { display: none !important; }
+      .paper-panel[hidden] { display: block !important; }
+      .paper-panel + .paper-panel { break-before: page; }
+      .reading-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body class="viz-page">
+  <main class="viz-shell papers-shell">
+    <header class="papers-heading">
+      <p class="eyebrow">STAT 250 / Reading research</p>
+      <h1>Real-world <var class="stat-symbol">p</var>-values</h1>
+      <p>Read a published result, put its <var class="stat-symbol">p</var>-value into context, and connect it to the same statistical idea across three disciplines.</p>
+    </header>
+
+    <div class="discipline-tabs" role="tablist" aria-label="Research discipline" hidden>
+      <button class="discipline-tab" type="button" role="tab" id="tab-business" aria-controls="business" aria-selected="true" tabindex="0"><strong>Business</strong><span>Hybrid work &amp; retention</span></button>
+      <button class="discipline-tab" type="button" role="tab" id="tab-physics" aria-controls="physics" aria-selected="false" tabindex="-1"><strong>Physics</strong><span>A new particle</span></button>
+      <button class="discipline-tab" type="button" role="tab" id="tab-medicine" aria-controls="medicine" aria-selected="false" tabindex="-1"><strong>Medicine</strong><span>Weight reduction</span></button>
+    </div>
+
+    <article class="paper-panel" id="business" data-p="0.043" data-relation="equal" data-p-label="p = 0.043" data-discipline="Business">
+      <header class="paper-header">
+        <p class="eyebrow">Business · Nature · 2024</p>
+        <h2><a href="https://doi.org/10.1038/s41586-024-07500-2" target="_blank" rel="noopener">Hybrid working from home improves retention without damaging performance</a></h2>
+        <p class="citation">Nicholas Bloom, Ruobing Han &amp; James Liang · <cite>Nature</cite> 630, 920–925.</p>
+        <div class="paper-links">
+          <a class="button button-secondary" href="https://www.nature.com/articles/s41586-024-07500-2" target="_blank" rel="noopener">Read the paper ↗</a>
+          <a href="https://doi.org/10.1038/s41586-024-07500-2" target="_blank" rel="noopener">DOI ↗</a>
+          <a href="https://www.nature.com/articles/s41586-024-07500-2.pdf#page=2" target="_blank" rel="noopener">Result in PDF, p. 2 ↗</a>
+        </div>
+      </header>
+      <div class="reading-grid">
+        <section class="source-reading" aria-labelledby="business-source">
+          <h3 class="section-label" id="business-source">01 / Read the published result</h3>
+          <p class="context">A six-month randomized study of <strong>1,612 Trip.com employees</strong> compared two home-working days per week with full-time office attendance.</p>
+          <span class="quote-label">Exact <var class="stat-symbol">p</var>-value excerpt</span>
+          <blockquote class="reported-p" cite="https://www.nature.com/articles/s41586-024-07500-2">“<var class="stat-symbol">P</var> = 0.043”</blockquote>
+          <span class="quote-label">Authors’ conclusion · exact sentence from the abstract</span>
+          <blockquote class="author-quote" cite="https://www.nature.com/articles/s41586-024-07500-2">“We found that hybrid working improved job satisfaction and reduced quit rates by one-third.”</blockquote>
+          <p class="source-location">The full <var class="stat-symbol">p</var>-value sentence appears under “Effects on employee retention,” PDF p. 2 (printed p. 921).
+          Figure 2 identifies a two-tailed t-test.<br><a href="https://www.nature.com/articles/s41586-024-07500-2.pdf#page=2" target="_blank" rel="noopener">Read the complete result sentence ↗</a></p>
+        </section>
+        <section class="interpretation" aria-labelledby="business-meaning">
+          <h3 class="section-label" id="business-meaning">02 / Interpret it · instructor wording</h3>
+          <h3>The null claim</h3>
+          <p>The underlying quit rates are equal for the hybrid and office groups.</p>
+          <h3>The observed result</h3>
+          <p>Quit rates were <strong>4.8% versus 7.2%</strong>: 2.4 percentage points lower in the hybrid group, a one-third relative reduction.</p>
+          <h3>What <var class="stat-symbol">p</var> = 0.043 means here</h3>
+          <p class="meaning">If the underlying quit rates were equal, and the test assumptions held, a standardized difference at least this extreme <strong>in either direction</strong> would occur about <strong>4.3% of the time</strong>.</p>
+        </section>
+      </div>
+      <p class="context-boundary"><strong>Keep the outcome in view.</strong> This <var class="stat-symbol">p</var>-value concerns quitting; it does not test every performance claim in the title.</p>
+      <details><summary>Study overview · paraphrase</summary><p>The trial examined hybrid work, satisfaction, and retention, with additional analyses of performance and promotions.
+      Managers became more positive about hybrid work.
+      This is a condensed summary, not the original abstract.</p></details>
+    </article>
+
+    <article class="paper-panel" id="physics" data-p="1.7e-9" data-relation="equal" data-p-label="p₀ = 1.7 × 10⁻⁹" data-discipline="Physics">
+      <header class="paper-header">
+        <p class="eyebrow">Physics · Physics Letters B · 2012</p>
+        <h2><a href="https://doi.org/10.1016/j.physletb.2012.08.020" target="_blank" rel="noopener">Observation of a new particle in the search for the Standard Model Higgs boson with the ATLAS detector at the LHC</a></h2>
+        <p class="citation">ATLAS Collaboration · <cite>Physics Letters B</cite> 716, 1–29.</p>
+        <div class="paper-links">
+          <a class="button button-secondary" href="https://arxiv.org/abs/1207.7214" target="_blank" rel="noopener">Read the paper ↗</a>
+          <a href="https://doi.org/10.1016/j.physletb.2012.08.020" target="_blank" rel="noopener">DOI ↗</a>
+          <a href="https://arxiv.org/pdf/1207.7214v2#page=21" target="_blank" rel="noopener">Conclusion in PDF, p. 21 ↗</a>
+        </div>
+      </header>
+      <div class="reading-grid">
+        <section class="source-reading" aria-labelledby="physics-source">
+          <h3 class="section-label" id="physics-source">01 / Read the published result</h3>
+          <p class="context">ATLAS combined collision measurements from several detection channels to search for an additional particle signal beyond known background processes.</p>
+          <span class="quote-label">Exact <var class="stat-symbol">p</var>-value excerpt · local significance</span>
+          <blockquote class="reported-p" cite="https://arxiv.org/pdf/1207.7214v2">“<var class="stat-symbol">p</var>₀ = 1.7 × 10⁻⁹”</blockquote>
+          <span class="quote-label">Authors’ conclusion · exact sentence fragment</span>
+          <blockquote class="author-quote" cite="https://arxiv.org/pdf/1207.7214v2">“These results provide conclusive evidence for the discovery of a new particle”</blockquote>
+          <p class="source-location">Both complete sentences appear in Section 10, “Conclusion,” PDF p. 21 (printed manuscript p. 20).
+          Section 7 explains the statistical interpretation.<br><a href="https://arxiv.org/pdf/1207.7214v2#page=21" target="_blank" rel="noopener">Read the complete result sentence ↗</a></p>
+        </section>
+        <section class="interpretation" aria-labelledby="physics-meaning">
+          <h3 class="section-label" id="physics-meaning">02 / Interpret it · instructor wording</h3>
+          <h3>The null claim</h3>
+          <p>Background processes alone explain the measurements, without the additional particle signal.</p>
+          <h3>The observed result</h3>
+          <p>An excess near <strong>126 GeV</strong> had a reported local significance of <strong>5.9 standard deviations</strong>.</p>
+          <h3>What <var class="stat-symbol">p</var>₀ = 1.7 × 10⁻⁹ means here</h3>
+          <p class="meaning">Under the background-only model and its assumptions, an excess at least this significant <strong>at the specified mass</strong> would have probability approximately <strong>1.7 × 10⁻⁹</strong>.</p>
+        </section>
+      </div>
+      <p class="context-boundary"><strong>Keep the model in view.</strong> This is a local <var class="stat-symbol">p</var>-value, not the probability that the particle does not exist.</p>
+      <details><summary>Study overview and local versus global significance</summary><p><strong>Overview — paraphrase:</strong> The combined measurements supported a new neutral particle compatible with the Standard Model Higgs boson.
+      Detailed particle identification required more data.</p><p><strong>Instructor note:</strong> Accounting for the search across 110–600 GeV gives a global <var class="stat-symbol">p</var>-value of 1.7 × 10⁻⁷.
+      The local value above addresses the specified mass; the global value accounts for searching a range.</p></details>
+    </article>
+
+    <article class="paper-panel" id="medicine" data-p="0.001" data-relation="less" data-p-label="p &lt; 0.001" data-discipline="Medicine">
+      <header class="paper-header">
+        <p class="eyebrow">Medicine · New England Journal of Medicine · 2026</p>
+        <h2><a href="https://doi.org/10.1056/NEJMoa2600751" target="_blank" rel="noopener">Survodutide Once Weekly for the Treatment of Adults with Obesity</a></h2>
+        <p class="citation">Carel W. le Roux et al., SYNCHRONIZE-1 Investigators · <cite>NEJM</cite> 395, 776–787.<br>Published online June 7, 2026 · Issue date August 20, 2026.</p>
+        <div class="paper-links">
+          <a class="button button-secondary" href="https://pubmed.ncbi.nlm.nih.gov/42253238/#abstract" target="_blank" rel="noopener">Read the free abstract ↗</a>
+          <a href="https://doi.org/10.1056/NEJMoa2600751" target="_blank" rel="noopener">DOI ↗</a>
+          <a href="https://www.nejm.org/doi/full/10.1056/NEJMoa2600751" target="_blank" rel="noopener">Publisher article ↗</a>
+        </div>
+      </header>
+      <div class="reading-grid">
+        <section class="source-reading" aria-labelledby="medicine-source">
+          <h3 class="section-label" id="medicine-source">01 / Read the published result</h3>
+          <p class="context">A double-blind randomized trial assigned <strong>725 adults without diabetes</strong> to two survodutide doses or placebo, alongside lifestyle counseling, for 76 weeks.</p>
+          <span class="quote-label">Exact <var class="stat-symbol">p</var>-value excerpt</span>
+          <blockquote class="reported-p long" cite="https://pubmed.ncbi.nlm.nih.gov/42253238/">“<var class="stat-symbol">P</var>&lt;0.001 for all comparisons with placebo”</blockquote>
+          <span class="quote-label">Authors’ conclusion · exact sentence from the abstract</span>
+          <blockquote class="author-quote" cite="https://pubmed.ncbi.nlm.nih.gov/42253238/">“Survodutide led to significantly greater reductions in body weight than placebo in adults with obesity without diabetes.”</blockquote>
+          <p class="source-location">See the abstract’s Results paragraph and the immediately following Conclusions paragraph.
+          The Results sentence includes mean weight changes and proportions losing at least 5%.<br><a href="https://pubmed.ncbi.nlm.nih.gov/42253238/#abstract" target="_blank" rel="noopener">Read the complete result sentence ↗</a></p>
+        </section>
+        <section class="interpretation" aria-labelledby="medicine-meaning">
+          <h3 class="section-label" id="medicine-meaning">02 / Interpret it · instructor wording</h3>
+          <h3>The null claim</h3>
+          <p>There is no treatment difference for a tested drug–placebo comparison.</p>
+          <h3>The observed result</h3>
+          <p>Mean weight reductions were <strong>12.2%</strong> (3.6 mg), <strong>13.0%</strong> (6.0 mg), and <strong>5.4%</strong> (placebo) at 76 weeks.</p>
+          <h3>What <var class="stat-symbol">p</var> &lt; 0.001 means here</h3>
+          <p class="meaning">For a tested drug–placebo comparison, assuming no treatment difference and the analysis assumptions, a test statistic at least this extreme would have probability <strong>below 0.1%</strong>.</p>
+        </section>
+      </div>
+      <p class="context-boundary"><strong>Keep the bound in view.</strong> This summarizes multiple comparisons, not one pooled <var class="stat-symbol">p</var>-value.
+      “Less than 0.001” is a bound, not an exact value; efficacy does not establish safety.</p>
+      <details><summary>Study overview and analysis limits</summary><p><strong>Overview — paraphrase:</strong> Weight reductions favored treatment; gastrointestinal adverse events were more frequent with treatment.</p><p>The primary explanation here uses mean weight reduction.
+      The abstract also reports the proportion losing at least 5%.
+      The protocol’s detailed multiplicity procedure has not been independently audited for this teaching example.</p></details>
+    </article>
+
+    <section class="common-idea" aria-labelledby="common-heading">
+      <p class="section-label">03 / The common statistical idea</p>
+      <h2 id="common-heading">Assume the null. Then ask how unusual the result is.</h2>
+      <p class="definition">Assuming the <strong>null hypothesis and statistical model are correct</strong>, the <var class="stat-symbol">p</var>-value is the probability of obtaining a test statistic <strong>as extreme as, or more extreme than, the one observed</strong>.</p>
+      <div class="reasoning-path" aria-label="Null claim, then reference distribution, then as-extreme-or-more-extreme region, then tail probability">
+        <span>Null claim</span><span class="arrow" aria-hidden="true">→</span><span>Reference distribution under the null</span><span class="arrow" aria-hidden="true">→</span><span>As extreme or more extreme</span><span class="arrow" aria-hidden="true">→</span><span>Tail probability</span>
+      </div>
+      <p class="explanation">“Extreme” follows the direction or directions specified by the test: unusually high, unusually low, or far from the null in either direction.
+      It need not mean a larger raw measurement.</p>
+    </section>
+
+    <section class="threshold-section" aria-labelledby="threshold-heading">
+      <div>
+        <h2 id="threshold-heading">Where does a threshold fit?</h2>
+        <p>A significance level <strong>α</strong> is chosen before examining results.
+        For the classroom rule here, <strong><var class="stat-symbol">p</var> ≤ α → reject H₀</strong>; <strong><var class="stat-symbol">p</var> &gt; α → fail to reject H₀</strong>.</p>
+        <p>Under the null and a valid testing procedure, α limits the long-run probability of a Type I error: rejecting a true null.</p>
+        <p class="explanation">A cutoff changes the decision rule, not the <var class="stat-symbol">p</var>-value.
+        Values such as 0.049 and 0.051 do not represent sharply different scientific evidence.</p>
+      </div>
+      <div id="threshold-demo" hidden>
+        <div class="threshold-control">
+          <label for="alpha">Classroom threshold α</label>
+          <select id="alpha" aria-describedby="threshold-note">
+            <option value="0.05">0.05 (5%)</option>
+            <option value="0.01">0.01 (1%)</option>
+            <option value="0.001">0.001 (0.1%)</option>
+            <option value="0.0001">0.0001 (0.01%)</option>
+          </select>
+        </div>
+        <div class="decision" role="status" aria-live="polite" aria-atomic="true">
+          <strong id="decision-heading"></strong>
+          <p id="decision-value"></p>
+          <p id="decision-meaning"></p>
+        </div>
+        <p class="threshold-note" id="threshold-note">Apply a hypothetical rule to the selected paper’s reported value.
+        This does not reconstruct that study’s decision protocol, discipline-specific standards, or multiplicity adjustments.</p>
+      </div>
+    </section>
+
+    <section class="guardrails" aria-labelledby="guardrails-heading">
+      <h2 id="guardrails-heading">What the <var class="stat-symbol">p</var>-value does not tell us</h2>
+      <ul>
+        <li>It is not the probability that H₀ is true, or that chance caused the result.</li>
+        <li>It is not effect size, practical importance, safety, or the probability of replication.</li>
+        <li>A large <var class="stat-symbol">p</var>-value does not establish no effect; a small one does not validate the study’s assumptions.</li>
+        <li>Do not rank the importance of these studies by their <var class="stat-symbol">p</var>-values.</li>
+      </ul>
+    </section>
+
+    <details class="instructor-notes">
+      <summary>Teaching notes, source details, and mathematical form</summary>
+      <p><strong>Reusable interpretation:</strong> If [null claim in context] were true, and [model and design assumptions] held, then [a test statistic at least as extreme in the specified direction or directions] would occur with probability [reported <var class="stat-symbol">p</var>-value or bound].</p>
+      <p><strong>Connection to randomization:</strong> The course simulation estimates a tail probability by counting qualifying simulated statistics.
+      Published analyses may use analytical approximations or more elaborate models; these papers did not necessarily use the course’s simulation algorithm.</p>
+      <p class="math">When larger T means a stronger departure: <var class="stat-symbol">p</var> = Pr<sub>H₀</sub>(T ≥ t<sub>obs</sub>).</p>
+      <p>For a two-sided test, use the test’s specified extremeness rule; do not automatically double a tail for every model.
+      Handling nuisance parameters in a composite null is beyond this introductory explanation.</p>
+      <p><strong>Source handling:</strong> Exact excerpts, sentence fragments, paraphrases, and instructor interpretations are labeled separately.
+      Mathematical typography and whitespace are normalized.
+      Follow the links beside each excerpt for the complete result sentence and abstract.</p>
+      <p>Adapted from the STAT 250 three-paper teaching handoff dated October 13, 2026.
+      The handoff records checks of the primary publication records, quotations, and result locations on that date.
+      No raw data were analyzed and no reported <var class="stat-symbol">p</var>-values were recomputed.</p>
+      <p>For the interpretation cautions, see the <a href="https://www.amstat.org/asa/files/pdfs/p-valuestatement.pdf" target="_blank" rel="noopener">American Statistical Association’s statement on <var class="stat-symbol">p</var>-values ↗</a>.</p>
+      <p>This page works offline; opening the external papers requires an internet connection.</p>
+    </details>
+    <!-- AUTHORSHIP -->
+  </main>
+  <script>
+    (() => {
+      'use strict';
+      const tabs = [...document.querySelectorAll('[role="tab"]')];
+      const panels = [...document.querySelectorAll('.paper-panel')];
+      const alpha = document.querySelector('#alpha');
+      let active = panels[0];
+
+      function setPText(selector, text) {
+        const parts = text.split(/\b(p)(?=-values?\b|₀|\s*[=<>≤])/g);
+        document.querySelector(selector).replaceChildren(...parts.map((part, index) => {
+          if (index % 2 === 0) return document.createTextNode(part);
+          const symbol = document.createElement('var');
+          symbol.className = 'stat-symbol';
+          symbol.textContent = part;
+          return symbol;
+        }));
+      }
+
+      function updateThreshold() {
+        const cutoff = Number(alpha.value);
+        const reported = Number(active.dataset.p);
+        const isBound = active.dataset.relation === 'less';
+        const unknown = isBound && reported > cutoff;
+        const reject = reported <= cutoff;
+        document.querySelector('#decision-heading').textContent = `${active.dataset.discipline}: ${unknown ? 'the bound is not enough' : reject ? 'reject H₀ under this rule' : 'fail to reject H₀ under this rule'}`;
+        setPText('#decision-value', `Reported ${active.dataset.pLabel} · α = ${alpha.value}`);
+        setPText('#decision-meaning', unknown
+          ? 'The exact p-value could fall on either side of this stricter cutoff. “p < 0.001” alone cannot settle that comparison.'
+          : reject
+            ? (isBound ? 'Every p-value below the reported bound is below this cutoff.' : 'The reported p-value is below this cutoff.') + ' This is evidence against the null under the model, not proof of the alternative.'
+            : 'The reported p-value is above this cutoff. Failing to reject does not show that the null is true or that there is no effect.');
+      }
+
+      function selectTab(id, focus = false) {
+        active = panels.find(panel => panel.id === id) || panels[0];
+        for (const panel of panels) panel.hidden = panel !== active;
+        for (const tab of tabs) {
+          const selected = tab.getAttribute('aria-controls') === active.id;
+          tab.setAttribute('aria-selected', String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+          if (selected && focus) tab.focus();
+        }
+        updateThreshold();
+      }
+
+      for (const panel of panels) {
+        panel.setAttribute('role', 'tabpanel');
+        panel.setAttribute('aria-labelledby', `tab-${panel.id}`);
+        panel.tabIndex = 0;
+      }
+      for (const [index, tab] of tabs.entries()) {
+        tab.addEventListener('click', () => selectTab(tab.getAttribute('aria-controls')));
+        tab.addEventListener('keydown', event => {
+          let next;
+          if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+          if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
+          if (event.key === 'Home') next = 0;
+          if (event.key === 'End') next = tabs.length - 1;
+          if (next === undefined) return;
+          event.preventDefault();
+          selectTab(tabs[next].getAttribute('aria-controls'), true);
+        });
+      }
+      alpha.addEventListener('change', updateThreshold);
+      document.querySelector('[role="tablist"]').hidden = false;
+      document.querySelector('#threshold-demo').hidden = false;
+      selectTab('business');
+    })();
+  </script>
+</body>
+</html>

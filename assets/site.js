@@ -13,6 +13,7 @@
   const guideId = 'create-your-own';
   const guideLink = document.querySelector('#create-link');
   const homeLink = document.querySelector('#home-link');
+  const papersLink = document.querySelector('#papers-link');
   let activeId = homeId;
   let focusOnRoute = false;
   const panels = document.querySelector('#visualization-panels');
@@ -30,6 +31,12 @@
     if (className) node.className = className;
     if (text !== undefined) node.textContent = text;
     return node;
+  }
+
+  function formatPValues(node) {
+    const parts = node.textContent.split(/\b(p)(?=-values?\b)/g);
+    node.replaceChildren(...parts.map((part, index) => index % 2
+      ? element('var', 'stat-symbol', part) : document.createTextNode(part)));
   }
 
   for (const [attribute, value] of [['title', site.title], ['subtitle', site.subtitle], ['term', site.term]]) {
@@ -64,6 +71,7 @@
   }
   guideLink.addEventListener('click', event => navigate(event, guideId));
   homeLink.addEventListener('click', event => navigate(event, homeId));
+  papersLink.addEventListener('click', event => navigate(event, 'real-world-p-values'));
   document.querySelector('.brand').addEventListener('click', event => navigate(event, homeId));
   document.querySelector('.create-callout').addEventListener('click', event => navigate(event, guideId));
 
@@ -81,6 +89,7 @@
     link.href = `#${entry.id}`;
     link.dataset.visualization = entry.id;
     link.append(element('span', 'entry-title', entry.title), element('span', 'entry-description', entry.description));
+    if (entry.id === 'real-world-p-values') link.querySelectorAll('span').forEach(formatPValues);
     if (entry.id === activeId) link.setAttribute('aria-current', 'page');
     link.addEventListener('click', event => navigate(event, entry.id));
     return link;
@@ -226,10 +235,13 @@
     }
     activeId = id;
     document.querySelector('#current-view').textContent = id === homeId ? '' : (entry?.title || 'Collection');
+    if (id === 'real-world-p-values') formatPValues(document.querySelector('#current-view'));
     if (id === homeId) homeLink.setAttribute('aria-current', 'page');
     else homeLink.removeAttribute('aria-current');
     if (id === guideId) guideLink.setAttribute('aria-current', 'page');
     else guideLink.removeAttribute('aria-current');
+    if (id === 'real-world-p-values') papersLink.setAttribute('aria-current', 'page');
+    else papersLink.removeAttribute('aria-current');
     document.querySelectorAll('[data-visualization]').forEach(link => {
       if (link.dataset.visualization === id) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');
