@@ -67,9 +67,19 @@ class BuildTests(unittest.TestCase):
         self.assertNotIn(THEME_MARKER, page)
         self.assertNotIn(AUTHORSHIP_MARKER, page)
         metadata = self.catalog()["visualizations"][0]
-        self.assertEqual(metadata["file"], "visualizations/example.html")
+        self.assertRegex(metadata["file"], r"^visualizations/example\.html\?v=[0-9a-f]{12}$")
         self.assertNotIn("source", metadata)
         self.assertTrue((self.root / "dist/.nojekyll").is_file())
+
+    def test_changed_visualization_has_a_fresh_url_and_unchanged_build_is_stable(self):
+        build(self.root)
+        original = self.catalog()["visualizations"][0]["file"]
+        build(self.root)
+        self.assertEqual(self.catalog()["visualizations"][0]["file"], original)
+        (self.root / self.entry["source"]).write_text(self.source.replace("const x = 1", "const x = 2"))
+        build(self.root)
+        self.assertNotEqual(self.catalog()["visualizations"][0]["file"], original)
+        self.assertIn("const x = 2", (self.root / "dist/visualizations/example.html").read_text())
 
     def test_preserves_the_license_in_downloads_and_published_site(self):
         build(self.root)

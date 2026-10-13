@@ -4,7 +4,7 @@
 
 A GitHub Pages collection of self-contained HTML visualizations for Introductory Statistics I, Fall 2026.
 Each visualization opens through a searchable, topic-grouped collection and can be downloaded as a complete HTML file to use and edit offline.
-The homepage is an animated Galton board.
+The homepage is an animated Galton board in the **Tactile paper** style: warm ivory, graphite, and matte brass, with gentle peg recoil and a soft settling motion.
 The collection also includes Cars, NBA, 95% rule, Bootstrap CI, Three distributions, and Sample size & p-values.
 The separate **Create your own** guide contains the original exploration principles and a copyable prompt template.
 Controls and plots take priority; detailed methods are collapsed or placed in a separate view.
@@ -25,7 +25,7 @@ This changes only the display, not the density or probability calculations.
 The original files in Downloads are not modified.
 
 The Galton board draws an independent left/right outcome at each row for every ball.
-Its histogram reports observed landing proportions, and the optional outline shows the exact binomial probabilities for the selected rows and rightward probability.
+Its dot stacks show individual landed balls, and the optional reference shows the expected binomial counts for the same number of landings and selected settings.
 Changing either setting clears the previous run; Reset clears the run while retaining the settings.
 Pause freezes balls in flight, and reduced-motion mode replaces autoplay and animated rain with immediate batches.
 The standalone file requires no external assets or data.
@@ -61,7 +61,7 @@ python3 -m http.server 8000 --directory dist
 Open [the local preview](http://localhost:8000).
 Rebuild after editing sources, configuration, or styling, then refresh the browser.
 The build recreates `dist/`, so edit the sources rather than generated files.
-Generated asset URLs include content versions so a refreshed page loads matching navigation, styles, and catalog data.
+Generated asset and visualization URLs include content versions so a refreshed page loads matching navigation, styles, catalog data, and updated standalone files.
 
 ## Project structure
 
@@ -78,6 +78,7 @@ Generated asset URLs include content versions so a refreshed page loads matching
 | `scripts/build.py` | Validation and standalone HTML generation |
 | `tests/test_build.py` | Build-contract tests using temporary fixtures |
 | `tests/test_galton_math.py` | Independent checks of the Galton probability model and event accounting |
+| `tests/test_galton_motion.py` | Motion continuity, narrow layouts, and landing alignment with counted dots |
 | `dist/` | Generated site uploaded to GitHub Pages |
 
 ## Navigation

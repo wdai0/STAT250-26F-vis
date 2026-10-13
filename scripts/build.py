@@ -221,8 +221,9 @@ def build(root: Path) -> int:
         output[filename] = render_visualization(
             embed_dataset(read_text(source), root, entry), theme, site["authorship"], license_text, entry["source"]
         )
+        version = hashlib.sha256(output[filename].encode("utf-8")).hexdigest()[:12]
         catalog.append({key: value for key, value in entry.items() if key not in ("source", "dataset")}
-                       | {"file": filename})
+                       | {"file": f"{filename}?v={version}"})
 
     if "homepage" in site:
         homepage = require_text(site["homepage"], "site.homepage")
