@@ -8,6 +8,8 @@ The homepage is an animated Galton board in the **Tactile paper** style: warm iv
 The collection also includes Cars, NBA, 95% rule, Bootstrap CI, Three distributions, and Sample size & p-values.
 The separate **Create your own** guide contains the original exploration principles and a copyable prompt template.
 The **Real-world p-values** guide has Business, Physics, Medicine, and Technology tabs with paper links, labeled exact excerpts, contextual interpretations, and a shared classroom threshold control.
+The **Type I & Type II errors** visualization compares two fixed normal sampling distributions while a single cutoff controls false alarms, missed effects, and power.
+Its Explore and Explanation tabs, significance-level presets, and exact reset work in the standalone download.
 Controls and plots take priority; detailed methods are collapsed or placed in a separate view.
 
 ## Data sources and adaptations
@@ -32,6 +34,13 @@ Pause freezes balls in flight, and reduced-motion mode replaces autoplay and ani
 The standalone file requires no external assets or data.
 
 ## Content and design references
+
+The **Type I & Type II errors** model uses independent normal observations with known standard deviation 2 and sample size 25.
+It tests a mean of zero against a positive mean, with a specified alternative mean of 1 and standard error 0.4.
+The error probabilities come from the normal CDF, independently checked against Python's `math.erfc`; no studies are simulated.
+The displayed expected counts per 1,000 condition on each panel's population truth.
+The source fixes both distributions and the horizontal range, uses one cutoff with linked 10%, 5%, and 1% alpha presets, and distinguishes long-run error rates from the probability a particular decision is wrong.
+Open it at `#type-i-type-ii-errors`.
 
 The **Real-world p-values** guide is adapted from the October 13, 2026 three-paper teaching handoff (`stat250-real-world-p-values-handoff.md`).
 It retains the original publication links and locations, separates author excerpts from instructor wording, and does not reproduce full abstracts or long result sentences.

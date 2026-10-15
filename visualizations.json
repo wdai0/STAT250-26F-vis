@@ -74,6 +74,14 @@
     "kind": "visualization"
   },
   {
+    "id": "type-i-type-ii-errors",
+    "title": "Type I & Type II errors",
+    "description": "Move one cutoff to compare false alarms and missed effects under two fixed population realities.",
+    "source": "sources/type-i-type-ii-errors.html",
+    "category": "Sampling & inference",
+    "kind": "visualization"
+  },
+  {
     "id": "real-world-p-values",
     "title": "Real-world p-values",
     "description": "Read published results in business, physics, medicine, and technology; interpret p-values and compare decision thresholds.",

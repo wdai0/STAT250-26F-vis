@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Move one decision cutoff to explore false alarms and missed effects under two fixed sampling distributions.">
+  <title>Type I &amp; Type II errors · STAT 250</title>
+  <!-- SHARED_THEME -->
+  <style>
+    :root { --false-alarm: #995214; --missed-effect: #365fa0; }
+    body { line-height: 1.45; }
+    .errors-app { max-width: 1120px; margin: auto; padding: 14px 22px; }
+    .heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    h1 { font-size: 1.35rem; }
+    .model-tag { color: var(--muted); font-size: .78rem; white-space: nowrap; }
+    .premise { margin: 5px 0 8px; font-size: .9rem; }
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 10px; }
+    .tab { border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--muted); padding: 6px 16px; font-size: .85rem; font-weight: 600; min-height: 34px; }
+    .tab[aria-selected="true"] { border-bottom-color: var(--accent); color: var(--ink); }
+    .tab:hover { background: var(--accent-soft); }
+    .controls { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto; gap: 16px; align-items: center; }
+    .slider-label { display: flex; justify-content: space-between; gap: 10px; font-size: .88rem; font-weight: 600; }
+    .slider-label output { color: var(--ink); font-variant-numeric: tabular-nums; }
+    .slider-row { display: flex; align-items: center; gap: 10px; }
+    .slider-row span { color: var(--muted); font-size: .72rem; }
+    .slider-row input { min-width: 0; margin: 3px 0; height: 24px; }
+    .presets { display: flex; align-items: center; gap: 5px; }
+    .presets > span { color: var(--muted); font-size: .76rem; margin-right: 3px; }
+    .compact-button { border: 1px solid var(--line); border-radius: 5px; padding: 7px 10px; min-height: 36px; font-size: .82rem; background: var(--surface); color: var(--text); white-space: nowrap; }
+    .compact-button:hover, .compact-button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+    .control-note { margin: 4px 0 7px; font-size: .8rem; color: var(--muted); }
+    #direction { color: var(--ink); font-weight: 550; }
+    .reality { display: grid; grid-template-columns: 295px minmax(0, 1fr); gap: 16px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+    .reality h2 { font-size: .96rem; }
+    .truth { color: var(--muted); font-size: .78rem; margin-top: 3px; }
+    .error-readout { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 8px; font-size: .88rem; font-weight: 600; }
+    .error-readout output { font-size: 1.4rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+    .null-reality .error-readout { color: var(--false-alarm); }
+    .alternative-reality .error-readout { color: var(--missed-effect); }
+    .frequency { font-size: .78rem; margin-top: 2px; }
+    .correct { font-size: .75rem; color: var(--muted); margin-top: 4px; }
+    .distribution { width: 100%; height: 148px; display: block; overflow: visible; }
+    .distribution text { font-family: var(--font); fill: var(--text); font-size: 12px; }
+    .distribution .cutoff-label { fill: var(--ink); font-weight: 650; font-size: 13px; }
+    .distribution .center-label { fill: var(--muted); font-size: 12px; }
+    .distribution .tick { fill: var(--muted); font-size: 12px; }
+    .axis-label { margin-left: 311px; text-align: center; color: var(--muted); font-size: .78rem; }
+    .explore-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 14px; margin-top: 8px; color: var(--muted); font-size: .76rem; }
+    .line-key { display: inline-flex; gap: 6px; align-items: center; }
+    .line-key::before { content: ''; display: inline-block; width: 20px; border-top: 2px solid var(--ink); }
+    .line-key.center::before { border-top: 2px dotted #7c8795; }
+    .attribution { margin-top: 10px; padding-top: 8px; font-size: .67rem; }
+    #explanation { border-top: 1px solid var(--line); padding-top: 14px; }
+    .explanation-intro { font-size: .94rem; margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    th, td { padding: 10px 12px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--ink); background: #f5f7fa; font-weight: 600; }
+    td strong, td span { display: block; }
+    td span { margin-top: 3px; font-size: .81rem; }
+    .type-one { border-left: 3px solid var(--false-alarm); }
+    .type-two { border-left: 3px solid var(--missed-effect); }
+    .explanation-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 18px; }
+    .explanation-grid h2 { font-size: .98rem; margin-bottom: 7px; }
+    .explanation-grid p { font-size: .85rem; margin-bottom: 9px; }
+    .model-note { color: var(--muted); font-size: .8rem; border-top: 1px solid var(--line); padding-top: 12px; margin-top: 6px; }
+    .model-note p + p { margin-top: 6px; }
+    .formulas { font-family: "Cambria Math", "Times New Roman", serif; font-size: 1rem; color: var(--ink); }
+    .check-question { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 10px; font-size: .86rem; }
+    .check-question summary { cursor: pointer; color: var(--ink); font-weight: 600; }
+    .check-question p { margin-top: 8px; }
+    @media (max-width: 760px) {
+      .errors-app { padding: 18px 16px; }
+      .heading { display: block; }
+      .model-tag { display: block; margin-top: 5px; }
+      .premise { margin-top: 8px; }
+      .controls { grid-template-columns: 1fr auto; gap: 8px; }
+      .slider-control { grid-column: 1 / -1; }
+      .presets { flex-wrap: wrap; }
+      .control-note { margin-top: 9px; }
+      #direction { display: block; margin-top: 4px; }
+      .reality { grid-template-columns: 1fr; gap: 8px; padding: 16px 0 6px; }
+      .error-readout { justify-content: flex-start; gap: 16px; }
+      .frequency { max-width: 480px; font-size: .84rem; }
+      .truth, .correct { font-size: .8rem; }
+      .distribution { height: 168px; }
+      .axis-label { margin-left: 0; }
+      .explanation-grid { grid-template-columns: 1fr; gap: 8px; }
+      th, td { padding: 9px 6px; font-size: .8rem; }
+      .attribution { font-size: .7rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="errors-app">
+    <header>
+      <div class="heading"><h1>Type I &amp; Type II errors</h1><span class="model-tag">Illustrative model · <var class="stat-symbol">n</var> = 25 · σ = 2 · effect = 1</span></div>
+      <p class="premise"><strong>One cutoff, two possible realities.</strong> The decision rule is the same in both panels; the population reality is different.</p>
+    </header>
+    <div class="tabs" role="tablist" aria-label="Demonstration sections">
+      <button class="tab" id="tab-explore" type="button" role="tab" aria-controls="explore" aria-selected="true" tabindex="0">Explore</button>
+      <button class="tab" id="tab-explanation" type="button" role="tab" aria-controls="explanation" aria-selected="false" tabindex="-1">Explanation</button>
+    </div>
+    <div class="controls">
+      <div class="slider-control">
+        <label class="slider-label" for="cutoff"><span>Decision cutoff <var class="stat-symbol">c</var></span><output id="cutoff-value" for="cutoff">0.658</output></label>
+        <div class="slider-row"><span aria-hidden="true">0</span><input id="cutoff" type="range" min="0" max="1.6" step="any" value="0.6579414507805889" aria-describedby="control-note"><span aria-hidden="true">1.6</span></div>
+      </div>
+      <div class="presets" role="group" aria-label="Significance level presets">
+        <span>Set α:</span>
+        <button class="compact-button" type="button" data-alpha="0.10" aria-pressed="false">10%</button>
+        <button class="compact-button" type="button" data-alpha="0.05" aria-pressed="true">5%</button>
+        <button class="compact-button" type="button" data-alpha="0.01" aria-pressed="false">1%</button>
+      </div>
+      <button class="compact-button" id="reset" type="button">Reset</button>
+    </div>
+    <p class="control-note" id="control-note">Moving the cutoff changes α; the two curves stay fixed. <span id="direction"></span></p>
+    <p class="sr-only" id="announcement" role="status" aria-live="polite" aria-atomic="true"></p>
+    <section id="explore" role="tabpanel" aria-labelledby="tab-explore" tabindex="0">
+      <div class="reality null-reality">
+        <div>
+          <h2>Reality 1: The null is true</h2>
+          <p class="truth">True mean = 0 · no improvement</p>
+          <p class="error-readout"><span>Type I · false alarm <span aria-label="alpha">α</span></span><output id="alpha-value" aria-label="False-alarm probability if the true mean is zero"></output></p>
+          <p class="frequency" id="alpha-frequency"></p>
+          <p class="correct">Remaining area: correct non-rejection.</p>
+        </div>
+        <svg class="distribution" id="null-plot" role="img" aria-labelledby="null-title null-description"></svg>
+      </div>
+      <div class="reality alternative-reality">
+        <div>
+          <h2>Reality 2: A real improvement exists</h2>
+          <p class="truth">Specified true mean = 1 · one possible alternative</p>
+          <p class="error-readout"><span>Type II · missed effect <span aria-label="beta">β</span></span><output id="beta-value" aria-label="Missed-effect probability if the true mean is one"></output></p>
+          <p class="frequency" id="beta-frequency"></p>
+          <p class="correct">Remaining area: correct detection (power) <strong id="power-value"></strong>.</p>
+        </div>
+        <svg class="distribution" id="alternative-plot" role="img" aria-labelledby="alternative-title alternative-description"></svg>
+      </div>
+      <p class="axis-label">Sample mean across repeated studies (outcome units)</p>
+      <div class="explore-footer"><span>Each curve has area 100%. α and β belong to different realities.</span><span><span class="line-key">Decision cutoff</span> &nbsp; <span class="line-key center">Fixed true mean</span></span></div>
+    </section>
+    <section id="explanation" role="tabpanel" aria-labelledby="tab-explanation" tabindex="0" hidden>
+      <p class="explanation-intro">We know the decision made from our sample, but usually do not know the population truth.</p>
+      <table>
+        <caption class="sr-only">Population reality crossed with the test’s decision; probabilities follow the current cutoff.</caption>
+        <thead><tr><th scope="col">Population reality</th><th scope="col">Do not reject H₀</th><th scope="col">Reject H₀</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Null true<br>μ = 0</th><td><strong>Correct non-rejection</strong><span id="table-specificity"></span></td><td class="type-one"><strong>Type I error</strong><span>Rejecting a true null.</span><span id="table-alpha"></span></td></tr>
+          <tr><th scope="row">Specified alternative<br>μ = 1</th><td class="type-two"><strong>Type II error</strong><span>Not rejecting a false null.</span><span id="table-beta"></span></td><td><strong>Correct detection</strong><span id="table-power"></span></td></tr>
+        </tbody>
+      </table>
+      <div class="explanation-grid">
+        <section><h2>Different realities, different denominators</h2><p>These two curves show different hypothetical realities.
+        We do not assume both are true at once.</p><p>Each curve has total area 100%.
+        Alpha and beta are areas under different curves, so they do not generally sum to one.
+        Beta and power sum to one for the specified alternative.</p><p>A Type II error probability requires a specified real effect.
+        Here that mean is 1; the lower curve does not represent every mean greater than zero.</p></section>
+        <section><h2>Choose a rule before seeing the data</h2><p>Here we compare possible rules before conducting a study.
+        A higher cutoff makes rejection harder: fewer false alarms, but more missed effects when the distributions are fixed.</p><p>These are long-run probabilities across repeated studies, not probabilities that a particular completed decision is wrong.</p><p>Neither error is automatically worse.
+        Their consequences depend on context.
+        At <var class="stat-symbol">c</var> = 0.5 the two error probabilities happen to be equal; that does not make it the best cutoff.</p></section>
+      </div>
+      <div class="model-note">
+        <p><strong>Model assumptions.</strong> Independent normal observations with unknown mean μ and known population standard deviation σ = 2; <var class="stat-symbol">n</var> = 25 per study.
+        A positive mean represents improvement over zero.
+        Test H₀: μ = 0 against Hₐ: μ &gt; 0.
+        Reject H₀ when the sample mean exceeds <var class="stat-symbol">c</var>; otherwise do not reject.</p>
+        <p>Both sampling distributions have standard deviation σ/√<var class="stat-symbol">n</var> = 0.4.
+        These are distributions of sample means, not individual observations.
+        Areas are calculated over the full distributions, including the tails outside the fixed display range −2 to 3.</p>
+        <p class="formulas">α(<var>c</var>) = 1 − Φ(<var>c</var>/0.4) &nbsp; · &nbsp; β(<var>c</var>; μ = 1) = Φ((<var>c</var> − 1)/0.4) &nbsp; · &nbsp; power = 1 − β</p>
+        <p>Φ is the standard normal cumulative distribution function.
+        The counts per 1,000 are approximate expected frequencies, not simulated results.
+        The wide slider range includes deliberately extreme decision rules.</p>
+      </div>
+      <details class="check-question"><summary>With the distributions fixed, can moving the cutoff reduce both error probabilities?</summary><p>No.
+      Raising the cutoff reduces α and increases β; lowering it does the reverse.
+      Changing the study design is a different question, outside this exploration.</p></details>
+    </section>
+    <noscript><p>This demonstration needs JavaScript enabled to draw the distributions and update the cutoff.</p></noscript>
+    <!-- AUTHORSHIP -->
+  </main>
+  <script id="error-tradeoff-math">
+    const ErrorTradeoffMath = (() => {
+      const SE = 0.4;
+      const PRESETS = Object.freeze({
+        '0.10': SE * 1.2815515655446004,
+        '0.05': SE * 1.6448536269514722,
+        '0.01': SE * 2.3263478740408408
+      });
+      // Convergent integral series: Φ(z) = 1/2 + φ(z)(z + z³/3 + z⁵/15 + …).
+      // The model only needs z in [-2.5, 4]; avoid numerical tail cancellation
+      // beyond that working interval by keeping this API explicitly bounded.
+      function normalCDF(z) {
+        if (!Number.isFinite(z) || Math.abs(z) > 4) throw new RangeError('CDF input must be in [-4, 4].');
+        let term = z;
+        let sum = z;
+        for (let k = 1; k < 200; k++) {
+          term *= z * z / (2 * k + 1);
+          sum += term;
+          if (Math.abs(term) <= Math.abs(sum) * Number.EPSILON) break;
+        }
+        return 0.5 + Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI) * sum;
+      }
+      function probabilities(cutoff) {
+        if (!Number.isFinite(cutoff) || cutoff < 0 || cutoff > 1.6) throw new RangeError('Cutoff must be in [0, 1.6].');
+        const alpha = 1 - normalCDF(cutoff / SE);
+        const beta = normalCDF((cutoff - 1) / SE);
+        return {alpha, beta, power: 1 - beta};
+      }
+      function density(x, mean) {
+        const z = (x - mean) / SE;
+        return Math.exp(-z * z / 2) / (SE * Math.sqrt(2 * Math.PI));
+      }
+      return Object.freeze({SE, PRESETS, DEFAULT: PRESETS['0.05'], normalCDF, probabilities, density});
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+      const model = ErrorTradeoffMath;
+      const slider = document.querySelector('#cutoff');
+      const tabs = [...document.querySelectorAll('[role="tab"]')];
+      const presetButtons = [...document.querySelectorAll('[data-alpha]')];
+      let cutoff = model.DEFAULT;
+      const plots = [
+        {svg: document.querySelector('#null-plot'), mean: 0, prefix: 'null', color: '#995214', error: 'Type I error: false alarm'},
+        {svg: document.querySelector('#alternative-plot'), mean: 1, prefix: 'alternative', color: '#365fa0', error: 'Type II error: missed effect'}
+      ];
+      function text(id, value) { document.getElementById(id).textContent = value; }
+      function percent(value) {
+        if (value > 0 && value < 0.0001) return '<0.01%';
+        if (value < 1 && value > 0.9999) return '>99.99%';
+        return `${(value * 100).toFixed(value < 0.01 ? 2 : 1)}%`;
+      }
+      function frequency(value) {
+        return value * 1000 < 1 ? 'fewer than 1' : `about ${Math.round(value * 1000).toLocaleString('en-US')}`;
+      }
+      function draw(plot) {
+        const {svg, mean, prefix, color, error} = plot;
+        const width = Math.max(280, svg.getBoundingClientRect().width);
+        const height = svg.getBoundingClientRect().height;
+        const left = 27, right = width - 12, top = 39, bottom = height - 26;
+        const x = value => left + (value + 2) / 5 * (right - left);
+        const y = value => bottom - value / 1.12 * (bottom - top);
+        function curve(from, to, filled = false) {
+          const steps = Math.max(2, Math.ceil((to - from) * 80));
+          let path = filled ? `M${x(from)},${bottom} L` : 'M';
+          for (let i = 0; i <= steps; i++) {
+            const value = from + (to - from) * i / steps;
+            path += `${x(value)},${y(model.density(value, mean))}${i === steps ? '' : ' L'}`;
+          }
+          return path + (filled ? ` L${x(to)},${bottom} Z` : '');
+        }
+        const tickMarkup = [-2, -1, 0, 1, 2, 3].map(tick => `<line x1="${x(tick)}" x2="${x(tick)}" y1="${bottom}" y2="${bottom + 4}" stroke="#a4b0bf"/><text class="${tick === mean ? 'center-label' : 'tick'}" x="${x(tick)}" y="${bottom + 18}" text-anchor="middle">${tick === mean ? 'μ = ' + mean : tick < 0 ? '−' + -tick : tick}</text>`).join('');
+        const probability = model.probabilities(cutoff)[mean === 0 ? 'alpha' : 'beta'];
+        const shade = mean === 0 ? curve(cutoff, 3, true) : curve(-2, cutoff, true);
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.innerHTML = `<title id="${prefix}-title">Sampling distribution of the sample mean when the true mean is ${mean}</title>
+          <desc id="${prefix}-description">Standard deviation 0.4. Reject to the right of cutoff ${cutoff.toFixed(3)}. ${error}: ${percent(probability)}, shaded ${mean === 0 ? 'right' : 'left'} of the cutoff. The solid cutoff moves; the dotted true mean stays fixed.</desc>
+          <defs><pattern id="${prefix}-hatch" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M-1,1 L1,-1 M0,6 L6,0 M5,7 L7,5" stroke="${color}" stroke-width="0.7" opacity="0.35"/></pattern></defs>
+          <text x="0" y="14">Probability density</text>
+          <text class="cutoff-label" x="${x(cutoff) + 6}" y="14">c = ${cutoff.toFixed(3)}</text>
+          <text x="${(left + x(cutoff)) / 2}" y="32" text-anchor="middle">Do not reject H₀</text>
+          <text x="${(right + x(cutoff)) / 2}" y="32" text-anchor="middle">Reject H₀</text>
+          <path d="${curve(-2, 3, true)}" fill="#f2f4f7"/>
+          <path class="error-area" d="${shade}" fill="${color}" fill-opacity="0.22"/>
+          <path d="${shade}" fill="url(#${prefix}-hatch)"/>
+          <line x1="${left}" x2="${right}" y1="${bottom}" y2="${bottom}" stroke="#a4b0bf"/>
+          <line x1="${left}" x2="${left}" y1="${y(1)}" y2="${bottom}" stroke="#dce3ec"/>
+          <text class="tick" x="${left - 6}" y="${y(1) + 4}" text-anchor="end">1</text>
+          <text class="tick" x="${left - 6}" y="${bottom + 4}" text-anchor="end">0</text>
+          <line class="center-line" x1="${x(mean)}" x2="${x(mean)}" y1="${top}" y2="${bottom}" stroke="#7c8795" stroke-width="1.5" stroke-dasharray="2 4"/>
+          <path class="density-curve" d="${curve(-2, 3)}" fill="none" stroke="#33465d" stroke-width="2"/>
+          <line class="cutoff-line" x1="${x(cutoff)}" x2="${x(cutoff)}" y1="${top - 3}" y2="${bottom}" stroke="#1c3553" stroke-width="2.5"/>
+          ${tickMarkup}`;
+      }
+      function update(announce = false) {
+        const {alpha, beta, power} = model.probabilities(cutoff);
+        slider.value = String(cutoff);
+        slider.setAttribute('aria-valuetext', `${cutoff.toFixed(3)} outcome units; alpha ${percent(alpha)}`);
+        text('cutoff-value', cutoff.toFixed(3));
+        text('alpha-value', percent(alpha));
+        text('beta-value', percent(beta));
+        text('power-value', percent(power));
+        text('alpha-frequency', `If μ = 0, ${frequency(alpha)} of 1,000 repeated studies would falsely reject.`);
+        text('beta-frequency', `If μ = 1, ${frequency(beta)} of 1,000 repeated studies would miss the improvement.`);
+        text('table-specificity', `1 − α: ${percent(1 - alpha)}`);
+        text('table-alpha', `α: ${percent(alpha)}`);
+        text('table-beta', `β: ${percent(beta)}`);
+        text('table-power', `Power: ${percent(power)}`);
+        const atDefault = Math.abs(cutoff - model.DEFAULT) < 1e-12;
+        text('direction', atDefault ? 'Starting rule: α = 5%.' : cutoff > model.DEFAULT
+          ? 'Above the start: harder to reject; fewer false alarms, more missed effects.'
+          : 'Below the start: easier to reject; more false alarms, fewer missed effects.');
+        for (const button of presetButtons) button.setAttribute('aria-pressed', String(Math.abs(cutoff - model.PRESETS[button.dataset.alpha]) < 1e-12));
+        if (!document.querySelector('#explore').hidden) plots.forEach(draw);
+        if (announce) text('announcement', `Cutoff ${cutoff.toFixed(3)}. False alarms if the true mean is zero: ${percent(alpha)}. Missed effects if the true mean is one: ${percent(beta)}. Power: ${percent(power)}.`);
+      }
+      function selectTab(id, focus = false) {
+        for (const tab of tabs) {
+          const selected = tab.getAttribute('aria-controls') === id;
+          tab.setAttribute('aria-selected', String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+          document.getElementById(tab.getAttribute('aria-controls')).hidden = !selected;
+          if (selected && focus) tab.focus();
+        }
+        if (id === 'explore') plots.forEach(draw);
+      }
+      slider.addEventListener('input', () => { cutoff = Number(slider.value); update(); });
+      slider.addEventListener('change', () => update(true));
+      slider.addEventListener('keydown', event => {
+        const increments = {ArrowLeft: -0.005, ArrowDown: -0.005, ArrowRight: 0.005, ArrowUp: 0.005, PageDown: -0.05, PageUp: 0.05};
+        if (!(event.key in increments) && event.key !== 'Home' && event.key !== 'End') return;
+        event.preventDefault();
+        cutoff = event.key === 'Home' ? 0 : event.key === 'End' ? 1.6 : Math.min(1.6, Math.max(0, cutoff + increments[event.key]));
+        update(true);
+      });
+      for (const button of presetButtons) button.addEventListener('click', () => { cutoff = model.PRESETS[button.dataset.alpha]; update(true); });
+      for (const [index, tab] of tabs.entries()) {
+        tab.addEventListener('click', () => selectTab(tab.getAttribute('aria-controls')));
+        tab.addEventListener('keydown', event => {
+          const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1
+            : ['ArrowRight', 'ArrowLeft'].includes(event.key) ? (index + 1) % tabs.length : null;
+          if (next === null) return;
+          event.preventDefault();
+          selectTab(tabs[next].getAttribute('aria-controls'), true);
+        });
+      }
+      document.querySelector('#reset').addEventListener('click', () => {
+        cutoff = model.DEFAULT;
+        document.querySelector('.check-question').open = false;
+        selectTab('explore');
+        update(true);
+      });
+      const resize = new ResizeObserver(() => { if (!document.querySelector('#explore').hidden) plots.forEach(draw); });
+      plots.forEach(plot => resize.observe(plot.svg));
+      update();
+    })();
+  </script>
+</body>
+</html>
