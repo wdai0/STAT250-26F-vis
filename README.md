@@ -35,6 +35,12 @@ The standalone file requires no external assets or data.
 
 ## Content and design references
 
+The **Sample size & detectable effect** visualization varies the number of independent observations from 25 to 10,000 in a one-sided normal-mean test with known population SD 2.
+It fixes alpha at 5% and target power at 80%, selecting the minimum detectable true effect using the exact normal-model formula.
+Both sampling distributions share fixed horizontal limits in the overview; an optional magnified detail uses matched, explicitly changing scales.
+The Explanation tab distinguishes increasing power for a fixed effect from decreasing the effect required for fixed power, and includes an MDE-versus-sample-size plot.
+Open it at `#sample-size-mde`; its complete HTML download requires no external assets.
+
 The **Type I & Type II errors** model uses independent normal observations with known standard deviation 2 and sample size 25.
 It tests a mean of zero against a positive mean, with a specified alternative mean of 1 and standard error 0.4.
 The error probabilities come from the normal CDF, independently checked against Python's `math.erfc`; no studies are simulated.

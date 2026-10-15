@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore the smallest true effect that gives 80% power as sample size changes, at a fixed 5% significance level.">
+  <title>Sample size &amp; minimum detectable effect · STAT 250</title>
+  <!-- SHARED_THEME -->
+  <style>
+    :root { --false-alarm: #995214; --missed-effect: #365fa0; }
+    body { line-height: 1.45; }
+    .mde-app { max-width: 1120px; margin: auto; padding: 14px 22px; }
+    h1 { font-size: 1.35rem; }
+    .premise { margin: 5px 0 8px; font-size: .9rem; }
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 10px; }
+    .tab { border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--muted); padding: 6px 16px; font-size: .85rem; font-weight: 600; min-height: 34px; }
+    .tab[aria-selected="true"] { border-bottom-color: var(--accent); color: var(--ink); }
+    .tab:hover { background: var(--accent-soft); }
+    .controls { display: grid; grid-template-columns: minmax(240px, 1fr) auto auto; gap: 24px; align-items: center; }
+    .slider-label { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: .88rem; font-weight: 600; }
+    output { font-variant-numeric: tabular-nums; }
+    #n-value { font-size: 1.2rem; color: var(--ink); }
+    #sample-size { height: 22px; margin: 2px 0; }
+    .presets { display: flex; flex-wrap: wrap; gap: 5px; }
+    .compact-button { border: 1px solid var(--line); border-radius: 5px; padding: 5px 9px; min-height: 32px; font-size: .8rem; background: var(--surface); color: var(--text); white-space: nowrap; }
+    .compact-button:hover, .compact-button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+    .sensitivity { border-left: 1px solid var(--line); padding-left: 24px; }
+    .sensitivity label { display: block; color: var(--muted); font-size: .77rem; }
+    #mde-value { color: var(--ink); font-size: 1.65rem; font-weight: 650; }
+    .units { font-size: .75rem; color: var(--muted); }
+    .se { font-size: .78rem; }
+    .settings { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 9px 0 8px; color: var(--muted); font-size: .76rem; }
+    .reality { display: grid; grid-template-columns: 286px minmax(0, 1fr); gap: 20px; align-items: center; border-top: 1px solid var(--line); padding: 6px 0; }
+    .reality h2 { font-size: .96rem; }
+    .truth { color: var(--muted); font-size: .79rem; margin-top: 5px; }
+    .error-readout { display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px; gap: 8px; font-weight: 600; font-size: .85rem; }
+    .error-readout strong { font-size: 1.4rem; }
+    .null-reality .error-readout { color: var(--false-alarm); }
+    .alternative-reality .error-readout { color: var(--missed-effect); }
+    .correct { font-size: .78rem; margin-top: 3px; color: var(--muted); }
+    .selected-effect { color: var(--ink); font-size: .78rem; margin-top: 5px; }
+    .distribution { width: 100%; height: 150px; display: block; }
+    .alternative-reality .distribution { height: 180px; }
+    svg text { font-family: var(--font); font-size: 12px; fill: var(--text); }
+    svg .cutoff-label { font-weight: 650; fill: var(--ink); }
+    svg .tick { font-size: 11px; fill: var(--muted); }
+    .axis-label { text-align: center; margin-left: 306px; font-size: .76rem; color: var(--muted); }
+    .plot-notes { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; margin-top: 6px; }
+    .plot-notes p { font-size: .71rem; color: var(--muted); }
+    .takeaway { border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; font-size: .85rem; }
+    .clarification { font-size: .78rem; color: var(--muted); margin-top: 4px; }
+    .attribution { margin-top: 10px; padding-top: 8px; font-size: .67rem; }
+    #detail { margin: 12px 0; border: 1px solid var(--line); border-radius: 6px; padding: 12px 16px; background: #f8fafc; }
+    #detail h2 { font-size: .96rem; }
+    #detail > p { margin: 5px 0 10px; font-size: .8rem; }
+    #detail .reality { grid-template-columns: 160px minmax(0, 1fr); }
+    #detail .reality h3 { font-size: .88rem; }
+    #detail .axis-label { margin-left: 180px; }
+    #detail .distribution { height: 170px; }
+    #detail .alternative-reality .distribution { height: 200px; }
+    #explanation { padding-top: 8px; }
+    .explanation-intro { font-size: .91rem; margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    th, td { padding: 10px 12px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: #f5f7fa; color: var(--ink); font-weight: 600; }
+    .explanation-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 18px; }
+    .explanation-grid h2 { font-size: .98rem; margin-bottom: 7px; }
+    .explanation-grid p { font-size: .85rem; margin-bottom: 9px; }
+    #sensitivity-plot { width: 100%; height: 230px; display: block; }
+    .formula { font-family: "Cambria Math", "Times New Roman", serif; color: var(--ink); font-size: 1rem !important; }
+    .model-note { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); font-size: .8rem; color: var(--muted); }
+    .model-note p + p { margin-top: 6px; }
+    .check-question { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: .85rem; }
+    .check-question summary { cursor: pointer; color: var(--ink); font-weight: 600; }
+    .check-question p { margin-top: 7px; }
+    @media (max-width: 760px) {
+      .mde-app { padding: 18px 16px; }
+      .controls { grid-template-columns: 1fr auto; gap: 12px; }
+      .slider-control { grid-column: 1 / -1; }
+      .sensitivity { border-left: 0; padding-left: 0; }
+      #mde-value { font-size: 1.5rem; }
+      .settings { gap: 3px 12px; }
+      .reality, #detail .reality { grid-template-columns: 1fr; gap: 8px; padding: 14px 0 5px; }
+      .error-readout { justify-content: flex-start; gap: 16px; }
+      .distribution { height: 174px; }
+      .alternative-reality .distribution { height: 204px; }
+      .axis-label, #detail .axis-label { margin-left: 0; }
+      .plot-notes p { font-size: .75rem; }
+      .clarification { font-size: .83rem; }
+      .explanation-grid { grid-template-columns: 1fr; gap: 12px; }
+      th, td { padding: 8px 6px; font-size: .79rem; }
+      #detail { padding: 12px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="mde-app">
+    <header>
+      <h1>Sample size &amp; minimum detectable effect</h1>
+      <p class="premise">How small a true effect gives us <strong>80% power</strong> at a <strong>5% false-alarm rate</strong>?</p>
+    </header>
+    <div class="tabs" role="tablist" aria-label="Demonstration sections">
+      <button class="tab" id="tab-explore" type="button" role="tab" aria-controls="explore" aria-selected="true" tabindex="0">Explore</button>
+      <button class="tab" id="tab-explanation" type="button" role="tab" aria-controls="explanation" aria-selected="false" tabindex="-1">Explanation</button>
+    </div>
+    <div class="controls">
+      <div class="slider-control">
+        <label class="slider-label" for="sample-size"><span>Sample size <var class="stat-symbol">n</var></span><output id="n-value" for="sample-size">25</output></label>
+        <input id="sample-size" type="range" min="0" max="1" step="any" value="0" aria-describedby="sample-size-help">
+        <span class="sr-only" id="sample-size-help">25 to 10,000 independent observations per study. Slider travel is logarithmic. Arrow keys change n by one; Page Up and Page Down change it by about 10%; Home and End select the bounds.</span>
+        <div class="presets" role="group" aria-label="Sample size presets">
+          <button class="compact-button" type="button" data-n="25" aria-pressed="true">25</button>
+          <button class="compact-button" type="button" data-n="100" aria-pressed="false">100</button>
+          <button class="compact-button" type="button" data-n="400" aria-pressed="false">400</button>
+          <button class="compact-button" type="button" data-n="1600" aria-pressed="false">1,600</button>
+          <button class="compact-button" type="button" data-n="6400" aria-pressed="false">6,400</button>
+          <button class="compact-button" type="button" data-n="10000" aria-pressed="false">10,000</button>
+        </div>
+      </div>
+      <div class="sensitivity">
+        <label for="mde-value">Minimum detectable effect</label>
+        <output id="mde-value" for="sample-size"></output> <span class="units">outcome units</span>
+        <p class="se">Standard error: <output id="se-value" for="sample-size"></output></p>
+      </div>
+      <button class="compact-button" id="reset" type="button">Reset</button>
+    </div>
+    <p class="settings"><span>α: 5%</span><span>Target power: 80%</span><span>Population SD: 2</span><span>One-sample normal model · known σ</span></p>
+    <p class="sr-only" id="announcement" role="status" aria-live="polite" aria-atomic="true"></p>
+    <section id="explore" role="tabpanel" aria-labelledby="tab-explore" tabindex="0">
+      <div class="reality null-reality">
+        <div>
+          <h2>If the null is true</h2>
+          <p class="truth">Fixed null mean: μ₀ = 0</p>
+          <p class="error-readout"><span>Type I error · false alarm</span><strong>5%</strong></p>
+          <p class="correct">The cutoff changes to keep this tail at 5%.</p>
+        </div>
+        <svg class="distribution" id="null-plot" role="img" aria-labelledby="null-title null-description"></svg>
+      </div>
+      <div class="reality alternative-reality">
+        <div>
+          <h2>Smallest positive effect with 80% power</h2>
+          <p class="truth">Selected alternative mean: μ₁ = <output id="alternative-value"></output></p>
+          <p class="selected-effect">Effect selected to maintain 80% power.</p>
+          <p class="error-readout"><span>Type II error · missed effect</span><strong>20%</strong></p>
+          <p class="correct">Correct detection: <strong>80% power</strong>.</p>
+        </div>
+        <svg class="distribution" id="alternative-plot" role="img" aria-labelledby="alternative-title alternative-description"></svg>
+      </div>
+      <p class="axis-label">Sample mean (outcome units)</p>
+      <div class="plot-notes">
+        <p>Fixed horizontal scale. Density height rescales; each curve has area 100%.<br>Curves describe sample means across repeated studies, not individual observations.</p>
+        <button class="compact-button" id="detail-toggle" type="button" aria-expanded="false" aria-controls="detail">Magnified detail</button>
+      </div>
+      <section id="detail" aria-labelledby="detail-heading" hidden>
+        <h2 id="detail-heading">Magnified detail · a different horizontal scale</h2>
+        <p>Both panels use the same expanded scale, shown in outcome units.
+        The overview above stays fixed.
+        <span id="magnification"></span></p>
+        <div class="reality null-reality"><div><h3>Null mean = 0</h3><p class="truth">Type I error: 5%</p></div><svg class="distribution" id="detail-null-plot" role="img" aria-labelledby="detail-null-title detail-null-description"></svg></div>
+        <div class="reality alternative-reality"><div><h3>Selected alternative</h3><p class="truth">Type II error: 20%<br>Power: 80%</p></div><svg class="distribution" id="detail-alternative-plot" role="img" aria-labelledby="detail-alternative-title detail-alternative-description"></svg></div>
+        <p class="axis-label">Sample mean (outcome units) · detail scale adjusts with <var class="stat-symbol">n</var></p>
+      </section>
+      <p class="takeaway"><strong>More observations let us detect smaller effects at the same false-alarm rate and target power.</strong></p>
+      <p class="clarification">The alternative moves because we are selecting the smallest effect that meets our detection target—not because the real effect changes.</p>
+    </section>
+    <section id="explanation" role="tabpanel" aria-labelledby="tab-explanation" tabindex="0" hidden>
+      <p class="explanation-intro">This is a study-design calculation, before any data are observed.
+      “Detectable” means an 80% chance of rejection across repeated studies under the selected alternative.</p>
+      <table>
+        <caption class="sr-only">Two different questions about increasing sample size.</caption>
+        <thead><tr><th scope="col">As sample size increases…</th><th scope="col">What changes?</th></tr></thead>
+        <tbody><tr><th scope="row">Hold the true positive effect and α fixed</th><td>Power increases; Type II error probability decreases.</td></tr>
+        <tr><th scope="row">Hold target power and α fixed<br><small>This demonstration</small></th><td>The true effect needed to meet that target decreases.<br>β stays at 20% because we select a smaller alternative.</td></tr></tbody>
+      </table>
+      <div class="explanation-grid">
+        <section>
+          <h2>More observations, smaller detectable effects</h2>
+          <p>The null mean stays at zero.
+          Larger samples narrow both sampling distributions.
+          The cutoff moves toward zero to retain a 5% null tail; the alternative moves toward zero to retain 80% power.</p>
+          <p>The separation of the means shrinks in outcome units, but stays constant in standard-error units.
+          That is why the shaded proportions remain the same.</p>
+          <svg id="sensitivity-plot" role="img" aria-labelledby="sensitivity-title sensitivity-description"></svg>
+          <p><strong>Four times the observations → half the detectable effect.</strong><br>The horizontal axis uses a logarithmic scale; vertical effect values use a linear scale.</p>
+        </section>
+        <section>
+          <h2>A decision boundary and a design target</h2>
+          <p><strong>Cutoff <var class="stat-symbol">c</var> = <output id="explanation-cutoff"></output>:</strong> the observed sample mean must exceed this value to reject H₀.</p>
+          <p><strong>Minimum detectable effect = <output id="explanation-mde"></output>:</strong> the true population mean must be this far above zero to give 80% power.</p>
+          <p class="formula">SE = σ / √<var>n</var><br><var>c</var> = μ₀ + <var>z</var><sub>0.95</sub> SE<br>δ<sub>min</sub> = (<var>z</var><sub>0.95</sub> + <var>z</var><sub>0.80</sub>) SE<br>μ₁ = μ₀ + δ<sub>min</sub></p>
+          <h2>What “minimum” means here</h2>
+          <p>A smaller effect can still yield a statistically significant result, but with less than 80% probability.
+          An effect at the target can still be missed in 20% of repeated studies.</p>
+          <p>Alpha and beta belong to different hypothetical population realities; they are not complementary pieces of one curve.
+          For the selected alternative, beta and power do sum to one.</p>
+          <p>A statistically detectable effect need not be practically important.
+          Increasing sample size reduces random variation; it does not automatically remove bias or establish causality.</p>
+        </section>
+      </div>
+      <div class="model-note">
+        <p><strong>Model assumptions.</strong> Independent normal observations, unknown mean μ, known population standard deviation σ = 2 outcome units.
+        Test H₀: μ = 0 against Hₐ: μ &gt; 0; reject when the sample mean exceeds <var class="stat-symbol">c</var>.
+        The sample size counts original independent observations in one sample, not observations per group or simulation repetitions.</p>
+        <p>Under mean μ, the sample mean is normal with mean μ and standard deviation 2/√<var class="stat-symbol">n</var>.
+        The constants are <var class="stat-symbol">z</var><sub>0.95</sub> = 1.6448536269514722 and <var class="stat-symbol">z</var><sub>0.80</sub> = 0.8416212335729143.
+        At the selected alternative, (<var class="stat-symbol">c</var> − μ₁)/SE = −<var class="stat-symbol">z</var><sub>0.80</sub>, leaving 20% below the cutoff and 80% above.</p>
+        <p>Probabilities refer to the full distributions, including tails outside the displayed range.
+        The main horizontal limits are fixed at −1.6 and approximately 2.595; both panels share a vertical density scale at each sample size.
+        Dotted lines mark the fixed null mean, dashed lines the selected alternative, and solid lines the cutoff.</p>
+        <p>This illustrative model contains no observed study, realized <var class="stat-symbol">p</var>-value, or Monte Carlo simulation.
+        Other study designs require their own power calculations.
+        Formula reference: <a href="https://www.itl.nist.gov/div898/handbook/prc/section2/prc222.htm" target="_blank" rel="noopener noreferrer">NIST: sample sizes for one-sided normal tests</a> (external link).</p>
+      </div>
+      <details class="check-question"><summary>To halve the minimum detectable effect, how much data do we need?</summary><p>Four times as many independent observations, with the same α, target power, and population SD.
+      For example, increasing <var class="stat-symbol">n</var> from 100 to 400 reduces the minimum detectable effect from about 0.4973 to 0.2486 units.</p></details>
+    </section>
+    <noscript><p>This demonstration needs JavaScript enabled to draw the distributions and update sample size.</p></noscript>
+    <!-- AUTHORSHIP -->
+  </main>
+  <script id="mde-math">
+    const MDEMath = (() => {
+      const SIGMA = 2, MIN_N = 25, MAX_N = 10000;
+      const Z_ALPHA = 1.6448536269514722, Z_POWER = 0.8416212335729143;
+      const PRESETS = Object.freeze([25, 100, 400, 1600, 6400, 10000]);
+      function validateN(n) {
+        if (!Number.isInteger(n) || n < MIN_N || n > MAX_N) throw new RangeError('Sample size must be an integer from 25 to 10000.');
+      }
+      // Integral series on the bounded interval needed by this model.
+      function normalCDF(z) {
+        if (!Number.isFinite(z) || Math.abs(z) > 4) throw new RangeError('CDF input must be in [-4, 4].');
+        let term = z, sum = z;
+        for (let k = 1; k < 200; k++) {
+          term *= z * z / (2 * k + 1);
+          sum += term;
+          if (Math.abs(term) <= Math.abs(sum) * Number.EPSILON) break;
+        }
+        return 0.5 + Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI) * sum;
+      }
+      function design(n) {
+        validateN(n);
+        const se = SIGMA / Math.sqrt(n);
+        const cutoff = Z_ALPHA * se;
+        const mde = (Z_ALPHA + Z_POWER) * se;
+        const alpha = 1 - normalCDF(cutoff / se);
+        const beta = normalCDF((cutoff - mde) / se);
+        return {n, sigma: SIGMA, nullMean: 0, se, cutoff, mde, alternative: mde, alpha, beta, power: 1 - beta};
+      }
+      function sliderPosition(n) {
+        validateN(n);
+        return Math.log(n / MIN_N) / Math.log(MAX_N / MIN_N);
+      }
+      function sampleSize(position) {
+        if (!Number.isFinite(position) || position < 0 || position > 1) throw new RangeError('Slider position must be in [0, 1].');
+        return Math.round(MIN_N * Math.pow(MAX_N / MIN_N, position));
+      }
+      function density(x, mean, se) {
+        return Math.exp(-0.5 * ((x - mean) / se) ** 2) / (se * Math.sqrt(2 * Math.PI));
+      }
+      // Sample in standard-error increments so narrow curves retain their shape.
+      // Include the full display interval; beyond eight SE the density is negligible.
+      function curvePoints(from, to, mean, se) {
+        const lo = Math.max(from, mean - 8 * se), hi = Math.min(to, mean + 8 * se);
+        if (lo >= hi) return [[from, density(from, mean, se)], [to, density(to, mean, se)]];
+        const steps = Math.max(2, Math.ceil((hi - lo) / se * 80));
+        const points = [[from, density(from, mean, se)]];
+        for (let i = 0; i <= steps; i++) {
+          const value = lo + (hi - lo) * i / steps;
+          points.push([value, density(value, mean, se)]);
+        }
+        points.push([to, density(to, mean, se)]);
+        return points;
+      }
+      const FIXED_RANGE = Object.freeze([-4 * SIGMA / Math.sqrt(MIN_N), design(MIN_N).mde + 4 * SIGMA / Math.sqrt(MIN_N)]);
+      return Object.freeze({SIGMA, MIN_N, MAX_N, Z_ALPHA, Z_POWER, PRESETS, FIXED_RANGE, design, normalCDF, density, curvePoints, sliderPosition, sampleSize});
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+      const model = MDEMath;
+      const slider = document.querySelector('#sample-size');
+      const tabs = [...document.querySelectorAll('[role="tab"]')];
+      const presetButtons = [...document.querySelectorAll('[data-n]')];
+      const detail = document.querySelector('#detail');
+      const detailToggle = document.querySelector('#detail-toggle');
+      const styles = getComputedStyle(document.documentElement);
+      const colors = Object.fromEntries(['ink', 'line', 'plot-grid', 'false-alarm', 'missed-effect'].map(name => [name, styles.getPropertyValue(`--${name}`).trim()]));
+      let n = model.MIN_N;
+      const text = (id, value) => { document.getElementById(id).textContent = value; };
+      const number = value => value.toLocaleString('en-US');
+      const units = value => value.toFixed(4);
+      function drawDistribution(id, alternative = false, magnified = false) {
+        const svg = document.getElementById(id);
+        const {se, cutoff, mde} = model.design(n);
+        const mean = alternative ? mde : 0;
+        const width = svg.getBoundingClientRect().width, height = svg.getBoundingClientRect().height;
+        if (!width || !height) return;
+        const prefix = id.replace('-plot', '');
+        const range = magnified ? [-4 * se, mde + 4 * se] : model.FIXED_RANGE;
+        const left = 42, right = width - 14, top = 43, bottom = height - (alternative ? 58 : 28);
+        const peak = model.density(mean, mean, se);
+        const x = value => left + (value - range[0]) / (range[1] - range[0]) * (right - left);
+        const y = value => bottom - value / (peak * 1.12) * (bottom - top);
+        const color = colors[alternative ? 'missed-effect' : 'false-alarm'];
+        function path(from, to, filled = false) {
+          const points = model.curvePoints(from, to, mean, se);
+          return (filled ? `M${x(from)},${bottom} L` : 'M') + points.map(([px, py]) => `${x(px)},${y(py)}`).join(' L') + (filled ? ` L${x(to)},${bottom} Z` : '');
+        }
+        const ticks = magnified ? [-2 * se, 0, 2 * se, 4 * se, 6 * se] : width < 500 ? [-1, 0, 1, 2] : [-1.5, -1, -.5, 0, .5, 1, 1.5, 2, 2.5];
+        const tickMarkup = ticks.map(tick => `<line x1="${x(tick)}" x2="${x(tick)}" y1="${bottom}" y2="${bottom + 4}" stroke="${colors.line}"/><text class="tick" x="${x(tick)}" y="${bottom + 17}" text-anchor="middle">${magnified ? tick.toFixed(3).replace('-', '−') : String(tick).replace('-', '−')}</text>`).join('');
+        const errorPath = alternative ? path(range[0], cutoff, true) : path(cutoff, range[1], true);
+        const bracketMid = (x(0) + x(mde)) / 2;
+        const bracketLabel = Math.max(left + 80, Math.min(right - 80, bracketMid));
+        const bracket = alternative ? `<path d="M${x(0)},${bottom + 27} v7 H${x(mde)} v-7" fill="none" stroke="${colors.ink}" stroke-width="1.5"/><path d="M${bracketMid},${bottom + 34} L${bracketLabel},${bottom + 39}" fill="none" stroke="${colors.ink}"/><text x="${bracketLabel}" y="${bottom + 53}" text-anchor="middle">Min. detectable effect: ${units(mde)}</text>` : '';
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.innerHTML = `<title id="${prefix}-title">${alternative ? 'Selected alternative' : 'Null'} sampling distribution${magnified ? ', magnified detail' : ''}</title>
+          <desc id="${prefix}-description">${number(n)} observations. True mean ${units(mean)}, standard error ${units(se)}. Reject when the sample mean exceeds ${units(cutoff)}. ${alternative ? 'Type II error 20%, shaded left; power 80%, light shading right.' : 'Type I error 5%, hatched right tail.'} ${magnified ? 'The horizontal scale adjusts with sample size.' : 'The horizontal scale is fixed.'}</desc>
+          <defs><pattern id="${prefix}-hatch" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M-1,1 L1,-1 M0,6 L6,0 M5,7 L7,5" stroke="${color}" stroke-width=".7" opacity=".4"/></pattern></defs>
+          <text x="0" y="14">Probability density</text><text class="cutoff-label" x="${right}" y="14" text-anchor="end">c = ${units(cutoff)}</text>
+          <text x="${(left + x(cutoff)) / 2}" y="33" text-anchor="middle">Do not reject H₀</text><text x="${(x(cutoff) + right) / 2}" y="33" text-anchor="middle">Reject H₀</text>
+          <line x1="${left}" x2="${right}" y1="${y(peak)}" y2="${y(peak)}" stroke="${colors['plot-grid']}"/>
+          <text class="tick" x="${left - 6}" y="${y(peak) + 4}" text-anchor="end">${peak.toFixed(1)}</text><text class="tick" x="${left - 6}" y="${bottom + 4}" text-anchor="end">0</text>
+          <path d="${path(range[0], range[1], true)}" fill="${color}" fill-opacity=".055"/>
+          ${alternative ? `<path d="${path(cutoff, range[1], true)}" fill="${color}" fill-opacity=".10"/>` : ''}
+          <path d="${errorPath}" fill="${color}" fill-opacity=".28"/><path d="${errorPath}" fill="url(#${prefix}-hatch)"/>
+          <path d="${path(range[0], range[1])}" stroke="${color}" stroke-width="2" fill="none"/>
+          <line x1="${x(0)}" x2="${x(0)}" y1="${top}" y2="${bottom}" stroke="${colors.ink}" stroke-opacity=".65" stroke-dasharray="2 3"/>
+          ${alternative ? `<line x1="${x(mde)}" x2="${x(mde)}" y1="${top}" y2="${bottom}" stroke="${color}" stroke-dasharray="7 4"/>` : ''}
+          <line x1="${x(cutoff)}" x2="${x(cutoff)}" y1="${top - 5}" y2="${bottom}" stroke="${colors.ink}" stroke-width="2"/>
+          <line x1="${left}" x2="${right}" y1="${bottom}" y2="${bottom}" stroke="${colors.line}"/>${tickMarkup}${bracket}`;
+      }
+      function drawSensitivity() {
+        const svg = document.querySelector('#sensitivity-plot');
+        const width = svg.getBoundingClientRect().width, height = 230;
+        if (!width) return;
+        const left = 40, right = width - 20, top = 29, bottom = height - 40;
+        const x = value => left + model.sliderPosition(value) * (right - left);
+        const y = value => bottom - value / 1.05 * (bottom - top);
+        const points = Array.from({length: 241}, (_, i) => {
+          const size = model.sampleSize(i / 240);
+          return `${x(size)},${y(model.design(size).mde)}`;
+        });
+        const ticks = [25, 100, 400, 1600, 10000];
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.innerHTML = `<title id="sensitivity-title">Minimum detectable effect versus sample size</title><desc id="sensitivity-description">At ${number(n)} observations, the minimum detectable effect is ${units(model.design(n).mde)} outcome units. Quadrupling n halves the effect. Logarithmic horizontal scale and linear vertical scale.</desc>
+          <text x="0" y="14">Effect (outcome units)</text>
+          ${[0, .25, .5, .75, 1].map(value => `<line x1="${left}" x2="${right}" y1="${y(value)}" y2="${y(value)}" stroke="${colors['plot-grid']}"/><text class="tick" x="${left - 6}" y="${y(value) + 4}" text-anchor="end">${value}</text>`).join('')}
+          <path d="M${points.join(' L')}" fill="none" stroke="${colors['missed-effect']}" stroke-width="2.5"/>
+          <line x1="${x(n)}" x2="${x(n)}" y1="${y(model.design(n).mde)}" y2="${bottom}" stroke="${colors.ink}" stroke-dasharray="3 3"/>
+          <circle cx="${x(n)}" cy="${y(model.design(n).mde)}" r="5" fill="${colors.ink}" stroke="white" stroke-width="2"/>
+          ${ticks.map(value => `<text class="tick" x="${x(value)}" y="${bottom + 17}" text-anchor="${value === 10000 ? 'end' : 'middle'}">${number(value)}</text>`).join('')}
+          <text x="${(left + right) / 2}" y="${height - 4}" text-anchor="middle">Sample size n (log scale)</text>`;
+      }
+      function draw() {
+        if (document.querySelector('#explore').hidden) { drawSensitivity(); return; }
+        drawDistribution('null-plot');
+        drawDistribution('alternative-plot', true);
+        if (!detail.hidden) {
+          drawDistribution('detail-null-plot', false, true);
+          drawDistribution('detail-alternative-plot', true, true);
+        }
+      }
+      function update(announce = false) {
+        const {se, mde, cutoff} = model.design(n);
+        slider.value = String(model.sliderPosition(n));
+        slider.setAttribute('aria-valuetext', `${number(n)} independent observations`);
+        text('n-value', number(n));
+        text('mde-value', units(mde));
+        text('se-value', units(se));
+        text('alternative-value', units(mde));
+        text('explanation-cutoff', units(cutoff));
+        text('explanation-mde', units(mde));
+        text('magnification', `Scale magnification: ${(Math.sqrt(n / model.MIN_N)).toFixed(1)}×. Relative overlap stays the same because the target probabilities stay fixed.`);
+        presetButtons.forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.n) === n)));
+        draw();
+        if (announce) text('announcement', `${number(n)} observations. Minimum detectable effect ${units(mde)} outcome units; standard error ${units(se)}. Alpha stays 5%; power at the selected alternative stays 80%.`);
+      }
+      function selectTab(id, focus = false) {
+        tabs.forEach(tab => {
+          const selected = tab.getAttribute('aria-controls') === id;
+          tab.setAttribute('aria-selected', String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+          document.getElementById(tab.getAttribute('aria-controls')).hidden = !selected;
+          if (selected && focus) tab.focus();
+        });
+        draw();
+      }
+      slider.addEventListener('input', () => { n = model.sampleSize(Number(slider.value)); update(); });
+      slider.addEventListener('change', () => update(true));
+      slider.addEventListener('keydown', event => {
+        const step = Math.max(1, Math.round(n / 10));
+        const increments = {ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1, PageDown: -step, PageUp: step};
+        if (!(event.key in increments) && !['Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        n = event.key === 'Home' ? model.MIN_N : event.key === 'End' ? model.MAX_N : Math.min(model.MAX_N, Math.max(model.MIN_N, n + increments[event.key]));
+        update(true);
+      });
+      presetButtons.forEach(button => button.addEventListener('click', () => { n = Number(button.dataset.n); update(true); }));
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => selectTab(tab.getAttribute('aria-controls')));
+        tab.addEventListener('keydown', event => {
+          const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : ['ArrowLeft', 'ArrowRight'].includes(event.key) ? (index + 1) % tabs.length : null;
+          if (next === null) return;
+          event.preventDefault();
+          selectTab(tabs[next].getAttribute('aria-controls'), true);
+        });
+      });
+      detailToggle.addEventListener('click', () => {
+        detail.hidden = !detail.hidden;
+        detailToggle.setAttribute('aria-expanded', String(!detail.hidden));
+        detailToggle.textContent = detail.hidden ? 'Magnified detail' : 'Hide magnified detail';
+        draw();
+      });
+      document.querySelector('#reset').addEventListener('click', () => {
+        n = model.MIN_N;
+        detail.hidden = true;
+        detailToggle.setAttribute('aria-expanded', 'false');
+        detailToggle.textContent = 'Magnified detail';
+        document.querySelector('.check-question').open = false;
+        selectTab('explore');
+        update(true);
+      });
+      const resize = new ResizeObserver(draw);
+      document.querySelectorAll('svg').forEach(svg => resize.observe(svg));
+      update();
+    })();
+  </script>
+</body>
+</html>

@@ -82,6 +82,14 @@
     "kind": "visualization"
   },
   {
+    "id": "sample-size-mde",
+    "title": "Sample size & detectable effect",
+    "description": "Find the smallest true effect with 80% power as sample size changes, at a fixed 5% false-alarm rate.",
+    "source": "sources/sample-size-mde.html",
+    "category": "Sampling & inference",
+    "kind": "visualization"
+  },
+  {
     "id": "real-world-p-values",
     "title": "Real-world p-values",
     "description": "Read published results in business, physics, medicine, and technology; interpret p-values and compare decision thresholds.",
