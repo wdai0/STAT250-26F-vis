@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Explore the smallest true effect that gives 80% power as sample size changes, at a fixed 5% significance level.">
-  <title>Sample size &amp; minimum detectable effect · STAT 250</title>
+  <meta name="description" content="See power increase with sample size while the true effect and 5% Type I error rate stay fixed.">
+  <title>Sample size &amp; power · STAT 250</title>
   <!-- SHARED_THEME -->
   <style>
     :root { --false-alarm: #995214; --missed-effect: #365fa0; }
@@ -26,8 +26,7 @@
     .compact-button:hover, .compact-button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
     .sensitivity { border-left: 1px solid var(--line); padding-left: 24px; }
     .sensitivity label { display: block; color: var(--muted); font-size: .77rem; }
-    #mde-value { color: var(--ink); font-size: 1.65rem; font-weight: 650; }
-    .units { font-size: .75rem; color: var(--muted); }
+    #power-value { color: var(--ink); font-size: 1.65rem; font-weight: 650; }
     .se { font-size: .78rem; }
     .settings { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 9px 0 8px; color: var(--muted); font-size: .76rem; }
     .reality { display: grid; grid-template-columns: 286px minmax(0, 1fr); gap: 20px; align-items: center; border-top: 1px solid var(--line); padding: 6px 0; }
@@ -70,15 +69,15 @@
     .formula { font-family: "Cambria Math", "Times New Roman", serif; color: var(--ink); font-size: 1rem !important; }
     .model-note { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); font-size: .8rem; color: var(--muted); }
     .model-note p + p { margin-top: 6px; }
-    .check-question { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: .85rem; }
-    .check-question summary { cursor: pointer; color: var(--ink); font-weight: 600; }
-    .check-question p { margin-top: 7px; }
+    .check-question, .mde-note { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: .85rem; }
+    .check-question summary, .mde-note summary { cursor: pointer; color: var(--ink); font-weight: 600; }
+    .check-question p, .mde-note p { margin-top: 7px; }
     @media (max-width: 760px) {
       .mde-app { padding: 18px 16px; }
       .controls { grid-template-columns: 1fr auto; gap: 12px; }
       .slider-control { grid-column: 1 / -1; }
       .sensitivity { border-left: 0; padding-left: 0; }
-      #mde-value { font-size: 1.5rem; }
+      #power-value { font-size: 1.5rem; }
       .settings { gap: 3px 12px; }
       .reality, #detail .reality { grid-template-columns: 1fr; gap: 8px; padding: 14px 0 5px; }
       .error-readout { justify-content: flex-start; gap: 16px; }
@@ -96,8 +95,8 @@
 <body>
   <main class="mde-app">
     <header>
-      <h1>Sample size &amp; minimum detectable effect</h1>
-      <p class="premise">How small a true effect gives us <strong>80% power</strong> at a <strong>5% false-alarm rate</strong>?</p>
+      <h1>Sample size &amp; power</h1>
+      <p class="premise"><strong>Same true effect. Same 5% false-alarm rate.</strong> How does more data change our chance of detecting the effect?</p>
     </header>
     <div class="tabs" role="tablist" aria-label="Demonstration sections">
       <button class="tab" id="tab-explore" type="button" role="tab" aria-controls="explore" aria-selected="true" tabindex="0">Explore</button>
@@ -107,24 +106,23 @@
       <div class="slider-control">
         <label class="slider-label" for="sample-size"><span>Sample size <var class="stat-symbol">n</var></span><output id="n-value" for="sample-size">25</output></label>
         <input id="sample-size" type="range" min="0" max="1" step="any" value="0" aria-describedby="sample-size-help">
-        <span class="sr-only" id="sample-size-help">25 to 10,000 independent observations per study. Slider travel is logarithmic. Arrow keys change n by one; Page Up and Page Down change it by about 10%; Home and End select the bounds.</span>
+        <span class="sr-only" id="sample-size-help">25 to 400 independent observations per study. Slider travel is logarithmic. Arrow keys change n by one; Page Up and Page Down change it by about 10%; Home and End select the bounds.</span>
         <div class="presets" role="group" aria-label="Sample size presets">
           <button class="compact-button" type="button" data-n="25" aria-pressed="true">25</button>
+          <button class="compact-button" type="button" data-n="50" aria-pressed="false">50</button>
           <button class="compact-button" type="button" data-n="100" aria-pressed="false">100</button>
+          <button class="compact-button" type="button" data-n="200" aria-pressed="false">200</button>
           <button class="compact-button" type="button" data-n="400" aria-pressed="false">400</button>
-          <button class="compact-button" type="button" data-n="1600" aria-pressed="false">1,600</button>
-          <button class="compact-button" type="button" data-n="6400" aria-pressed="false">6,400</button>
-          <button class="compact-button" type="button" data-n="10000" aria-pressed="false">10,000</button>
         </div>
       </div>
       <div class="sensitivity">
-        <label for="mde-value">Minimum detectable effect</label>
-        <output id="mde-value" for="sample-size"></output> <span class="units">outcome units</span>
+        <label for="power-value">Power · correct detection</label>
+        <output id="power-value" for="sample-size"></output>
         <p class="se">Standard error: <output id="se-value" for="sample-size"></output></p>
       </div>
       <button class="compact-button" id="reset" type="button">Reset</button>
     </div>
-    <p class="settings"><span>α: 5%</span><span>Target power: 80%</span><span>Population SD: 2</span><span>One-sample normal model · known σ</span></p>
+    <p class="settings"><span>Fixed α: 5%</span><span>Fixed true effect: 0.5</span><span>Population SD: 2</span><span>One-sample normal model · known σ</span></p>
     <p class="sr-only" id="announcement" role="status" aria-live="polite" aria-atomic="true"></p>
     <section id="explore" role="tabpanel" aria-labelledby="tab-explore" tabindex="0">
       <div class="reality null-reality">
@@ -138,17 +136,17 @@
       </div>
       <div class="reality alternative-reality">
         <div>
-          <h2>Smallest positive effect with 80% power</h2>
-          <p class="truth">Selected alternative mean: μ₁ = <output id="alternative-value"></output></p>
-          <p class="selected-effect">Effect selected to maintain 80% power.</p>
-          <p class="error-readout"><span>Type II error · missed effect</span><strong>20%</strong></p>
-          <p class="correct">Correct detection: <strong>80% power</strong>.</p>
+          <h2>If the fixed effect is real</h2>
+          <p class="truth">Fixed alternative mean: μ₁ = 0.5</p>
+          <p class="selected-effect">The same true effect at every sample size.</p>
+          <p class="error-readout"><span>Type II error · missed effect</span><strong><output id="beta-value"></output></strong></p>
+          <p class="correct">Power · correct detection: <strong><output id="alternative-power"></output></strong>.</p>
         </div>
         <svg class="distribution" id="alternative-plot" role="img" aria-labelledby="alternative-title alternative-description"></svg>
       </div>
       <p class="axis-label">Sample mean (outcome units)</p>
       <div class="plot-notes">
-        <p>Fixed horizontal scale. Density height rescales; each curve has area 100%.<br>Curves describe sample means across repeated studies, not individual observations.</p>
+        <p>Hatched areas: errors. Light blue area: power.<br>Fixed horizontal scale; shared density height rescales. Each curve has area 100%.</p>
         <button class="compact-button" id="detail-toggle" type="button" aria-expanded="false" aria-controls="detail">Magnified detail</button>
       </div>
       <section id="detail" aria-labelledby="detail-heading" hidden>
@@ -157,73 +155,82 @@
         The overview above stays fixed.
         <span id="magnification"></span></p>
         <div class="reality null-reality"><div><h3>Null mean = 0</h3><p class="truth">Type I error: 5%</p></div><svg class="distribution" id="detail-null-plot" role="img" aria-labelledby="detail-null-title detail-null-description"></svg></div>
-        <div class="reality alternative-reality"><div><h3>Selected alternative</h3><p class="truth">Type II error: 20%<br>Power: 80%</p></div><svg class="distribution" id="detail-alternative-plot" role="img" aria-labelledby="detail-alternative-title detail-alternative-description"></svg></div>
+        <div class="reality alternative-reality"><div><h3>Alternative mean = 0.5</h3><p class="truth">Type II error: <output id="detail-beta"></output><br>Power: <output id="detail-power"></output></p></div><svg class="distribution" id="detail-alternative-plot" role="img" aria-labelledby="detail-alternative-title detail-alternative-description"></svg></div>
         <p class="axis-label">Sample mean (outcome units) · detail scale adjusts with <var class="stat-symbol">n</var></p>
       </section>
-      <p class="takeaway"><strong>More observations let us detect smaller effects at the same false-alarm rate and target power.</strong></p>
-      <p class="clarification">The alternative moves because we are selecting the smallest effect that meets our detection target—not because the real effect changes.</p>
+      <p class="takeaway"><strong>For the same true effect and fixed α, more observations increase power and reduce Type II error.</strong></p>
+      <p class="clarification">Both population means stay fixed. The curves describe sample means across repeated studies; they get narrower because SE = σ/√<var class="stat-symbol">n</var>.</p>
     </section>
     <section id="explanation" role="tabpanel" aria-labelledby="tab-explanation" tabindex="0" hidden>
-      <p class="explanation-intro">This is a study-design calculation, before any data are observed.
-      “Detectable” means an 80% chance of rejection across repeated studies under the selected alternative.</p>
+      <p class="explanation-intro">Power is the probability of rejecting H₀ when a specified alternative is true.
+      Here that alternative always has mean 0.5, and the null mean always equals zero.
+      Only the sample size changes.</p>
       <table>
         <caption class="sr-only">Two different questions about increasing sample size.</caption>
         <thead><tr><th scope="col">As sample size increases…</th><th scope="col">What changes?</th></tr></thead>
-        <tbody><tr><th scope="row">Hold the true positive effect and α fixed</th><td>Power increases; Type II error probability decreases.</td></tr>
-        <tr><th scope="row">Hold target power and α fixed<br><small>This demonstration</small></th><td>The true effect needed to meet that target decreases.<br>β stays at 20% because we select a smaller alternative.</td></tr></tbody>
+        <tbody><tr><th scope="row">Hold the true positive effect and α fixed<br><small>This demonstration</small></th><td>Power increases; Type II error probability decreases.</td></tr>
+        <tr><th scope="row">Hold target power and α fixed<br><small>A separate MDE question</small></th><td>The effect needed to meet that target decreases.<br>The alternative changes to maintain the target power.</td></tr></tbody>
       </table>
       <div class="explanation-grid">
         <section>
-          <h2>More observations, smaller detectable effects</h2>
-          <p>The null mean stays at zero.
-          Larger samples narrow both sampling distributions.
-          The cutoff moves toward zero to retain a 5% null tail; the alternative moves toward zero to retain 80% power.</p>
-          <p>The separation of the means shrinks in outcome units, but stays constant in standard-error units.
-          That is why the shaded proportions remain the same.</p>
+          <h2>Same effect, more reliable detection</h2>
+          <p>The population means remain 0 and 0.5.
+          Larger samples narrow both sampling distributions, while the cutoff moves toward zero to retain a 5% null tail.</p>
+          <p>More of the alternative distribution lies beyond that cutoff: power increases and the probability of missing the effect decreases.</p>
           <svg id="sensitivity-plot" role="img" aria-labelledby="sensitivity-title sensitivity-description"></svg>
-          <p><strong>Four times the observations → half the detectable effect.</strong><br>The horizontal axis uses a logarithmic scale; vertical effect values use a linear scale.</p>
+          <p><strong>Four times the observations → half the standard error.</strong><br>Power rises nonlinearly toward 100%; it does not simply double when sample size doubles.</p>
         </section>
         <section>
-          <h2>A decision boundary and a design target</h2>
+          <h2>Keep the false-alarm rate fixed</h2>
           <p><strong>Cutoff <var class="stat-symbol">c</var> = <output id="explanation-cutoff"></output>:</strong> the observed sample mean must exceed this value to reject H₀.</p>
-          <p><strong>Minimum detectable effect = <output id="explanation-mde"></output>:</strong> the true population mean must be this far above zero to give 80% power.</p>
-          <p class="formula">SE = σ / √<var>n</var><br><var>c</var> = μ₀ + <var>z</var><sub>0.95</sub> SE<br>δ<sub>min</sub> = (<var>z</var><sub>0.95</sub> + <var>z</var><sub>0.80</sub>) SE<br>μ₁ = μ₀ + δ<sub>min</sub></p>
-          <h2>What “minimum” means here</h2>
-          <p>A smaller effect can still yield a statistically significant result, but with less than 80% probability.
-          An effect at the target can still be missed in 20% of repeated studies.</p>
+          <p>The numerical cutoff changes with <var class="stat-symbol">n</var>, so the null probability to its right remains 5%.
+          Keeping α fixed does not mean keeping this sample-mean cutoff fixed.</p>
+          <p class="formula">SE = 2 / √<var>n</var><br><var>c</var> = <var>z</var><sub>0.95</sub> SE<br>β = Φ((<var>c</var> − 0.5) / SE)<br>Power = 1 − β = Φ(0.5 / SE − <var>z</var><sub>0.95</sub>)</p>
+          <h2>Interpret the probabilities</h2>
+          <p>Power is calculated under the fixed alternative, before a study's result is observed.
+          It is not the probability that the alternative is true.</p>
           <p>Alpha and beta belong to different hypothetical population realities; they are not complementary pieces of one curve.
-          For the selected alternative, beta and power do sum to one.</p>
+          Under the fixed alternative, beta and power do sum to one.</p>
           <p>A statistically detectable effect need not be practically important.
           Increasing sample size reduces random variation; it does not automatically remove bias or establish causality.</p>
         </section>
       </div>
+      <details class="mde-note"><summary>Related question: minimum detectable effect</summary>
+        <p>MDE fixes a target power, then finds the smallest positive true effect that meets that target.
+        At the current sample size, the MDE for 80% power is <strong><output id="explanation-mde"></output> outcome units</strong>.</p>
+        <p class="formula">δ<sub>min</sub> = (<var>z</var><sub>0.95</sub> + <var>z</var><sub>0.80</sub>) × 2 / √<var>n</var></p>
+        <p>That is a different calculation: it selects a different alternative as <var class="stat-symbol">n</var> changes.
+        The main plots always use the true effect 0.5 and allow power to change.</p>
+        <p>“Minimum” is relative to the chosen 80% target.
+        Smaller effects can still produce a significant result, but with less than 80% probability; an effect at the target can still be missed in 20% of repeated studies.</p>
+      </details>
       <div class="model-note">
         <p><strong>Model assumptions.</strong> Independent normal observations, unknown mean μ, known population standard deviation σ = 2 outcome units.
         Test H₀: μ = 0 against Hₐ: μ &gt; 0; reject when the sample mean exceeds <var class="stat-symbol">c</var>.
         The sample size counts original independent observations in one sample, not observations per group or simulation repetitions.</p>
         <p>Under mean μ, the sample mean is normal with mean μ and standard deviation 2/√<var class="stat-symbol">n</var>.
-        The constants are <var class="stat-symbol">z</var><sub>0.95</sub> = 1.6448536269514722 and <var class="stat-symbol">z</var><sub>0.80</sub> = 0.8416212335729143.
-        At the selected alternative, (<var class="stat-symbol">c</var> − μ₁)/SE = −<var class="stat-symbol">z</var><sub>0.80</sub>, leaving 20% below the cutoff and 80% above.</p>
+        The fixed positive effect is μ₁ − μ₀ = 0.5 outcome units.
+        The cutoff uses <var class="stat-symbol">z</var><sub>0.95</sub> = 1.6448536269514722; the optional MDE calculation also uses <var class="stat-symbol">z</var><sub>0.80</sub> = 0.8416212335729143.</p>
         <p>Probabilities refer to the full distributions, including tails outside the displayed range.
-        The main horizontal limits are fixed at −1.6 and approximately 2.595; both panels share a vertical density scale at each sample size.
-        Dotted lines mark the fixed null mean, dashed lines the selected alternative, and solid lines the cutoff.</p>
+        The main horizontal limits stay at −1.6 and 2.1; both panels share a vertical density scale at each sample size.
+        Dotted lines mark the fixed null mean, dashed lines the fixed alternative, and solid lines the cutoff.</p>
         <p>This illustrative model contains no observed study, realized <var class="stat-symbol">p</var>-value, or Monte Carlo simulation.
         Other study designs require their own power calculations.
         Formula reference: <a href="https://www.itl.nist.gov/div898/handbook/prc/section2/prc222.htm" target="_blank" rel="noopener noreferrer">NIST: sample sizes for one-sided normal tests</a> (external link).</p>
       </div>
-      <details class="check-question"><summary>To halve the minimum detectable effect, how much data do we need?</summary><p>Four times as many independent observations, with the same α, target power, and population SD.
-      For example, increasing <var class="stat-symbol">n</var> from 100 to 400 reduces the minimum detectable effect from about 0.4973 to 0.2486 units.</p></details>
+      <details class="check-question"><summary>If α stays at 5%, why can power increase?</summary><p>Alpha is a probability under the null; power is a probability under the fixed alternative.
+      As sample means become more precise, we can retain a 5% false-alarm rate while detecting the same real effect more often.</p></details>
     </section>
     <noscript><p>This demonstration needs JavaScript enabled to draw the distributions and update sample size.</p></noscript>
     <!-- AUTHORSHIP -->
   </main>
-  <script id="mde-math">
-    const MDEMath = (() => {
-      const SIGMA = 2, MIN_N = 25, MAX_N = 10000;
+  <script id="sample-size-math">
+    const SampleSizeMath = (() => {
+      const SIGMA = 2, EFFECT = .5, MIN_N = 25, MAX_N = 400;
       const Z_ALPHA = 1.6448536269514722, Z_POWER = 0.8416212335729143;
-      const PRESETS = Object.freeze([25, 100, 400, 1600, 6400, 10000]);
+      const PRESETS = Object.freeze([25, 50, 100, 200, 400]);
       function validateN(n) {
-        if (!Number.isInteger(n) || n < MIN_N || n > MAX_N) throw new RangeError('Sample size must be an integer from 25 to 10000.');
+        if (!Number.isInteger(n) || n < MIN_N || n > MAX_N) throw new RangeError('Sample size must be an integer from 25 to 400.');
       }
       // Integral series on the bounded interval needed by this model.
       function normalCDF(z) {
@@ -242,8 +249,8 @@
         const cutoff = Z_ALPHA * se;
         const mde = (Z_ALPHA + Z_POWER) * se;
         const alpha = 1 - normalCDF(cutoff / se);
-        const beta = normalCDF((cutoff - mde) / se);
-        return {n, sigma: SIGMA, nullMean: 0, se, cutoff, mde, alternative: mde, alpha, beta, power: 1 - beta};
+        const beta = normalCDF((cutoff - EFFECT) / se);
+        return {n, sigma: SIGMA, nullMean: 0, se, cutoff, mde, alternative: EFFECT, alpha, beta, power: 1 - beta};
       }
       function sliderPosition(n) {
         validateN(n);
@@ -270,14 +277,14 @@
         points.push([to, density(to, mean, se)]);
         return points;
       }
-      const FIXED_RANGE = Object.freeze([-4 * SIGMA / Math.sqrt(MIN_N), design(MIN_N).mde + 4 * SIGMA / Math.sqrt(MIN_N)]);
-      return Object.freeze({SIGMA, MIN_N, MAX_N, Z_ALPHA, Z_POWER, PRESETS, FIXED_RANGE, design, normalCDF, density, curvePoints, sliderPosition, sampleSize});
+      const FIXED_RANGE = Object.freeze([-4 * SIGMA / Math.sqrt(MIN_N), EFFECT + 4 * SIGMA / Math.sqrt(MIN_N)]);
+      return Object.freeze({SIGMA, EFFECT, MIN_N, MAX_N, Z_ALPHA, Z_POWER, PRESETS, FIXED_RANGE, design, normalCDF, density, curvePoints, sliderPosition, sampleSize});
     })();
   </script>
   <script>
     (() => {
       'use strict';
-      const model = MDEMath;
+      const model = SampleSizeMath;
       const slider = document.querySelector('#sample-size');
       const tabs = [...document.querySelectorAll('[role="tab"]')];
       const presetButtons = [...document.querySelectorAll('[data-n]')];
@@ -286,17 +293,18 @@
       const styles = getComputedStyle(document.documentElement);
       const colors = Object.fromEntries(['ink', 'line', 'plot-grid', 'false-alarm', 'missed-effect'].map(name => [name, styles.getPropertyValue(`--${name}`).trim()]));
       let n = model.MIN_N;
-      const text = (id, value) => { document.getElementById(id).textContent = value; };
+      const text = (id, value) => { const node = document.getElementById(id); if (node.textContent !== value) node.textContent = value; };
       const number = value => value.toLocaleString('en-US');
       const units = value => value.toFixed(4);
+      const percent = value => `${(value * 100).toFixed(2)}%`;
       function drawDistribution(id, alternative = false, magnified = false) {
         const svg = document.getElementById(id);
-        const {se, cutoff, mde} = model.design(n);
-        const mean = alternative ? mde : 0;
+        const {se, cutoff, beta, power} = model.design(n);
+        const mean = alternative ? model.EFFECT : 0;
         const width = svg.getBoundingClientRect().width, height = svg.getBoundingClientRect().height;
         if (!width || !height) return;
         const prefix = id.replace('-plot', '');
-        const range = magnified ? [-4 * se, mde + 4 * se] : model.FIXED_RANGE;
+        const range = magnified ? [-4 * se, model.EFFECT + 4 * se] : model.FIXED_RANGE;
         const left = 42, right = width - 14, top = 43, bottom = height - (alternative ? 58 : 28);
         const peak = model.density(mean, mean, se);
         const x = value => left + (value - range[0]) / (range[1] - range[0]) * (right - left);
@@ -306,27 +314,27 @@
           const points = model.curvePoints(from, to, mean, se);
           return (filled ? `M${x(from)},${bottom} L` : 'M') + points.map(([px, py]) => `${x(px)},${y(py)}`).join(' L') + (filled ? ` L${x(to)},${bottom} Z` : '');
         }
-        const ticks = magnified ? [-2 * se, 0, 2 * se, 4 * se, 6 * se] : width < 500 ? [-1, 0, 1, 2] : [-1.5, -1, -.5, 0, .5, 1, 1.5, 2, 2.5];
-        const tickMarkup = ticks.map(tick => `<line x1="${x(tick)}" x2="${x(tick)}" y1="${bottom}" y2="${bottom + 4}" stroke="${colors.line}"/><text class="tick" x="${x(tick)}" y="${bottom + 17}" text-anchor="middle">${magnified ? tick.toFixed(3).replace('-', '−') : String(tick).replace('-', '−')}</text>`).join('');
+        const ticks = magnified ? [range[0], 0, model.EFFECT, range[1]] : width < 500 ? [-1, 0, 1, 2] : [-1.5, -1, -.5, 0, .5, 1, 1.5, 2];
+        const tickMarkup = ticks.map(tick => `<line x1="${x(tick)}" x2="${x(tick)}" y1="${bottom}" y2="${bottom + 4}" stroke="${colors.line}"/><text class="tick" x="${x(tick)}" y="${bottom + 17}" text-anchor="middle">${String(Number(tick.toFixed(2))).replace('-', '−')}</text>`).join('');
         const errorPath = alternative ? path(range[0], cutoff, true) : path(cutoff, range[1], true);
-        const bracketMid = (x(0) + x(mde)) / 2;
+        const bracketMid = (x(0) + x(model.EFFECT)) / 2;
         const bracketLabel = Math.max(left + 80, Math.min(right - 80, bracketMid));
-        const bracket = alternative ? `<path d="M${x(0)},${bottom + 27} v7 H${x(mde)} v-7" fill="none" stroke="${colors.ink}" stroke-width="1.5"/><path d="M${bracketMid},${bottom + 34} L${bracketLabel},${bottom + 39}" fill="none" stroke="${colors.ink}"/><text x="${bracketLabel}" y="${bottom + 53}" text-anchor="middle">Min. detectable effect: ${units(mde)}</text>` : '';
+        const bracket = alternative ? `<path d="M${x(0)},${bottom + 27} v7 H${x(model.EFFECT)} v-7" fill="none" stroke="${colors.ink}" stroke-width="1.5"/><path d="M${bracketMid},${bottom + 34} L${bracketLabel},${bottom + 39}" fill="none" stroke="${colors.ink}"/><text x="${bracketLabel}" y="${bottom + 53}" text-anchor="middle">Fixed true effect: 0.5</text>` : '';
         svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-        svg.innerHTML = `<title id="${prefix}-title">${alternative ? 'Selected alternative' : 'Null'} sampling distribution${magnified ? ', magnified detail' : ''}</title>
-          <desc id="${prefix}-description">${number(n)} observations. True mean ${units(mean)}, standard error ${units(se)}. Reject when the sample mean exceeds ${units(cutoff)}. ${alternative ? 'Type II error 20%, shaded left; power 80%, light shading right.' : 'Type I error 5%, hatched right tail.'} ${magnified ? 'The horizontal scale adjusts with sample size.' : 'The horizontal scale is fixed.'}</desc>
+        svg.innerHTML = `<title id="${prefix}-title">${alternative ? 'Fixed alternative' : 'Null'} sampling distribution${magnified ? ', magnified detail' : ''}</title>
+          <desc id="${prefix}-description">${number(n)} observations. True mean ${units(mean)}, standard error ${units(se)}. Reject when the sample mean exceeds ${units(cutoff)}. ${alternative ? `Type II error ${percent(beta)}, shaded left; power ${percent(power)}, light shading right.` : 'Type I error 5%, hatched right tail.'} ${magnified ? 'The horizontal scale adjusts with sample size; both means stay fixed in outcome units.' : 'The horizontal scale and both population means are fixed.'}</desc>
           <defs><pattern id="${prefix}-hatch" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M-1,1 L1,-1 M0,6 L6,0 M5,7 L7,5" stroke="${color}" stroke-width=".7" opacity=".4"/></pattern></defs>
           <text x="0" y="14">Probability density</text><text class="cutoff-label" x="${right}" y="14" text-anchor="end">c = ${units(cutoff)}</text>
           <text x="${(left + x(cutoff)) / 2}" y="33" text-anchor="middle">Do not reject H₀</text><text x="${(x(cutoff) + right) / 2}" y="33" text-anchor="middle">Reject H₀</text>
           <line x1="${left}" x2="${right}" y1="${y(peak)}" y2="${y(peak)}" stroke="${colors['plot-grid']}"/>
           <text class="tick" x="${left - 6}" y="${y(peak) + 4}" text-anchor="end">${peak.toFixed(1)}</text><text class="tick" x="${left - 6}" y="${bottom + 4}" text-anchor="end">0</text>
           <path d="${path(range[0], range[1], true)}" fill="${color}" fill-opacity=".055"/>
-          ${alternative ? `<path d="${path(cutoff, range[1], true)}" fill="${color}" fill-opacity=".10"/>` : ''}
-          <path d="${errorPath}" fill="${color}" fill-opacity=".28"/><path d="${errorPath}" fill="url(#${prefix}-hatch)"/>
+          ${alternative ? `<path class="power-area" d="${path(cutoff, range[1], true)}" fill="${color}" fill-opacity=".16"/>` : ''}
+          <path class="${alternative ? 'beta-area' : 'type-i-area'}" d="${errorPath}" fill="${color}" fill-opacity=".28"/><path d="${errorPath}" fill="url(#${prefix}-hatch)"/>
           <path d="${path(range[0], range[1])}" stroke="${color}" stroke-width="2" fill="none"/>
-          <line x1="${x(0)}" x2="${x(0)}" y1="${top}" y2="${bottom}" stroke="${colors.ink}" stroke-opacity=".65" stroke-dasharray="2 3"/>
-          ${alternative ? `<line x1="${x(mde)}" x2="${x(mde)}" y1="${top}" y2="${bottom}" stroke="${color}" stroke-dasharray="7 4"/>` : ''}
-          <line x1="${x(cutoff)}" x2="${x(cutoff)}" y1="${top - 5}" y2="${bottom}" stroke="${colors.ink}" stroke-width="2"/>
+          <line class="null-mean" x1="${x(0)}" x2="${x(0)}" y1="${top}" y2="${bottom}" stroke="${colors.ink}" stroke-opacity=".65" stroke-dasharray="2 3"/>
+          ${alternative ? `<line class="alternative-mean" x1="${x(model.EFFECT)}" x2="${x(model.EFFECT)}" y1="${top}" y2="${bottom}" stroke="${color}" stroke-dasharray="7 4"/>` : ''}
+          <line class="cutoff" x1="${x(cutoff)}" x2="${x(cutoff)}" y1="${top - 5}" y2="${bottom}" stroke="${colors.ink}" stroke-width="2"/>
           <line x1="${left}" x2="${right}" y1="${bottom}" y2="${bottom}" stroke="${colors.line}"/>${tickMarkup}${bracket}`;
       }
       function drawSensitivity() {
@@ -338,17 +346,17 @@
         const y = value => bottom - value / 1.05 * (bottom - top);
         const points = Array.from({length: 241}, (_, i) => {
           const size = model.sampleSize(i / 240);
-          return `${x(size)},${y(model.design(size).mde)}`;
+          return `${x(size)},${y(model.design(size).power)}`;
         });
-        const ticks = [25, 100, 400, 1600, 10000];
+        const ticks = model.PRESETS;
         svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-        svg.innerHTML = `<title id="sensitivity-title">Minimum detectable effect versus sample size</title><desc id="sensitivity-description">At ${number(n)} observations, the minimum detectable effect is ${units(model.design(n).mde)} outcome units. Quadrupling n halves the effect. Logarithmic horizontal scale and linear vertical scale.</desc>
-          <text x="0" y="14">Effect (outcome units)</text>
-          ${[0, .25, .5, .75, 1].map(value => `<line x1="${left}" x2="${right}" y1="${y(value)}" y2="${y(value)}" stroke="${colors['plot-grid']}"/><text class="tick" x="${left - 6}" y="${y(value) + 4}" text-anchor="end">${value}</text>`).join('')}
+        svg.innerHTML = `<title id="sensitivity-title">Power versus sample size</title><desc id="sensitivity-description">At ${number(n)} observations, power is ${percent(model.design(n).power)} for the fixed effect 0.5. Alpha stays 5%. Logarithmic horizontal scale and linear percentage scale.</desc>
+          <text x="0" y="14">Power</text>
+          ${[0, .25, .5, .75, 1].map(value => `<line x1="${left}" x2="${right}" y1="${y(value)}" y2="${y(value)}" stroke="${colors['plot-grid']}"/><text class="tick" x="${left - 6}" y="${y(value) + 4}" text-anchor="end">${value * 100}%</text>`).join('')}
           <path d="M${points.join(' L')}" fill="none" stroke="${colors['missed-effect']}" stroke-width="2.5"/>
-          <line x1="${x(n)}" x2="${x(n)}" y1="${y(model.design(n).mde)}" y2="${bottom}" stroke="${colors.ink}" stroke-dasharray="3 3"/>
-          <circle cx="${x(n)}" cy="${y(model.design(n).mde)}" r="5" fill="${colors.ink}" stroke="white" stroke-width="2"/>
-          ${ticks.map(value => `<text class="tick" x="${x(value)}" y="${bottom + 17}" text-anchor="${value === 10000 ? 'end' : 'middle'}">${number(value)}</text>`).join('')}
+          <line x1="${x(n)}" x2="${x(n)}" y1="${y(model.design(n).power)}" y2="${bottom}" stroke="${colors.ink}" stroke-dasharray="3 3"/>
+          <circle cx="${x(n)}" cy="${y(model.design(n).power)}" r="5" fill="${colors.ink}" stroke="white" stroke-width="2"/>
+          ${ticks.map(value => `<text class="tick" x="${x(value)}" y="${bottom + 17}" text-anchor="${value === model.MAX_N ? 'end' : 'middle'}">${number(value)}</text>`).join('')}
           <text x="${(left + right) / 2}" y="${height - 4}" text-anchor="middle">Sample size n (log scale)</text>`;
       }
       function draw() {
@@ -361,19 +369,23 @@
         }
       }
       function update(announce = false) {
-        const {se, mde, cutoff} = model.design(n);
+        const {se, mde, cutoff, beta, power} = model.design(n);
         slider.value = String(model.sliderPosition(n));
         slider.setAttribute('aria-valuetext', `${number(n)} independent observations`);
         text('n-value', number(n));
-        text('mde-value', units(mde));
+        text('power-value', percent(power));
+        text('beta-value', percent(beta));
+        text('alternative-power', percent(power));
+        text('detail-beta', percent(beta));
+        text('detail-power', percent(power));
         text('se-value', units(se));
-        text('alternative-value', units(mde));
         text('explanation-cutoff', units(cutoff));
         text('explanation-mde', units(mde));
-        text('magnification', `Scale magnification: ${(Math.sqrt(n / model.MIN_N)).toFixed(1)}×. Relative overlap stays the same because the target probabilities stay fixed.`);
+        const detailSpan = model.EFFECT + 8 * se;
+        text('magnification', `Scale magnification: ${((model.FIXED_RANGE[1] - model.FIXED_RANGE[0]) / detailSpan).toFixed(1)}×. Population means remain 0 and 0.5.`);
         presetButtons.forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.n) === n)));
         draw();
-        if (announce) text('announcement', `${number(n)} observations. Minimum detectable effect ${units(mde)} outcome units; standard error ${units(se)}. Alpha stays 5%; power at the selected alternative stays 80%.`);
+        if (announce) text('announcement', `${number(n)} observations. Fixed true effect 0.5; alpha stays 5%. Power ${percent(power)}; Type II error ${percent(beta)}; standard error ${units(se)}.`);
       }
       function selectTab(id, focus = false) {
         tabs.forEach(tab => {
@@ -417,6 +429,7 @@
         detailToggle.setAttribute('aria-expanded', 'false');
         detailToggle.textContent = 'Magnified detail';
         document.querySelector('.check-question').open = false;
+        document.querySelector('.mde-note').open = false;
         selectTab('explore');
         update(true);
       });

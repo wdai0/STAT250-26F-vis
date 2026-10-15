@@ -83,8 +83,8 @@
   },
   {
     "id": "sample-size-mde",
-    "title": "Sample size & detectable effect",
-    "description": "Find the smallest true effect with 80% power as sample size changes, at a fixed 5% false-alarm rate.",
+    "title": "Sample size & power",
+    "description": "See power increase and Type II error decrease as sample size grows, with the true effect and 5% false-alarm rate fixed.",
     "source": "sources/sample-size-mde.html",
     "category": "Sampling & inference",
     "kind": "visualization"

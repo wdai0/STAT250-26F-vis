@@ -43,10 +43,10 @@ The strict `p < 0.05` rejection rule retains endpoints in the closed 95% interva
 The sweep supports pause, resume, replay, immediate reveal, reduced motion, and suspension when hidden.
 Open it at `#test-ci-duality`.
 
-The **Sample size & detectable effect** visualization varies the number of independent observations from 25 to 10,000 in a one-sided normal-mean test with known population SD 2.
-It fixes alpha at 5% and target power at 80%, selecting the minimum detectable true effect using the exact normal-model formula.
+The **Sample size & power** visualization varies the number of independent observations from 25 to 400 in a one-sided normal-mean test with known population SD 2.
+It fixes alpha at 5% and the true alternative mean at 0.5 above the null mean of zero, so increasing sample size increases power and reduces Type II error.
 Both sampling distributions share fixed horizontal limits in the overview; an optional magnified detail uses matched, explicitly changing scales.
-The Explanation tab distinguishes increasing power for a fixed effect from decreasing the effect required for fixed power, and includes an MDE-versus-sample-size plot.
+The Explanation tab includes a power-versus-sample-size plot and a secondary, expandable explanation of MDE as a different design question with fixed target power.
 Open it at `#sample-size-mde`; its complete HTML download requires no external assets.
 
 The **Type I & Type II errors** model uses independent normal observations with known standard deviation 2 and sample size 25.
