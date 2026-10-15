@@ -23,7 +23,9 @@ const fs = require('node:fs'), vm = require('node:vm');
 const html = fs.readFileSync(0, 'utf8');
 const scripts = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n');
 class Element {
-  constructor() { this.textContent = ''; this.events = {}; this.attrs = {}; this.dataset = {}; this.hidden = false; this.disabled = false; }
+  constructor() { this.textWrites = 0; this.textContent = ''; this.events = {}; this.attrs = {}; this.dataset = {}; this.hidden = false; this.disabled = false; }
+  set textContent(value) { this.content = value; this.textWrites++; }
+  get textContent() { return this.content; }
   addEventListener(type, fn) { this.events[type] = fn; }
   setAttribute(key, value) { this.attrs[key] = value; }
   getAttribute(key) { return this.attrs[key]; }
@@ -75,6 +77,10 @@ click('reset'); report.reset = state();
 click('sweep'); step(24000); document.hidden = true; documentEvents.visibilitychange(); report.hidden = state();
 document.hidden = false; click('reset'); click('sweep');
 windowEvents.message({source:parent, origin:'http://localhost', data:{type:'stat250:visibility', visible:false}}); report.parentHidden = state();
+click('reset'); click('sweep'); step(30000);
+report.controlWritesBefore = [nodes.sweep.textWrites, nodes.pause.textWrites];
+step(30100); step(30200); step(30300);
+report.controlWritesAfter = [nodes.sweep.textWrites, nodes.pause.textWrites];
 click('reset'); motion.matches = true; click('sweep'); report.reducedMotion = state();
 console.log(JSON.stringify(report));
 """
@@ -100,6 +106,8 @@ console.log(JSON.stringify(report));
             self.assertEqual(audit[name]["pending"], 0)
         self.assertIn("95% confidence interval", audit["reducedMotion"]["summary"])
         self.assertEqual(audit["reducedMotion"]["mu"], "6.000000")
+        # A held mouse/key press must retain its label nodes between frames.
+        self.assertEqual(audit["controlWritesBefore"], audit["controlWritesAfter"])
 
 
 if __name__ == "__main__":

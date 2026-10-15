@@ -50,7 +50,8 @@
     .line-key.reflected::before { border-top: 2px dashed var(--muted); }
     #tail-explanation { min-height: 2.9em; }
     .inversion { margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
-    .sweep-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .sweep-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; max-width: 280px; }
+    #sweep { grid-column: 1 / -1; }
     .sweep-status { font-size: .78rem; color: var(--muted); margin-top: 5px; min-height: 1.45em; }
     #candidate-strip { display: block; width: 100%; height: 142px; }
     .alignment-note { margin-top: 6px; font-size: .75rem; color: var(--muted); }
@@ -363,11 +364,14 @@
         text('tail-explanation', mu === 5 ? 'As extreme or more extreme than observed: the whole curve. The observation equals the candidate, so p = 1.' : `As extreme or more extreme than observed: both shaded tails. Each boundary is ${result.d.toFixed(4)} units from the null center.`);
         text('interval-summary', complete ? '95% confidence interval ≈ [4.020018, 5.979982] · both endpoints included.' : 'Sweep or reveal all to see the complete non-rejected set.');
         shortcuts.forEach(button => button.setAttribute('aria-pressed', String(mu === presets[button.dataset.candidate])));
-        sweepButton.disabled = running;
-        sweepButton.textContent = complete || frontier !== null ? 'Replay sweep' : 'Sweep candidate values';
-        pauseButton.disabled = frontier === null || complete;
-        pauseButton.textContent = running || frontier === null || complete ? 'Pause' : 'Resume';
-        document.querySelector('#reveal').disabled = complete;
+        // Preserve interactive nodes and focus while the plots animate.
+        if (sweepButton.disabled !== running) sweepButton.disabled = running;
+        text('sweep', complete || frontier !== null ? 'Replay sweep' : 'Sweep candidate values');
+        const pauseDisabled = frontier === null || complete;
+        if (pauseButton.disabled !== pauseDisabled) pauseButton.disabled = pauseDisabled;
+        text('pause', running || frontier === null || complete ? 'Pause' : 'Resume');
+        const revealButton = document.querySelector('#reveal');
+        if (revealButton.disabled !== complete) revealButton.disabled = complete;
         if (!document.querySelector('#explore').hidden) { drawDistribution(result); drawStrip(result); }
         if (announce) text('announcement', `Candidate ${decimal(mu)}. p ${pText(result)}. ${result.reject ? 'Reject.' : 'Do not reject.'}${complete ? ' Confidence interval stays fixed.' : ''}`);
       }
