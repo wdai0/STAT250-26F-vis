@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Hold the observed data fixed, test candidate means, and reveal the matching confidence interval by test inversion.">
+  <title>The Duality of Hypothesis Testing and Confidence Intervals · STAT 250</title>
+  <!-- SHARED_THEME -->
+  <style>
+    :root { --rejected: #995214; --retained: #365fa0; }
+    body { line-height: 1.45; }
+    .duality-app { max-width: 1120px; margin: auto; padding: 14px 22px; }
+    h1 { font-size: 1.35rem; }
+    .premise { font-size: .87rem; margin: 5px 0 9px; }
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 10px; }
+    .tab { border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--muted); padding: 6px 16px; min-height: 34px; font-size: .85rem; font-weight: 600; }
+    .tab[aria-selected="true"] { border-bottom-color: var(--accent); color: var(--ink); }
+    .tab:hover { background: var(--accent-soft); }
+    .controls { display: grid; grid-template-columns: minmax(240px, 1fr) auto auto; align-items: center; gap: 18px; }
+    .slider-label { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: .88rem; font-weight: 600; }
+    .slider-label output { color: var(--ink); font-size: 1.1rem; }
+    output { font-variant-numeric: tabular-nums; }
+    .slider-row { display: flex; align-items: center; gap: 10px; }
+    .slider-row span { font-size: .73rem; color: var(--muted); }
+    #candidate { height: 24px; margin: 2px 0; }
+    .shortcuts { display: flex; flex-wrap: wrap; gap: 5px; }
+    .compact-button { border: 1px solid var(--line); border-radius: 5px; min-height: 34px; padding: 6px 10px; font-size: .79rem; background: var(--surface); color: var(--text); }
+    .compact-button:hover, .compact-button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+    .primary { color: white; background: var(--accent); border-color: var(--accent); }
+    .primary:hover { color: white; background: var(--accent-hover); }
+    .settings { margin: 6px 0 9px; font-size: .75rem; color: var(--muted); }
+    .test-workspace, .inversion { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 20px; }
+    .test-workspace { align-items: center; padding: 10px 0 6px; border-top: 1px solid var(--line); }
+    h2 { font-size: .97rem; }
+    .hypotheses { margin-top: 6px; font-size: .85rem; }
+    .p-readout { margin: 10px 0 5px; font-size: .85rem; }
+    #p-value { display: block; font-size: 1.65rem; font-weight: 650; color: var(--ink); }
+    .decision { border-left: 3px solid currentColor; padding-left: 9px; font-size: .87rem; font-weight: 650; }
+    .rejected { color: var(--rejected); }
+    .retained { color: var(--retained); }
+    #comparison { margin-top: 4px; font-size: .78rem; }
+    .statistic { margin-top: 7px; font-size: .78rem; color: var(--muted); }
+    #distribution { width: 100%; height: 208px; display: block; }
+    svg text { fill: var(--text); font-family: var(--font); font-size: 12px; }
+    svg .tick { fill: var(--muted); font-size: 11px; }
+    .chart-notes { font-size: .75rem; color: var(--muted); }
+    .marker-key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 3px 0; }
+    .line-key::before { content: ''; display: inline-block; vertical-align: middle; width: 18px; border-top: 2px solid var(--ink); margin-right: 5px; }
+    .line-key.candidate::before { border-top: 2px dotted var(--retained); }
+    .line-key.reflected::before { border-top: 2px dashed var(--muted); }
+    #tail-explanation { min-height: 2.9em; }
+    .inversion { margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+    .sweep-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .sweep-status { font-size: .78rem; color: var(--muted); margin-top: 5px; min-height: 1.45em; }
+    #candidate-strip { display: block; width: 100%; height: 142px; }
+    .alignment-note { margin-top: 6px; font-size: .75rem; color: var(--muted); }
+    .strip-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: .75rem; }
+    .strip-legend .unrevealed { color: var(--muted); }
+    .interval-summary { margin-top: 5px; font-size: .85rem; min-height: 1.45em; }
+    .takeaway { margin-top: 9px; border-top: 1px solid var(--line); padding-top: 8px; font-size: .85rem; }
+    .attribution { margin-top: 10px; padding-top: 8px; font-size: .67rem; }
+    .explanation-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding-top: 10px; }
+    .explanation-grid h2 { margin: 0 0 7px; }
+    .explanation-grid p { font-size: .85rem; margin-bottom: 10px; }
+    .formula { font-family: "Cambria Math", "Times New Roman", serif; color: var(--ink); font-size: 1.03rem !important; line-height: 1.8; }
+    table { border-collapse: collapse; width: 100%; font-size: .84rem; margin: 12px 0; }
+    th, td { padding: 8px 10px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: #f5f7fa; color: var(--ink); }
+    .model-note { border-top: 1px solid var(--line); padding-top: 10px; font-size: .79rem; color: var(--muted); }
+    .model-note p + p { margin-top: 6px; }
+    .check-question { margin-top: 12px; font-size: .85rem; }
+    .check-question summary { cursor: pointer; color: var(--ink); font-weight: 600; }
+    .check-question p { margin-top: 7px; }
+    @media (max-width: 760px) {
+      .duality-app { padding: 18px 16px; }
+      .controls { grid-template-columns: 1fr auto; gap: 8px; }
+      .slider-control { grid-column: 1 / -1; }
+      .test-workspace, .inversion { grid-template-columns: 1fr; gap: 12px; }
+      .test-summary { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; }
+      .test-summary h2, .hypotheses { grid-column: 1; }
+      .p-readout { grid-column: 2; grid-row: 1 / 3; margin: 0; text-align: right; }
+      #p-value { font-size: 1.3rem; }
+      .decision, #comparison, .statistic { grid-column: 1 / -1; }
+      .statistic { margin-top: 2px; }
+      .chart-notes { font-size: .78rem; }
+      .sweep-buttons { margin-top: 8px; }
+      .explanation-grid { grid-template-columns: 1fr; gap: 12px; }
+      th, td { font-size: .78rem; padding: 7px 5px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="duality-app">
+    <header>
+      <h1>The Duality of Hypothesis Testing and Confidence Intervals</h1>
+      <p class="premise"><strong>Same observed data throughout.</strong> Only the candidate population mean changes.</p>
+    </header>
+    <div class="tabs" role="tablist" aria-label="Demonstration sections">
+      <button class="tab" id="tab-explore" type="button" role="tab" aria-controls="explore" aria-selected="true" tabindex="0">Explore</button>
+      <button class="tab" id="tab-explanation" type="button" role="tab" aria-controls="explanation" aria-selected="false" tabindex="-1">Explanation</button>
+    </div>
+    <div class="controls">
+      <div class="slider-control">
+        <label class="slider-label" for="candidate"><span>Candidate null mean <span class="stat-symbol">μ₀</span></span><output id="candidate-value" for="candidate" aria-live="off"></output></label>
+        <div class="slider-row"><span>3</span><input id="candidate" type="range" min="3" max="7" step="any" value="6" aria-describedby="slider-help"><span>7</span></div>
+        <span class="sr-only" id="slider-help">Arrow keys move the candidate by 0.01; Page Up and Page Down by 0.1; Home and End select the range limits. The endpoint buttons use unrounded analytical values. Manual changes pause the sweep.</span>
+      </div>
+      <div class="shortcuts" role="group" aria-label="Candidate shortcuts">
+        <button class="compact-button" type="button" data-candidate="observed" aria-pressed="false">Observed mean</button>
+        <button class="compact-button" type="button" data-candidate="lower" aria-pressed="false">Lower endpoint</button>
+        <button class="compact-button" type="button" data-candidate="upper" aria-pressed="false">Upper endpoint</button>
+      </div>
+      <button class="compact-button" id="reset" type="button">Reset</button>
+    </div>
+    <p class="settings">Fixed: observed <span class="stat-symbol">x̄</span> = 5 · <var class="stat-symbol">n</var> = 16 · known σ = 2 · SE = 0.5 · α = 0.05 · two-sided test</p>
+    <p class="sr-only" id="announcement" role="status" aria-live="polite" aria-atomic="true"></p>
+    <section id="explore" role="tabpanel" aria-labelledby="tab-explore" tabindex="0">
+      <div class="test-workspace">
+        <div class="test-summary">
+          <h2>1. Test one candidate</h2>
+          <p class="hypotheses">H₀: μ = μ₀<br>Hₐ: μ ≠ μ₀</p>
+          <p class="p-readout">Two-sided <var class="stat-symbol">p</var>-value<output id="p-value" aria-live="off"></output></p>
+          <p class="decision" id="decision"></p>
+          <p id="comparison"></p>
+          <p class="statistic"><var class="stat-symbol">z</var> = (5 − μ₀) / 0.5 = <output id="z-value" aria-live="off"></output></p>
+        </div>
+        <div>
+          <svg id="distribution" role="img" aria-labelledby="distribution-title distribution-description"></svg>
+          <div class="chart-notes">
+            <div class="marker-key"><span class="line-key">Observed mean: 5</span><span class="line-key candidate">Null center: <span id="center-value"></span></span><span class="line-key reflected">Opposite boundary: <span id="reflected-value"></span></span></div>
+            <p id="tail-explanation"></p>
+          </div>
+        </div>
+      </div>
+      <section class="inversion" aria-labelledby="inversion-heading">
+        <div>
+          <h2 id="inversion-heading">2. Collect the candidate means not rejected</h2>
+          <div class="sweep-buttons">
+            <button class="compact-button primary" id="sweep" type="button">Sweep candidate values</button>
+            <button class="compact-button" id="pause" type="button" disabled>Pause</button>
+            <button class="compact-button" id="reveal" type="button">Reveal all</button>
+          </div>
+          <p class="sweep-status" id="sweep-status" role="status" aria-live="polite"></p>
+        </div>
+        <div>
+          <svg id="candidate-strip" role="img" aria-labelledby="strip-title strip-description"></svg>
+          <div class="strip-legend"><span class="rejected">× Rejected · hatched</span><span class="retained">● Not rejected · solid</span><span class="unrevealed">— Not yet revealed</span></div>
+          <p class="interval-summary" id="interval-summary"></p>
+          <p class="alignment-note">Same horizontal scale in both panels. The dotted μ₀ markers move together; the observed mean and confidence interval stay fixed.</p>
+        </div>
+      </section>
+      <p class="takeaway"><strong>The matching confidence interval contains all candidate means that this test would not reject.</strong></p>
+    </section>
+    <section id="explanation" role="tabpanel" aria-labelledby="tab-explanation" tabindex="0" hidden>
+      <div class="explanation-grid">
+        <section>
+          <h2>One candidate, then a whole set</h2>
+          <p>A hypothesis test asks whether these data are sufficiently incompatible with a particular candidate mean.
+          A confidence interval collects the candidate means that the matching tests would not reject.</p>
+          <p>The observed sample mean stays at 5.
+          Each candidate μ₀ supplies a different hypothetical sampling distribution for <span class="stat-symbol">X̄</span>, the sample mean across repeated studies:</p>
+          <p class="formula"><span class="stat-symbol">X̄</span> | μ = μ₀ ∼ Normal(μ₀, 0.5²)<br><span class="stat-symbol">x̄</span><sub>obs</sub> = 5 &nbsp; (fixed observation)</p>
+          <p>Under each candidate, the two-sided <var class="stat-symbol">p</var>-value counts sample means at least as far from μ₀ as 5 is.
+          The opposite boundary is 2μ₀ − 5.
+          Both tails together have probability <var class="stat-symbol">p</var>; α = 0.05 is the threshold for the decision.</p>
+          <p>At μ₀ = 6, the boundaries are 5 and 7, equally distant from 6, and <var class="stat-symbol">p</var> ≈ 0.0455003.
+          At μ₀ = 5, every possible sample mean is at least zero units from the candidate, so <var class="stat-symbol">p</var> = 1.</p>
+          <h2>Invert the same test</h2>
+          <p class="formula"><var>p</var>(μ₀) = 2Φ(−|(5 − μ₀)/0.5|)<br>Do not reject ⇔ <var>p</var>(μ₀) ≥ 0.05<br>⇔ |5 − μ₀| ≤ 1.959963984540054 × 0.5<br>⇔ μ₀ ∈ [4.020018…, 5.979982…]</p>
+          <p>The sweep reveals an analytically determined set.
+          A finite animation does not estimate its endpoints from a grid.
+          Candidates outside the displayed range 3–7 are also rejected in this model.</p>
+        </section>
+        <section>
+          <h2>Why 5% error corresponds to 95% coverage</h2>
+          <p>For any fixed true mean, a newly sampled interval misses that mean exactly when its matching test rejects it.
+          Here the test has a 5% Type I error rate, so the confidence procedure covers that mean in 95% of repeated samples.</p>
+          <table><caption class="sr-only">Two perspectives on the same event.</caption><thead><tr><th scope="col">Matching test of the true mean</th><th scope="col">Interval from the same sample</th></tr></thead><tbody><tr><td>Does not reject</td><td>Contains the true mean</td></tr><tr><td>Rejects (Type I error)</td><td>Misses the true mean</td></tr></tbody></table>
+          <p>This sweep uses one fixed dataset.
+          It illustrates inversion; the 95% coverage statement concerns new datasets, not the fraction of candidate values retained in the sweep.</p>
+          <h2>Interpret the result carefully</h2>
+          <p>“Do not reject” does not prove the candidate true.
+          A <var class="stat-symbol">p</var>-value is not the probability that the null hypothesis is true.
+          This realized interval does not assign a 95% probability to the fixed population mean.</p>
+          <p>The exact correspondence requires matching procedures: the same model, statistic, sidedness, significance level, and boundary convention.
+          A generic bootstrap percentile interval is not automatically the inverse of an arbitrary randomization test.</p>
+          <p>Sweeping candidate values is test inversion for one parameter using the same data and testing rule.
+          It is not a search across unrelated research questions for a significant result.</p>
+          <p>A decision changes at an endpoint, while the evidence changes continuously.
+          Values just inside and just outside can have almost identical <var class="stat-symbol">p</var>-values.</p>
+        </section>
+      </div>
+      <div class="model-note">
+        <p><strong>Model.</strong> Sixteen independent normal observations with unknown mean μ and known population SD σ = 2; standard error σ/√<var class="stat-symbol">n</var> = 0.5.
+        The illustrative observed sample mean is 5.
+        No data are simulated or resampled.</p>
+        <p><strong>Endpoints and precision.</strong> Reject for <var class="stat-symbol">p</var> &lt; 0.05 and retain equality, giving a closed 95% interval.
+        Decisions use its full-precision analytical bounds; the endpoint buttons select those same stored bounds.
+        Printed endpoints are rounded, and near-boundary <var class="stat-symbol">p</var>-values are explicitly marked approximate.
+        This convention prevents floating-point rounding from contradicting interval membership.</p>
+        <p>Both panels use the same 0–10 horizontal scale, plot width, and margins, so equal numerical values align vertically.
+        The upper axis describes possible sample means; the lower axis describes candidate population means, not a probability distribution for μ.
+        The dotted candidate markers move together, while the observed mean and the confidence interval stay fixed.
+        The sweep varies μ₀ from 3 to 7; revealing the full analytical set also shows that values outside that range are rejected.
+        Tail probabilities use the whole normal distribution, including the negligible portions outside the plot.</p>
+        <p>Reference: <a href="https://itl.nist.gov/div898/handbook/prc/section1/prc15.htm" target="_blank" rel="noopener noreferrer">NIST: the relationship between a test and a confidence interval</a> (external link).</p>
+      </div>
+      <details class="check-question"><summary>Why does the interval stay fixed when we test a different candidate?</summary><p>The observed data, standard error, and confidence level have not changed.
+      We are checking another member of the same set of candidate values.</p></details>
+    </section>
+    <noscript><p>This demonstration requires JavaScript to update the plots and run the sweep.</p></noscript>
+    <!-- AUTHORSHIP -->
+  </main>
+  <script id="duality-math">
+    const DualityMath = (() => {
+      const OBSERVED = 5, SE = 0.5, ALPHA = 0.05, CRITICAL_Z = 1.959963984540054;
+      const LOWER = OBSERVED - CRITICAL_Z * SE, UPPER = OBSERVED + CRITICAL_Z * SE;
+      function normalCDF(z) {
+        if (!Number.isFinite(z) || Math.abs(z) > 4) throw new RangeError('CDF input must be in [-4, 4].');
+        let term = z, sum = z;
+        for (let k = 1; k < 200; k++) {
+          term *= z * z / (2 * k + 1);
+          sum += term;
+          if (Math.abs(term) <= Math.abs(sum) * Number.EPSILON) break;
+        }
+        return 0.5 + Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI) * sum;
+      }
+      function test(mu) {
+        if (!Number.isFinite(mu) || mu < 3 || mu > 7) throw new RangeError('Candidate mean must be in [3, 7].');
+        const z = (OBSERVED - mu) / SE, d = Math.abs(OBSERVED - mu);
+        const boundary = mu === LOWER || mu === UPPER;
+        // Membership is the canonical decision; no rounded p-value or tolerance band.
+        const reject = mu < LOWER || mu > UPPER;
+        const p = boundary ? ALPHA : 2 * normalCDF(-Math.abs(z));
+        return {mu, z, p, reject, boundary, d, left: mu - d, right: mu + d, reflected: 2 * mu - OBSERVED};
+      }
+      function density(x, mu) {
+        return Math.exp(-0.5 * ((x - mu) / SE) ** 2) / (SE * Math.sqrt(2 * Math.PI));
+      }
+      function curvePoints(from, to, mu) {
+        const steps = Math.max(1, Math.ceil((to - from) / SE * 100));
+        return Array.from({length: steps + 1}, (_, i) => {
+          const x = from + (to - from) * i / steps;
+          return [x, density(x, mu)];
+        });
+      }
+      // Deterministic finite sweep with exact endpoint and center holds.
+      const SEGMENTS = Object.freeze([
+        [1800, 3, LOWER, ''], [1200, LOWER, LOWER, 'Lower endpoint: p = 0.05; included.'],
+        [1800, LOWER, OBSERVED, ''], [1000, OBSERVED, OBSERVED, 'Observed mean matches the candidate: p = 1.'],
+        [1800, OBSERVED, UPPER, ''], [1200, UPPER, UPPER, 'Upper endpoint: p = 0.05; included.'],
+        [1800, UPPER, 7, '']
+      ].map(Object.freeze));
+      const DURATION = SEGMENTS.reduce((sum, segment) => sum + segment[0], 0);
+      function sweepAt(elapsed) {
+        if (!Number.isFinite(elapsed) || elapsed < 0) throw new RangeError('Elapsed time must be nonnegative.');
+        let remaining = elapsed;
+        for (const [duration, from, to, message] of SEGMENTS) {
+          if (remaining < duration) return {mu: from === to ? from : from + (to - from) * remaining / duration, message, complete: false};
+          remaining -= duration;
+        }
+        return {mu: 7, message: 'Sweep complete: the non-rejected set is the 95% confidence interval.', complete: true};
+      }
+      return Object.freeze({OBSERVED, SE, ALPHA, CRITICAL_Z, LOWER, UPPER, DURATION, SEGMENTS, normalCDF, test, density, curvePoints, sweepAt});
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+      const model = DualityMath;
+      const slider = document.querySelector('#candidate');
+      const tabs = [...document.querySelectorAll('[role="tab"]')];
+      const shortcuts = [...document.querySelectorAll('[data-candidate]')];
+      const presets = {observed: model.OBSERVED, lower: model.LOWER, upper: model.UPPER};
+      const sweepButton = document.querySelector('#sweep'), pauseButton = document.querySelector('#pause');
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+      const style = getComputedStyle(document.documentElement);
+      const colors = Object.fromEntries(['ink', 'muted', 'line', 'plot-grid', 'retained', 'rejected'].map(name => [name, style.getPropertyValue(`--${name}`).trim()]));
+      let mu = 6, frontier = null, elapsed = 0, running = false, complete = false, frame = null, lastTime = null;
+      const text = (id, value) => {
+        const node = document.getElementById(id);
+        if (node.textContent === value) return;
+        if (['comparison', 'tail-explanation', 'sweep-status'].includes(id)) {
+          node.replaceChildren(...value.split(/(\bp\b)/g).map(part => {
+            if (part !== 'p') return document.createTextNode(part);
+            const symbol = document.createElement('var');
+            symbol.className = 'stat-symbol'; symbol.textContent = 'p';
+            return symbol;
+          }));
+        } else node.textContent = value;
+      };
+      const decimal = value => value.toFixed(6);
+      const pText = result => result.boundary ? '0.05 (boundary)' : `${Math.abs(result.p - .05) < 5e-7 ? '≈ ' : ''}${result.p.toFixed(7)}`;
+      // Both panels represent the same numerical values at the same pixels.
+      function horizontalAxis(width) {
+        const left = 35, right = width - 12;
+        return {left, right, x: value => left + value / 10 * (right - left),
+          ticks: width < 480 ? [0, 2, 4, 6, 8, 10] : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]};
+      }
+      function drawDistribution(result) {
+        const svg = document.querySelector('#distribution');
+        const width = svg.getBoundingClientRect().width, height = svg.getBoundingClientRect().height;
+        if (!width) return;
+        const {left, right, x, ticks} = horizontalAxis(width);
+        const top = 51, bottom = height - 42;
+        const y = value => bottom - value / .85 * (bottom - top);
+        function path(from, to, fill = false) {
+          return (fill ? `M${x(from)},${bottom} L` : 'M') + model.curvePoints(from, to, mu).map(([px, py]) => `${x(px)},${y(py)}`).join(' L') + (fill ? ` L${x(to)},${bottom} Z` : '');
+        }
+        const tails = path(0, result.left, true) + ' ' + path(result.right, 10, true);
+        const bracket = result.d > 0 ? `<path d="M${x(result.left)},35 v7 H${x(mu)} v-7 M${x(mu)},35 v7 H${x(result.right)} v-7" fill="none" stroke="${colors.muted}"/>` : '';
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.innerHTML = `<title id="distribution-title">Sampling distribution under candidate mean ${decimal(mu)}</title><desc id="distribution-description">The observed sample mean stays at 5; standard error stays 0.5. Shaded tails are at or below ${decimal(result.left)} and at or above ${decimal(result.right)}, with total p-value ${pText(result)}.</desc>
+          <defs><pattern id="tail-hatch" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M-1,1 L1,-1 M0,6 L6,0 M5,7 L7,5" stroke="${colors.retained}" opacity=".4" stroke-width=".7"/></pattern></defs>
+          <text x="0" y="14">Probability density</text><text x="${x(5)}" y="29" text-anchor="middle">${mu === 5 ? 'Observed = candidate = 5' : 'Observed = 5'}</text>
+          ${bracket}
+          ${[.4, .8].map(value => `<line x1="${left}" x2="${right}" y1="${y(value)}" y2="${y(value)}" stroke="${colors['plot-grid']}"/><text class="tick" x="${left - 6}" y="${y(value) + 4}" text-anchor="end">${value}</text>`).join('')}
+          <path d="${path(0, 10, true)}" fill="${colors.retained}" fill-opacity=".045"/>
+          <path class="p-tails" d="${tails}" fill="${colors.retained}" fill-opacity=".25"/><path d="${tails}" fill="url(#tail-hatch)"/>
+          <path class="density-curve" d="${path(0, 10)}" fill="none" stroke="${colors.retained}" stroke-width="2"/>
+          ${mu !== 5 ? `<line class="null-center" x1="${x(mu)}" x2="${x(mu)}" y1="${top}" y2="${bottom}" stroke="${colors.retained}" stroke-width="1.5" stroke-dasharray="2 4"/><line class="reflected-line" x1="${x(result.reflected)}" x2="${x(result.reflected)}" y1="${top}" y2="${bottom}" stroke="${colors.muted}" stroke-width="1.5" stroke-dasharray="6 4"/>` : ''}
+          <line class="observed-line" x1="${x(5)}" x2="${x(5)}" y1="${top - 5}" y2="${bottom}" stroke="${colors.ink}" stroke-width="2.5"/>
+          <line x1="${left}" x2="${right}" y1="${bottom}" y2="${bottom}" stroke="${colors.line}"/>
+          ${ticks.map(value => `<line class="axis-tick" data-value="${value}" x1="${x(value)}" x2="${x(value)}" y1="${bottom}" y2="${bottom + 4}" stroke="${colors.line}"/><text class="tick" x="${x(value)}" y="${bottom + 17}" text-anchor="middle">${value}</text>`).join('')}
+          <text x="${(left + right) / 2}" y="${height - 4}" text-anchor="middle">Sample mean · shared 0–10 scale</text>`;
+      }
+      function drawStrip(result) {
+        const svg = document.querySelector('#candidate-strip');
+        const width = svg.getBoundingClientRect().width, height = svg.getBoundingClientRect().height;
+        if (!width) return;
+        const {left, right, x, ticks} = horizontalAxis(width), y = 36;
+        const segments = [[0, model.LOWER, true], [model.LOWER, model.UPPER, false], [model.UPPER, 10, true]];
+        const filled = frontier === null ? '' : segments.map(([start, end, rejected]) => {
+          const stop = Math.min(end, complete ? 10 : frontier);
+          if (stop <= start) return '';
+          return `<rect x="${x(start)}" y="${y}" width="${x(stop) - x(start)}" height="12" fill="${colors[rejected ? 'rejected' : 'retained']}" fill-opacity="${rejected ? '.2' : '.85'}"/>${rejected ? `<rect x="${x(start)}" y="${y}" width="${x(stop) - x(start)}" height="12" fill="url(#reject-hatch)"/>` : ''}`;
+        }).join('');
+        const ends = [model.LOWER, model.UPPER].filter(value => frontier !== null && frontier >= value).map(value => `<circle cx="${x(value)}" cy="${y + 6}" r="4" fill="${colors.retained}"/>`).join('');
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.innerHTML = `<title id="strip-title">Candidate population means and test decisions</title><desc id="strip-description">Current candidate ${decimal(mu)} is ${result.reject ? 'rejected' : 'not rejected'}. ${complete ? 'The closed 95% confidence interval is approximately 4.020018 to 5.979982.' : frontier === null ? 'The interval has not yet been revealed.' : `The rule has been revealed through ${decimal(frontier)}.`} This parameter axis shares the upper panel's 0 to 10 scale. The candidate markers align vertically, as do the interval center and the fixed observed mean of 5.</desc>
+          <defs><pattern id="reject-hatch" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0,0 L6,6 M0,6 L6,0" stroke="${colors.rejected}" stroke-width=".6" opacity=".6"/></pattern></defs>
+          <rect x="${left}" y="${y}" width="${right - left}" height="12" rx="2" fill="${colors['plot-grid']}"/>${filled}${ends}
+          <line class="observed-reference" x1="${x(5)}" x2="${x(5)}" y1="20" y2="${y + 12}" stroke="${colors.ink}" stroke-width="2" opacity=".4"/>
+          <line class="candidate-guide" x1="${x(mu)}" x2="${x(mu)}" y1="20" y2="${y + 12}" stroke="${colors.retained}" stroke-width="1.5" stroke-dasharray="2 4"/>
+          <path class="candidate-marker" d="M${x(mu)},${y - 2} l-5,-8 h10 Z" fill="${colors.retained}"/>
+          <text x="${Math.max(left + 75, Math.min(right - 75, x(mu)))}" y="16" text-anchor="middle">Current μ₀ ≈ ${decimal(mu)}</text>
+          ${ticks.map(value => `<line class="axis-tick" data-value="${value}" x1="${x(value)}" x2="${x(value)}" y1="${y + 12}" y2="${y + 17}" stroke="${colors.line}"/><text class="tick" x="${x(value)}" y="${y + 30}" text-anchor="middle">${value}</text>`).join('')}
+          ${complete ? `<path d="M${x(model.LOWER)},${y + 35} v7 H${x(model.UPPER)} v-7" fill="none" stroke="${colors.retained}" stroke-width="1.5"/><text class="tick" x="${x(model.LOWER)}" y="${y + 56}" text-anchor="${width < 480 ? 'end' : 'middle'}">≈ 4.020018</text><text class="tick" x="${x(model.UPPER)}" y="${y + 56}" text-anchor="${width < 480 ? 'start' : 'middle'}">≈ 5.979982</text>` : ''}
+          <text x="${(left + right) / 2}" y="${height - 4}" text-anchor="middle">${width < 420 ? 'Candidate μ₀ · shared 0–10 scale' : 'Candidate population mean μ₀ · shared 0–10 scale'}</text>`;
+      }
+      function render(announce = false) {
+        const result = model.test(mu);
+        slider.value = String(mu);
+        slider.setAttribute('aria-valuetext', `${decimal(mu)}${result.boundary ? ', analytical endpoint' : ''}`);
+        text('candidate-value', `${result.boundary ? '≈ ' : ''}${decimal(mu)}`);
+        text('p-value', pText(result));
+        text('z-value', result.z.toFixed(4));
+        text('decision', result.reject ? '× Reject this candidate' : '● Do not reject this candidate');
+        document.querySelector('#decision').className = `decision ${result.reject ? 'rejected' : 'retained'}`;
+        text('comparison', result.boundary ? 'p = 0.05 · endpoint included' : result.reject ? 'p < 0.05 · below the threshold' : 'p > 0.05 · above the threshold');
+        text('center-value', decimal(mu));
+        text('reflected-value', decimal(result.reflected));
+        text('tail-explanation', mu === 5 ? 'As extreme or more extreme than observed: the whole curve. The observation equals the candidate, so p = 1.' : `As extreme or more extreme than observed: both shaded tails. Each boundary is ${result.d.toFixed(4)} units from the null center.`);
+        text('interval-summary', complete ? '95% confidence interval ≈ [4.020018, 5.979982] · both endpoints included.' : 'Sweep or reveal all to see the complete non-rejected set.');
+        shortcuts.forEach(button => button.setAttribute('aria-pressed', String(mu === presets[button.dataset.candidate])));
+        sweepButton.disabled = running;
+        sweepButton.textContent = complete || frontier !== null ? 'Replay sweep' : 'Sweep candidate values';
+        pauseButton.disabled = frontier === null || complete;
+        pauseButton.textContent = running || frontier === null || complete ? 'Pause' : 'Resume';
+        document.querySelector('#reveal').disabled = complete;
+        if (!document.querySelector('#explore').hidden) { drawDistribution(result); drawStrip(result); }
+        if (announce) text('announcement', `Candidate ${decimal(mu)}. p ${pText(result)}. ${result.reject ? 'Reject.' : 'Do not reject.'}${complete ? ' Confidence interval stays fixed.' : ''}`);
+      }
+      function pause(message = 'Paused. Resume continues from the same point.') {
+        if (!running) return;
+        running = false;
+        cancelAnimationFrame(frame);
+        frame = null;
+        lastTime = null;
+        text('sweep-status', message);
+        render();
+      }
+      function tick(now) {
+        if (!running) return;
+        if (lastTime !== null) elapsed = Math.min(model.DURATION, elapsed + now - lastTime);
+        lastTime = now;
+        const state = model.sweepAt(elapsed);
+        mu = state.mu;
+        frontier = mu;
+        complete = state.complete;
+        if (complete) { running = false; frame = null; lastTime = null; }
+        text('sweep-status', state.message || 'Sweeping left to right; the data and testing rule stay fixed.');
+        render(complete);
+        if (running) frame = requestAnimationFrame(tick);
+      }
+      function revealAll() {
+        pause();
+        frontier = 7;
+        elapsed = model.DURATION;
+        complete = true;
+        text('sweep-status', 'Full analytical interval revealed. Move the candidate to check membership.');
+        render(true);
+      }
+      function startSweep(replay = false) {
+        if (reducedMotion.matches) { revealAll(); return; }
+        pause();
+        if (replay || frontier === null || complete) { elapsed = 0; frontier = 3; complete = false; }
+        mu = model.sweepAt(elapsed).mu;
+        running = true;
+        lastTime = null;
+        text('sweep-status', 'Sweeping left to right; the data and testing rule stay fixed.');
+        render();
+        frame = requestAnimationFrame(tick);
+      }
+      function manualCandidate(value) {
+        pause('Paused for manual exploration. Resume returns to the sweep position.');
+        mu = value;
+        render(true);
+      }
+      function selectTab(id, focus = false) {
+        if (id !== 'explore') pause('Sweep paused while viewing the explanation.');
+        tabs.forEach(tab => {
+          const selected = tab.getAttribute('aria-controls') === id;
+          tab.setAttribute('aria-selected', String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+          document.getElementById(tab.getAttribute('aria-controls')).hidden = !selected;
+          if (selected && focus) tab.focus();
+        });
+        render();
+      }
+      slider.addEventListener('input', () => manualCandidate(Number(slider.value)));
+      slider.addEventListener('keydown', event => {
+        const steps = {ArrowLeft: -.01, ArrowDown: -.01, ArrowRight: .01, ArrowUp: .01, PageDown: -.1, PageUp: .1};
+        if (!(event.key in steps) && !['Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        manualCandidate(event.key === 'Home' ? 3 : event.key === 'End' ? 7 : Math.min(7, Math.max(3, mu + steps[event.key])));
+      });
+      shortcuts.forEach(button => button.addEventListener('click', () => manualCandidate(presets[button.dataset.candidate])));
+      sweepButton.addEventListener('click', () => startSweep(true));
+      pauseButton.addEventListener('click', () => running ? pause() : startSweep());
+      document.querySelector('#reveal').addEventListener('click', revealAll);
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => selectTab(tab.getAttribute('aria-controls')));
+        tab.addEventListener('keydown', event => {
+          const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : ['ArrowLeft', 'ArrowRight'].includes(event.key) ? (index + 1) % tabs.length : null;
+          if (next === null) return;
+          event.preventDefault();
+          selectTab(tabs[next].getAttribute('aria-controls'), true);
+        });
+      });
+      document.querySelector('#reset').addEventListener('click', () => {
+        pause();
+        mu = 6; frontier = null; elapsed = 0; complete = false;
+        document.querySelector('.check-question').open = false;
+        text('sweep-status', 'Test one candidate, then sweep to reveal the full interval.');
+        selectTab('explore');
+        render(true);
+      });
+      document.addEventListener('visibilitychange', () => { if (document.hidden) pause('Sweep paused while this page is hidden.'); });
+      window.addEventListener('message', event => {
+        if (event.source === window.parent && event.origin === window.location.origin && event.data?.type === 'stat250:visibility' && event.data.visible === false) pause('Sweep paused while this visualization is hidden.');
+      });
+      reducedMotion.addEventListener('change', () => { if (reducedMotion.matches) pause('Reduced motion enabled. Use Reveal all to show the interval immediately.'); });
+      const resize = new ResizeObserver(() => {
+        if (!document.querySelector('#explore').hidden) { const result = model.test(mu); drawDistribution(result); drawStrip(result); }
+      });
+      document.querySelectorAll('svg').forEach(svg => resize.observe(svg));
+      text('sweep-status', 'Test one candidate, then sweep to reveal the full interval.');
+      render();
+    })();
+  </script>
+</body>
+</html>

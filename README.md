@@ -35,6 +35,14 @@ The standalone file requires no external assets or data.
 
 ## Content and design references
 
+The **Tests & confidence intervals** visualization illustrates exact test inversion for a two-sided normal-mean test with known population SD 2, sample size 16, and fixed observed mean 5.
+Its sampling-distribution plot and candidate-mean strip share the same 0–10 scale, plot width, and margins; their moving candidate markers align vertically, and the fixed interval center aligns with the observed mean.
+The candidate null mean moves while the data and standard error remain fixed; both shaded tails represent its p-value.
+A finite sweep reveals the analytically computed non-rejected interval, with pauses at its exact endpoints and the observed mean.
+The strict `p < 0.05` rejection rule retains endpoints in the closed 95% interval; decisions use unrounded bounds to avoid numerical disagreement.
+The sweep supports pause, resume, replay, immediate reveal, reduced motion, and suspension when hidden.
+Open it at `#test-ci-duality`.
+
 The **Sample size & detectable effect** visualization varies the number of independent observations from 25 to 10,000 in a one-sided normal-mean test with known population SD 2.
 It fixes alpha at 5% and target power at 80%, selecting the minimum detectable true effect using the exact normal-model formula.
 Both sampling distributions share fixed horizontal limits in the overview; an optional magnified detail uses matched, explicitly changing scales.
