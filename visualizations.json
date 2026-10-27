@@ -90,6 +90,14 @@
     "kind": "visualization"
   },
   {
+    "id": "normal-inference",
+    "title": "Normal-based inference",
+    "description": "Keep the dots and compare simulated p-values and bootstrap intervals with a normal approximation.",
+    "source": "sources/normal-inference.html",
+    "category": "Sampling & inference",
+    "kind": "visualization"
+  },
+  {
     "id": "test-ci-duality",
     "title": "Tests & confidence intervals",
     "description": "Test candidate means against fixed observed data and reveal the matching 95% confidence interval.",
@@ -116,7 +124,7 @@
   {
     "id": "flashcards",
     "title": "Flashcards",
-    "description": "Review 52 concept flashcards across Modules 3–4, with highlighted answers and matching visualizations.",
+    "description": "Review 52 concept flashcards across Modules 3\u20134, with highlighted answers and matching visualizations.",
     "source": "sources/flashcards.html",
     "category": "Review",
     "kind": "guide"

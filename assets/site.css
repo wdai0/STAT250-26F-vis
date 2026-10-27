@@ -26,7 +26,6 @@
 .home-feature .visualization-frame { border: 0; border-radius: 0; }
 .home-feature .download-note { display: none; }
 .visualization-panel.home-feature { padding-top: 18px; }
-.current-view { flex: 1; min-width: 100px; color: var(--ink); font-size: .9rem; font-weight: 600; overflow-wrap: anywhere; }
 .guide-link { color: var(--muted); font-size: .82rem; white-space: nowrap; text-decoration: none; padding: 10px 0; }
 .guide-link:hover { text-decoration: underline; }
 .guide-link[aria-current] { color: var(--ink); font-weight: 600; }
@@ -80,7 +79,6 @@
   .header-meta { font-size: .75rem; }
   .brand-subtitle { font-size: .75rem; }
   .navigation { gap: 12px; }
-  .current-view { flex-basis: 100%; order: 1; }
   #browse-button { width: 100%; justify-content: center; }
   .guide-link { margin-right: 12px; }
   .topic-links { grid-template-columns: 1fr 1fr; }
@@ -91,5 +89,3 @@
   .section-heading { align-items: start; flex-direction: column; gap: 0; margin-bottom: 12px; }
   .section-heading h2 { margin-bottom: 4px; }
 }
-
-.current-view:empty { display: none; }

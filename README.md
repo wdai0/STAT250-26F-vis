@@ -12,7 +12,7 @@ The **Type I & Type II errors** visualization compares two fixed normal sampling
 Its Explore and Explanation tabs, significance-level presets, and exact reset work in the standalone download.
 Controls and plots take priority; detailed methods are collapsed or placed in a separate view.
 The **Flashcards** page contains 52 concept cards across the 13 Module 3–4 review topics, with always-visible visual companions and emphasized answer keywords.
-Open it through the **Flashcards** navigation link or directly at `#flashcards`.
+Open it through **Browse visualizations** or directly at `#flashcards`.
 It contains no practice-question section, question-bank attachment, or Questions tab.
 Practice questions remain separate and are not part of the published collection.
 
@@ -44,6 +44,19 @@ The handoff itself is not redistributed.
 The page uses illustrative populations, reproducible resampling, supplied simulation counts, and model-based intervals; it does not contain exam items or student data.
 Its decision cards use the course's `p ≤ α` convention, and matched interval/test examples avoid endpoint equality.
 The standalone download includes all flashcards, styles, and visual controls without external dependencies.
+
+The **Normal-based inference** visualization compares simulation and normal approximations in two tabs: **Hypothesis testing** and **Confidence intervals**.
+An always-visible introduction before the tabs describes one hypothetical survey about use of a streaming app's offline-download feature in the past 30 days.
+It defines the paid-subscriber population, random sample of 100, observed 60/40 result, unknown population proportion, and the two inference questions.
+This shared context stays unchanged across tabs and controls; the test slider explicitly explores hypothetical sample results, while the confidence interval uses the original reference sample.
+Each tab starts with 1,000 dots and an optional retrieval prompt, then reveals a density-scaled histogram and normal curve without removing the dots.
+The two-sided test simulates 100 independent Bernoulli(0.50) responses per study; moving the observed proportion changes both p-values while retaining the same null draws.
+The interval tab resamples a fixed sample of 60 yes and 40 no responses, with replacement; changing confidence from 80% to 99% changes percentile and normal (Wald) endpoints while retaining the sample, estimated SE, and bootstrap draws.
+The normal calculations use the null-based SE for testing and the plug-in SE for intervals; the test uses the observed cutoff without a continuity correction.
+The displays retain finite-simulation and discrete-versus-continuous differences and identify tied bootstrap endpoints.
+The percentile convention is linear interpolation between order statistics (type 7), and separate seeded streams make the null and bootstrap distributions reproducible.
+The normal CDF and interval endpoints are checked against independent Python references, and bin areas are checked to sum to one.
+Open it at `#normal-inference`; the generated standalone file works without external assets.
 
 The **Tests & confidence intervals** visualization illustrates exact test inversion for a two-sided normal-mean test with known population SD 2, sample size 16, and fixed observed mean 5.
 Its sampling-distribution plot and candidate-mean strip share the same 0–10 scale, plot width, and margins; their moving candidate markers align vertically, and the fixed interval center aligns with the observed mean.
@@ -127,7 +140,9 @@ Generated asset and visualization URLs include content versions so a refreshed p
 **Browse visualizations** opens a searchable panel grouped by `category`.
 Search matches titles, topics, and short descriptions.
 Selecting an item closes the panel and displays the visualization at its existing `#id` link; the browser Back and Forward buttons also work.
-**Home**, **Create your own**, **Open on its own**, and **Download** remain available in the toolbar.
+The top navigation contains **Home**, **Real-world p-values**, and **Create your own**, alongside **Browse visualizations**.
+Flashcards and Normal-based inference are available through Browse; the selected visualization's title appears in its page rather than as another top-level navigation item.
+**Open on its own** and **Download** remain available in the toolbar.
 The panel supports keyboard navigation and Escape to close, and adapts to small screens.
 Homepage topic shortcuts use the same registry and groups, so no separate navigation list needs maintaining.
 The highlighted Browse button counts entries with `kind: "visualization"`; guides appear in the searchable collection under **Guides**.

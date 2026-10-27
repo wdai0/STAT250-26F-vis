@@ -50,8 +50,8 @@ class FlashcardPublicationTests(unittest.TestCase):
         self.assertEqual(flashcards[0]["title"], "Flashcards")
         self.assertEqual(flashcards[0]["source"], "sources/flashcards.html")
         self.assertFalse(any("question" in entry["id"] for entry in entries))
-        self.assertIn('href="#flashcards">Flashcards</a>',
-                      (ROOT / "index.html").read_text())
+        # Flashcards stay in the searchable registry, rather than the top navigation.
+        self.assertNotIn('id="flashcards-link"', (ROOT / "index.html").read_text())
 
 
 @unittest.skipUnless(NODE, "Node.js is needed to exercise the flashcard controls")

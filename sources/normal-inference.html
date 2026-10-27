@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Compare simulated and normal-based p-values and confidence intervals while keeping the inference question fixed.">
+  <title>Inference with a normal distribution · STAT 250</title>
+  <!-- SHARED_THEME -->
+  <style>
+    :root { --simulation: var(--accent); --normal: #995214; }
+    body { line-height: 1.45; }
+    .inference-app { max-width: 1120px; margin: auto; padding: 18px 22px; }
+    h1 { font-size: 1.4rem; }
+    h2 { font-size: .98rem; }
+    .premise { margin: 5px 0 14px; font-size: .88rem; color: var(--muted); }
+    .study-context { margin: 18px 0; padding-bottom: 17px; border-bottom: 1px solid var(--line); }
+    .study-context h2 { font-size: 1.05rem; margin-bottom: 10px; }
+    .study-context p { max-width: 940px; font-size: .9rem; line-height: 1.6; }
+    .study-context p + p { margin-top: 10px; }
+    .study-questions { margin: 14px 0 0; font-size: .87rem; }
+    .study-questions dt { color: var(--ink); font-weight: 600; }
+    .study-questions dd { margin: 3px 0 11px; max-width: 940px; }
+    .exploration-note { font-size: .8rem; color: var(--muted); margin-top: 7px; }
+    .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+    .tab { border: 0; border-bottom: 3px solid transparent; padding: 9px 14px; min-height: 42px; background: transparent; color: var(--muted); font-size: .88rem; font-weight: 600; }
+    .tab[aria-selected="true"] { border-bottom-color: var(--accent); color: var(--ink); }
+    .tab:hover { background: var(--accent-soft); }
+    .scenario { font-size: .87rem; }
+    details { font-size: .82rem; }
+    summary { cursor: pointer; color: var(--ink); font-weight: 600; }
+    details p { margin-top: 7px; max-width: 920px; }
+    .retrieval { margin: 8px 0 16px; }
+    .retrieval[open] { border-left: 2px solid var(--line); padding-left: 12px; }
+    .controls { display: grid; grid-template-columns: minmax(240px, 1fr) auto auto; gap: 20px; align-items: center; padding: 13px 16px; border: 1px solid var(--line); border-radius: 6px; background: #f8f9fb; }
+    .slider-label { display: flex; justify-content: space-between; gap: 10px; font-size: .85rem; font-weight: 600; }
+    .slider-label output { color: var(--ink); font-variant-numeric: tabular-nums; }
+    .slider-row { display: flex; align-items: center; gap: 12px; }
+    .slider-row span { color: var(--muted); font-size: .72rem; }
+    .slider-row input { margin: 4px 0 0; height: 25px; min-width: 0; }
+    .compact-button { border: 1px solid var(--line); border-radius: 5px; padding: 9px 12px; min-height: 40px; font-size: .8rem; color: var(--text); background: var(--surface); }
+    .compact-button:hover { background: var(--accent-soft); border-color: var(--accent); }
+    .overlay-button { color: var(--normal); border-color: #cfae90; }
+    .overlay-button[aria-pressed="true"] { background: #fbf1e6; }
+    .fixed-note { margin: 7px 0 13px; color: var(--muted); font-size: .77rem; }
+    .chart-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 8px 18px; flex-wrap: wrap; }
+    .legend { display: flex; flex-wrap: wrap; gap: 7px 16px; font-size: .75rem; color: var(--muted); }
+    .key { display: inline-flex; align-items: center; gap: 6px; }
+    .dot-key::before { content: ''; width: 7px; height: 7px; background: var(--simulation); border-radius: 50%; }
+    .curve-key { color: var(--normal); }
+    .curve-key::before { content: ''; width: 19px; border-top: 2px solid var(--normal); }
+    .distribution { display: block; width: 100%; height: 290px; }
+    .interval-strip { display: block; width: 100%; height: 102px; }
+    svg text { font-family: var(--font); fill: var(--text); font-size: 12px; }
+    svg .axis-text { fill: var(--muted); font-size: 11px; }
+    svg .marker-label { fill: var(--ink); font-weight: 600; }
+    .chart-caption { color: var(--muted); font-size: .77rem; margin: 2px 0 12px; }
+    .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 10px; }
+    .result { padding: 12px 15px; border: 1px solid var(--line); border-top: 3px solid var(--simulation); border-radius: 4px; }
+    .result.normal { border-top-color: var(--normal); }
+    .result h3 { font-size: .83rem; }
+    .result.normal h3 { color: var(--normal); }
+    .result-value { display: block; margin: 5px 0; color: var(--ink); font-size: 1.5rem; line-height: 1.2; font-weight: 650; font-variant-numeric: tabular-nums; }
+    .result p { font-size: .8rem; }
+    .result .formula { margin-top: 6px; font-variant-numeric: tabular-nums; }
+    .compare-prompt { padding: 15px 6px; align-self: center; color: var(--muted); font-size: .84rem; max-width: 330px; }
+    .comparison-note { margin-top: 9px; font-size: .8rem; }
+    .meaning { margin-top: 8px; font-size: .81rem; color: var(--muted); }
+    .takeaway { font-size: .85rem; padding-top: 13px; margin-top: 14px; border-top: 1px solid var(--line); }
+    .attribution { margin-top: 15px; padding-top: 10px; font-size: .67rem; }
+    @media (max-width: 700px) {
+      .inference-app { padding: 16px; }
+      h1 { font-size: 1.2rem; }
+      .controls { grid-template-columns: 1fr auto; gap: 9px; padding: 11px; }
+      .slider-control { grid-column: 1 / -1; }
+      .overlay-button { justify-self: start; }
+      .comparison { gap: 10px; }
+      .result { padding: 10px; }
+      .result-value { font-size: 1.2rem; }
+      .distribution { height: 270px; }
+      .tab { padding: 8px; font-size: .82rem; }
+    }
+    @media (max-width: 460px) {
+      .comparison { grid-template-columns: 1fr; }
+      .compare-prompt { padding: 3px 0; max-width: none; }
+      .chart-heading { gap: 6px; }
+      .overlay-button { max-width: 200px; }
+      .distribution { height: 260px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="inference-app">
+    <header>
+      <h1>Inference with a normal distribution</h1>
+      <p class="premise">Same inference question, two ways to represent sampling variation.</p>
+    </header>
+    <section class="study-context" id="study-context" aria-labelledby="study-heading">
+      <h2 id="study-heading">The study: use of a streaming app’s offline downloads</h2>
+      <p>A streaming app lets paid subscribers download movies and shows to watch without an internet connection.
+      The company wants to know what proportion of <strong>all its paid subscribers</strong> used this offline-download feature in the past 30 days.
+      This unknown population proportion is denoted by <var class="stat-symbol">p</var>.</p>
+      <p>In this hypothetical study, a simple random sample of <strong>100 paid subscribers</strong> is asked: “Have you used the app’s offline-download feature in the past 30 days?”
+      Each subscriber answers “yes” or “no”.
+      Assume all selected subscribers respond, and the sample is small enough relative to the subscriber population that responses can be treated as independent.</p>
+      <p>In the observed sample, <strong>60 subscribers answer “yes” and 40 answer “no”</strong>.
+      The sample proportion is therefore <strong>p̂ = 60/100 = 0.60</strong>.
+      We know that 60% of these sampled subscribers used the feature in the past 30 days; we do not know the proportion among all paid subscribers.
+      A different random sample could give a different sample proportion.</p>
+      <dl class="study-questions">
+        <dt>Hypothesis testing: assess a claim about the population.</dt>
+        <dd>If exactly 50% of all paid subscribers used offline downloads in the past 30 days, how unusual would a sample result at least as far from 50% as the observed 60% be?</dd>
+        <dt>Confidence intervals: estimate the population proportion.</dt>
+        <dd>Using the observed sample, what interval can we construct to estimate the proportion of all paid subscribers who used offline downloads in the past 30 days, at a chosen confidence level?</dd>
+      </dl>
+      <p>Both views use this same study and reference sample.
+      Within each view, we compare a simulation-based calculation with a normal approximation.</p>
+    </section>
+    <div class="tabs" role="tablist" aria-label="Inference question">
+      <button type="button" class="tab" id="tab-test" role="tab" aria-controls="test" aria-selected="true" tabindex="0">Hypothesis testing</button>
+      <button type="button" class="tab" id="tab-ci" role="tab" aria-controls="ci" aria-selected="false" tabindex="-1">Confidence intervals</button>
+    </div>
+    <section id="test" role="tabpanel" aria-labelledby="tab-test" tabindex="0"></section>
+    <section id="ci" role="tabpanel" aria-labelledby="tab-ci" tabindex="0" hidden></section>
+    <p class="takeaway">We have not changed what a p-value or confidence interval means.
+    We have changed how we approximate the sampling variation used to calculate it.</p>
+    <p class="sr-only" id="announcement" role="status" aria-live="polite" aria-atomic="true"></p>
+    <noscript><p>Enable JavaScript to display the simulated studies, bootstrap resamples, and interactive comparisons.</p></noscript>
+    <!-- AUTHORSHIP -->
+  </main>
+  <script id="normal-inference-math">
+    const NormalInferenceMath = (() => {
+      'use strict';
+      const N = 100, B = 1000, P0 = 0.5, ESTIMATE = 0.6;
+      const TEST_SE = Math.sqrt(P0 * (1 - P0) / N);
+      const CI_SE = Math.sqrt(ESTIMATE * (1 - ESTIMATE) / N);
+      // Separate deterministic streams keep the two collections fixed and reproducible.
+      function random(seed) {
+        let state = seed >>> 0;
+        return () => {
+          state += 0x6D2B79F5;
+          let t = Math.imul(state ^ state >>> 15, 1 | state);
+          t ^= t + Math.imul(t ^ t >>> 7, 61 | t);
+          return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        };
+      }
+      function simulateNull(seed = 250103) {
+        const rng = random(seed);
+        return Array.from({length: B}, () => {
+          let successes = 0;
+          for (let i = 0; i < N; i++) successes += rng() < P0 ? 1 : 0;
+          return successes;
+        });
+      }
+      function bootstrap(seed = 250104) {
+        const rng = random(seed);
+        const observed = Array.from({length: N}, (_, i) => i < N * ESTIMATE ? 1 : 0);
+        return Array.from({length: B}, () => {
+          let successes = 0;
+          for (let i = 0; i < N; i++) successes += observed[Math.floor(rng() * N)];
+          return successes;
+        });
+      }
+      // Convergent integral series, also used by the collection's normal-model demos.
+      // All test cutoffs and interval quantiles stay inside this validated range.
+      function normalCDF(z) {
+        if (!Number.isFinite(z) || Math.abs(z) > 4) throw new RangeError('CDF input must be in [-4, 4].');
+        let term = z, sum = z;
+        for (let k = 1; k < 200; k++) {
+          term *= z * z / (2 * k + 1);
+          sum += term;
+          if (Math.abs(term) <= Math.abs(sum) * Number.EPSILON) break;
+        }
+        return 0.5 + Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI) * sum;
+      }
+      function criticalValue(level) {
+        if (!Number.isFinite(level) || level < 0.8 || level > 0.99) throw new RangeError('Confidence level must be in [0.80, 0.99].');
+        const target = (1 + level) / 2;
+        let lo = 0, hi = 4;
+        for (let i = 0; i < 55; i++) {
+          const mid = (lo + hi) / 2;
+          if (normalCDF(mid) < target) lo = mid;
+          else hi = mid;
+        }
+        return (lo + hi) / 2;
+      }
+      function density(value, center, se) {
+        return Math.exp(-0.5 * ((value - center) / se) ** 2) / (se * Math.sqrt(2 * Math.PI));
+      }
+      function histogram(counts) {
+        const bins = Array(N + 1).fill(0);
+        counts.forEach(count => bins[count]++);
+        return bins;
+      }
+      // Linear interpolation between adjacent order statistics (type 7).
+      function quantile(sorted, probability) {
+        const index = (sorted.length - 1) * probability;
+        const lo = Math.floor(index), hi = Math.ceil(index);
+        return sorted[lo] + (sorted[hi] - sorted[lo]) * (index - lo);
+      }
+      const nullCounts = Object.freeze(simulateNull());
+      const bootstrapCounts = Object.freeze(bootstrap());
+      const bootstrapSorted = Object.freeze([...bootstrapCounts].sort((a, b) => a - b));
+      const nullBins = Object.freeze(histogram(nullCounts));
+      const bootstrapBins = Object.freeze(histogram(bootstrapCounts));
+      function testResult(observedCount) {
+        if (!Number.isInteger(observedCount) || observedCount < 30 || observedCount > 70) throw new RangeError('Observed count must be an integer in [30, 70].');
+        const distance = Math.abs(observedCount - N * P0);
+        const extreme = nullCounts.filter(count => Math.abs(count - N * P0) >= distance).length;
+        const z = (observedCount - N * P0) / (N * TEST_SE);
+        return {observed: observedCount / N, z, lower: (50 - distance) / N, upper: (50 + distance) / N,
+          extreme, simulation: extreme / B, normal: 2 * normalCDF(-Math.abs(z))};
+      }
+      function intervalResult(level) {
+        const z = criticalValue(level), tail = (1 - level) / 2;
+        // Quantiles use integer success counts; convert to proportions only at the end.
+        const lowerCount = quantile(bootstrapSorted, tail), upperCount = quantile(bootstrapSorted, 1 - tail);
+        return {level, tail, z, bootstrap: [lowerCount / N, upperCount / N],
+          normal: [ESTIMATE - z * CI_SE, ESTIMATE + z * CI_SE],
+          included: bootstrapCounts.filter(count => count >= lowerCount - 1e-10 && count <= upperCount + 1e-10).length};
+      }
+      return Object.freeze({N, B, P0, ESTIMATE, TEST_SE, CI_SE, nullCounts, bootstrapCounts,
+        nullBins, bootstrapBins, simulateNull, bootstrap, normalCDF, density, quantile, testResult, intervalResult});
+    })();
+  </script>
+  <script>
+    (() => {
+      'use strict';
+      const model = NormalInferenceMath;
+      const state = {test: {value: 60, overlay: false}, ci: {value: 95, overlay: false}};
+      let active = 'test';
+      const tabs = [...document.querySelectorAll('[role="tab"]')];
+      const text = (id, value) => { document.getElementById(id).textContent = value; };
+      const probability = value => value > 0 && value < 0.0001 ? '< 0.0001' : value.toFixed(4);
+      const endpoints = values => `[${values[0].toFixed(4)}, ${values[1].toFixed(4)}]`;
+      const colors = getComputedStyle(document.documentElement);
+      const color = name => colors.getPropertyValue(name).trim();
+      const palette = {sim: color('--accent'), normal: color('--normal'), ink: color('--ink'), muted: color('--muted'), grid: color('--plot-grid'), axis: color('--plot-axis'), other: color('--plot-muted')};
+
+      function panel(id) {
+        const test = id === 'test';
+        document.getElementById(id).innerHTML = `
+          <p class="scenario">${test
+            ? 'Test whether the proportion of paid subscribers who used offline downloads in the past 30 days differs from 50%: <strong>H₀: p = 0.50</strong> versus <strong>Hₐ: p ≠ 0.50</strong>.'
+            : 'Estimate the proportion of paid subscribers who used offline downloads in the past 30 days using the reference sample: <strong>p̂ = 0.60</strong>.'}</p>
+          <p class="exploration-note">${test
+            ? 'Start with the observed 60/100. Moving the slider explores hypothetical results for a sample of 100; the reference survey described above stays unchanged.'
+            : 'Keep the original 60 “yes” and 40 “no” responses fixed. Changing the confidence level changes the interval endpoints, not the sample.'}</p>
+          <details class="retrieval" id="${id}-retrieval"><summary>${test ? 'Where did these dots come from?' : 'Where did these dots come from this time?'}</summary>
+            <p>${test
+              ? 'Imagine exactly 50% of all paid subscribers used offline downloads in the past 30 days, as H₀ claims. Each dot is the proportion answering “yes” in one simulated survey of 100 independent responses, each with probability 0.50 of “yes”. There are 1,000 simulated surveys.'
+              : 'Each dot is the proportion who used offline downloads in one bootstrap resample: draw 100 responses with replacement from the original survey of 60 “yes” and 40 “no”. There are 1,000 resamples; we do not survey new subscribers.'}</p>
+          </details>
+          <div class="controls">
+            <div class="slider-control">
+              <label class="slider-label" for="${id}-slider"><span>${test ? 'Explore a sample proportion p̂' : 'Confidence level'}</span><output id="${id}-control-value" for="${id}-slider"></output></label>
+              <div class="slider-row"><span aria-hidden="true">${test ? '0.30' : '80%'}</span><input id="${id}-slider" type="range" min="${test ? 30 : 80}" max="${test ? 70 : 99}" step="1" value="${state[id].value}" aria-describedby="${id}-fixed"><span aria-hidden="true">${test ? '0.70' : '99%'}</span></div>
+            </div>
+            <button type="button" class="compact-button overlay-button" id="${id}-overlay" aria-pressed="false" aria-controls="${id}-plot ${id}-normal">Show normal approximation</button>
+            <button type="button" class="compact-button" id="${id}-reset">Reset</button>
+          </div>
+          <p class="fixed-note" id="${id}-fixed">${test
+            ? 'Fixed: null center = 0.50 · n = 100 · the same 1,000 simulated studies. Move only the observed statistic.'
+            : 'Fixed: observed estimate = 0.60 · n = 100 · the same 1,000 bootstrap resamples. Change only the confidence level.'}</p>
+          <div class="chart-heading"><h2>${test ? 'How extreme is the observed result under H₀?' : 'Which endpoints capture the central range?'}</h2>
+            <div class="legend"><span class="key dot-key">${test ? 'Simulated studies' : 'Bootstrap resamples'}</span><span class="key curve-key" id="${id}-curve-key" hidden>Normal approximation</span></div>
+          </div>
+          <svg class="distribution" id="${id}-plot" role="img" aria-labelledby="${id}-plot-title ${id}-plot-description"></svg>
+          ${test ? '' : '<svg class="interval-strip" id="ci-strip" role="img" aria-labelledby="ci-strip-title ci-strip-description"></svg>'}
+          <p class="chart-caption" id="${id}-caption"></p>
+          <div class="comparison">
+            <section class="result"><h3>${test ? 'Simulation · count extreme results' : 'Bootstrap · percentile endpoints'}</h3>
+              <output class="result-value" id="${id}-simulation-value"></output><p id="${id}-simulation-detail"></p>
+            </section>
+            <p class="compare-prompt" id="${id}-prompt">Can a normal curve capture the features we need for inference?<br>Use <strong>Show normal approximation</strong> to compare.</p>
+            <section class="result normal" id="${id}-normal" hidden><h3>${test ? 'Normal · calculate tail area' : 'Normal · estimate ± z* SE'}</h3>
+              <output class="result-value" id="${id}-normal-value"></output><p id="${id}-normal-detail"></p><p class="formula" id="${id}-formula"></p>
+            </section>
+          </div>
+          <p class="comparison-note" id="${id}-difference" hidden></p>
+          <p class="meaning" id="${id}-meaning"></p>
+`;
+        document.getElementById(`${id}-slider`).addEventListener('input', event => {
+          state[id].value = Number(event.target.value);
+          update(id);
+        });
+        document.getElementById(`${id}-slider`).addEventListener('change', () => announce(id));
+        document.getElementById(`${id}-overlay`).addEventListener('click', () => {
+          state[id].overlay = !state[id].overlay;
+          update(id);
+          announce(id);
+        });
+        document.getElementById(`${id}-reset`).addEventListener('click', () => {
+          state[id] = {value: test ? 60 : 95, overlay: false};
+          document.getElementById(`${id}-retrieval`).open = false;
+          update(id);
+          announce(id);
+        });
+      }
+      function result(id) { return id === 'test' ? model.testResult(state.test.value) : model.intervalResult(state.ci.value / 100); }
+      function update(id) {
+        const test = id === 'test', current = state[id], r = result(id);
+        document.getElementById(`${id}-slider`).value = current.value;
+        document.getElementById(`${id}-slider`).setAttribute('aria-valuetext', test ? `${r.observed.toFixed(2)}, ${current.value} yes responses out of 100` : `${current.value} percent confidence`);
+        text(`${id}-control-value`, test ? `${r.observed.toFixed(2)} · ${current.value}/100` : `${current.value}%`);
+        document.getElementById(`${id}-overlay`).setAttribute('aria-pressed', String(current.overlay));
+        text(`${id}-overlay`, current.overlay ? 'Hide normal approximation' : 'Show normal approximation');
+        for (const suffix of ['normal', 'curve-key', 'difference']) document.getElementById(`${id}-${suffix}`).hidden = !current.overlay;
+        document.getElementById(`${id}-prompt`).hidden = current.overlay;
+        if (test) {
+          text('test-simulation-value', `p = ${probability(r.simulation)}`);
+          text('test-simulation-detail', `${r.extreme} / 1,000 studies at least this far from 0.50.`);
+          text('test-normal-value', r.normal < 0.0001 ? 'p < 0.0001' : `p ≈ ${probability(r.normal)}`);
+          text('test-normal-detail', `Center = 0.50 · SE = 0.0500 · z = ${r.z.toFixed(2)}`);
+          text('test-formula', `P(Z ≤ −|z|) + P(Z ≥ |z|) = 2 × P(Z ≥ ${Math.abs(r.z).toFixed(2)})`);
+          text('test-caption', `Each dot is one simulated proportion. Dark dots: p̂ ≤ ${r.lower.toFixed(2)} or p̂ ≥ ${r.upper.toFixed(2)}.${current.overlay ? ' Bars and curve use the same density scale; the shaded curve area uses these same cutoffs.' : ''}`);
+          text('test-difference', `Same observed cutoff, two p-values. Absolute difference: ${Math.abs(r.simulation - r.normal).toFixed(4)}.${r.extreme === 0 ? ' No simulated study was this extreme; that does not mean the true p-value is zero.' : ''}`);
+          text('test-meaning', r.extreme === 0 && !current.overlay
+            ? 'No simulated study was this extreme in 1,000 repetitions. That does not establish a zero p-value.'
+            : 'A p-value describes results at least this extreme assuming H₀ is true; it is not the probability that H₀ is true.');
+        } else {
+          const lowerPercentile = (r.tail * 100).toFixed(1), upperPercentile = ((1 - r.tail) * 100).toFixed(1);
+          text('ci-simulation-value', endpoints(r.bootstrap));
+          text('ci-simulation-detail', `${lowerPercentile}th and ${upperPercentile}th percentiles of the 1,000 bootstrap proportions.`);
+          text('ci-normal-value', endpoints(r.normal));
+          text('ci-normal-detail', `Center = 0.60 · SE ≈ 0.0490 · z* ≈ ${r.z.toFixed(3)}`);
+          text('ci-formula', `0.60 ± ${r.z.toFixed(3)} × 0.04899`);
+          text('ci-caption', `Each dot is one bootstrap proportion. Dark dots lie within the percentile endpoints (${r.included}/1,000; ties can include more than ${current.value}%).${current.overlay ? ' Bars and curve share a density scale; the shaded normal area is ' + current.value + '%.' : ''}`);
+          text('ci-difference', `Same ${current.value}% confidence level, two intervals. Endpoint differences (normal − bootstrap): lower ${(r.normal[0] - r.bootstrap[0]).toFixed(4)}, upper ${(r.normal[1] - r.bootstrap[1]).toFixed(4)}.`);
+          text('ci-meaning', `The ${current.value}% level describes the intended long-run coverage of the interval method; it does not give the probability that this particular interval contains the fixed population proportion.`);
+        }
+        if (id === active) draw(id, r);
+      }
+      function announce(id) {
+        const r = result(id), overlay = state[id].overlay;
+        text('announcement', id === 'test'
+          ? `Observed proportion ${r.observed.toFixed(2)}. Simulated p-value ${probability(r.simulation)}.${overlay ? ' Normal p-value ' + probability(r.normal) + '.' : ' Normal approximation hidden.'}`
+          : `${state.ci.value}% confidence. Bootstrap interval ${endpoints(r.bootstrap)}.${overlay ? ' Normal interval ' + endpoints(r.normal) + '.' : ' Normal approximation hidden.'}`);
+      }
+      function geometry(svg) {
+        const width = Math.max(260, svg.getBoundingClientRect().width);
+        const height = svg.getBoundingClientRect().height || 290;
+        const left = width < 500 ? 30 : 43, right = width - 12;
+        const top = 57, bottom = height - 43;
+        return {width, height, left, right, top, bottom,
+          x: value => left + (value - 0.25) / 0.6 * (right - left),
+          y: value => bottom - value / 11 * (bottom - top)};
+      }
+      function draw(id, r) {
+        const svg = document.getElementById(`${id}-plot`), test = id === 'test', overlay = state[id].overlay;
+        const g = geometry(svg), {width, height, left, right, top, bottom, x, y} = g;
+        const bins = test ? model.nullBins : model.bootstrapBins;
+        const center = test ? model.P0 : model.ESTIMATE, se = test ? model.TEST_SE : model.CI_SE;
+        const selected = k => test ? Math.abs(k - 50) >= Math.abs(state.test.value - 50) : k / 100 >= r.bootstrap[0] - 1e-12 && k / 100 <= r.bootstrap[1] + 1e-12;
+        const curve = (a, b, fill = false) => {
+          const steps = Math.max(2, Math.ceil((b - a) * 800));
+          let path = fill ? `M ${x(a)} ${bottom} L ` : 'M ';
+          for (let i = 0; i <= steps; i++) {
+            const v = a + (b - a) * i / steps;
+            path += `${x(v)} ${y(model.density(v, center, se))} ${i < steps ? 'L ' : ''}`;
+          }
+          return path + (fill ? `L ${x(b)} ${bottom} Z` : '');
+        };
+        let markup = `<title id="${id}-plot-title">${test ? 'Fixed null distribution of simulated proportions' : 'Fixed distribution of bootstrap proportions'}${overlay ? ' with a normal approximation' : ''}</title>
+          <desc id="${id}-plot-description">1,000 dots. ${test ? `Null center 0.50; observed proportion ${r.observed.toFixed(2)}; ${r.extreme} dots as extreme or more extreme, counting both tails.` : `Observed estimate 0.60. Percentile interval ${endpoints(r.bootstrap)} at ${state.ci.value}% confidence.`}${overlay ? ` Normal center ${center}, standard error ${se.toFixed(4)}. Histogram and curve are both density-scaled.` : ''}</desc>`;
+        if (overlay) {
+          for (const tick of [0, 5, 10]) markup += `<line x1="${left}" x2="${right}" y1="${y(tick)}" y2="${y(tick)}" stroke="${palette.grid}"/><text class="axis-text" x="${left - 7}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`;
+          markup += `<text class="axis-text" x="${left}" y="13">Density · total area = 1</text>`;
+          bins.forEach((count, k) => {
+            if (count) markup += `<rect class="histogram-bin" data-count="${count}" x="${x((k - 0.5) / 100)}" y="${y(count / 10)}" width="${x(0.01) - x(0)}" height="${bottom - y(count / 10)}" fill="${palette.sim}" fill-opacity="${selected(k) ? '.12' : '.04'}" stroke="${palette.axis}" stroke-width=".5"/>`;
+          });
+          const regions = test ? [[0.25, r.lower], [r.upper, 0.85]] : [[r.normal[0], r.normal[1]]];
+          regions.forEach(([a, b]) => { markup += `<path class="normal-area" d="${curve(a, b, true)}" fill="${palette.normal}" fill-opacity=".16"/>`; });
+        } else {
+          markup += `<text class="axis-text" x="${left}" y="13">1 dot = 1 ${test ? 'simulated study' : 'bootstrap resample'}</text>`;
+        }
+        // Pack dots into short rows within each bin so repetitions remain visible.
+        // Horizontal offsets are display-only: selection uses the exact proportion k/100.
+        const binWidth = (right - left) / 60;
+        const columns = Math.max(1, Math.min(4, Math.floor(binWidth / 2.8)));
+        const radius = Math.min(2.15, (bottom - y(columns / 10)) * .41, binWidth / columns * .4);
+        bins.forEach((count, k) => {
+          for (let j = 0; j < count; j++) {
+            const row = Math.floor(j / columns), rowCount = Math.min(columns, count - row * columns);
+            const offset = (j % columns - (rowCount - 1) / 2) * (binWidth / columns);
+            markup += `<circle class="simulation-dot${selected(k) ? ' selected' : ''}" data-count="${k}" cx="${x(k / 100) + offset}" cy="${y((row * columns + rowCount / 2) / 10)}" r="${radius}" fill="${selected(k) ? palette.sim : palette.other}"/>`;
+          }
+        });
+        if (overlay) markup += `<path class="normal-curve" d="${curve(.25, .85)}" fill="none" stroke="${palette.normal}" stroke-width="2.5"/>`;
+        markup += `<line class="center-marker" x1="${x(center)}" x2="${x(center)}" y1="${top - 7}" y2="${bottom}" stroke="${palette.muted}" stroke-dasharray="2 4"/>
+          <text class="marker-label" x="${x(center)}" y="31" text-anchor="middle">${test ? 'Null 0.50' : 'Estimate 0.60'}</text>`;
+        if (test) {
+          const reflected = 1 - r.observed;
+          markup += `<line class="observed-marker" x1="${x(r.observed)}" x2="${x(r.observed)}" y1="${top - 5}" y2="${bottom}" stroke="${palette.ink}" stroke-width="1.7"/>
+            <text class="marker-label" x="${x(r.observed)}" y="47" text-anchor="middle">${width < 500 ? 'Obs.' : 'Observed'} ${r.observed.toFixed(2)}</text>`;
+          if (Math.abs(r.z) > 0) markup += `<line class="reflected-marker" x1="${x(reflected)}" x2="${x(reflected)}" y1="${top}" y2="${bottom}" stroke="${palette.ink}" stroke-dasharray="5 4"/>`;
+        } else {
+          r.bootstrap.forEach(v => { markup += `<line class="percentile-marker" x1="${x(v)}" x2="${x(v)}" y1="${top}" y2="${bottom}" stroke="${palette.sim}" stroke-dasharray="5 4"/>`; });
+        }
+        markup += `<line x1="${left}" x2="${right}" y1="${bottom}" y2="${bottom}" stroke="${palette.axis}"/>`;
+        for (const tick of [.3, .4, .5, .6, .7, .8]) markup += `<line x1="${x(tick)}" x2="${x(tick)}" y1="${bottom}" y2="${bottom + 4}" stroke="${palette.axis}"/><text class="axis-text" x="${x(tick)}" y="${bottom + 19}" text-anchor="middle">${tick.toFixed(2)}</text>`;
+        markup += `<text class="axis-text" x="${(left + right) / 2}" y="${height - 3}" text-anchor="middle">${test ? 'Simulated' : 'Bootstrap'} proportion of “yes” responses</text>`;
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.innerHTML = markup;
+        if (!test) drawIntervals(r, g);
+      }
+      function drawIntervals(r, {width, x}) {
+        const svg = document.getElementById('ci-strip'), overlay = state.ci.overlay;
+        const height = overlay ? 102 : 54;
+        svg.style.height = `${height}px`;
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        const row = (name, values, y, stroke) => `<text x="3" y="${y + 4}" style="fill:${stroke};font-size:11px">${name}</text>
+          <line x1="${x(values[0])}" x2="${x(values[1])}" y1="${y}" y2="${y}" stroke="${stroke}" stroke-width="3"/>
+          ${values.map((v, i) => `<line x1="${x(v)}" x2="${x(v)}" y1="${y - 5}" y2="${y + 5}" stroke="${stroke}" stroke-width="2"/><text class="axis-text" x="${x(v)}" y="${y + 20}" text-anchor="${width < 500 ? (i === 0 ? 'end' : 'start') : 'middle'}">${v.toFixed(4)}</text>`).join('')}`;
+        svg.innerHTML = `<title id="ci-strip-title">Confidence interval endpoints on the distribution's horizontal scale</title>
+          <desc id="ci-strip-description">Bootstrap ${endpoints(r.bootstrap)}.${overlay ? ' Normal ' + endpoints(r.normal) + '.' : ''}</desc>
+          <line x1="${x(.6)}" x2="${x(.6)}" y1="4" y2="${height - 20}" stroke="${palette.muted}" stroke-dasharray="2 4"/>
+          ${row('Bootstrap', r.bootstrap, 18, palette.sim)}${overlay ? row('Normal', r.normal, 66, palette.normal) : ''}`;
+      }
+      function selectTab(id, focus = false) {
+        active = id;
+        tabs.forEach(tab => {
+          const selected = tab.getAttribute('aria-controls') === id;
+          tab.setAttribute('aria-selected', String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+          document.getElementById(tab.getAttribute('aria-controls')).hidden = !selected;
+          if (focus && selected) tab.focus();
+        });
+        update(id);
+        announce(id);
+      }
+      tabs.forEach((tab, i) => {
+        tab.addEventListener('click', () => selectTab(tab.getAttribute('aria-controls')));
+        tab.addEventListener('keydown', event => {
+          const index = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1
+            : event.key === 'ArrowRight' ? (i + 1) % tabs.length : event.key === 'ArrowLeft' ? (i + tabs.length - 1) % tabs.length : null;
+          if (index === null) return;
+          event.preventDefault();
+          selectTab(tabs[index].getAttribute('aria-controls'), true);
+        });
+      });
+      panel('test');
+      panel('ci');
+      update('test');
+      update('ci');
+      // Only width changes matter; avoid a resize loop when interval rows appear.
+      let lastWidth = 0;
+      new ResizeObserver(entries => {
+        const width = entries[0].contentRect.width;
+        if (Math.abs(width - lastWidth) > .5) {
+          lastWidth = width;
+          draw(active, result(active));
+        }
+      }).observe(document.querySelector('.inference-app'));
+    })();
+  </script>
+</body>
+</html>
