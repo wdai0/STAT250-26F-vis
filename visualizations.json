@@ -112,5 +112,13 @@
     "source": "sources/create-your-own.html",
     "category": "Guides",
     "kind": "guide"
+  },
+  {
+    "id": "flashcards",
+    "title": "Flashcards",
+    "description": "Review 52 concept flashcards across Modules 3–4, with highlighted answers and matching visualizations.",
+    "source": "sources/flashcards.html",
+    "category": "Review",
+    "kind": "guide"
   }
 ]

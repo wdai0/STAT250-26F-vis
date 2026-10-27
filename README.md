@@ -11,6 +11,10 @@ The **Real-world p-values** guide has Business, Physics, Medicine, and Technolog
 The **Type I & Type II errors** visualization compares two fixed normal sampling distributions while a single cutoff controls false alarms, missed effects, and power.
 Its Explore and Explanation tabs, significance-level presets, and exact reset work in the standalone download.
 Controls and plots take priority; detailed methods are collapsed or placed in a separate view.
+The **Flashcards** page contains 52 concept cards across the 13 Module 3–4 review topics, with always-visible visual companions and emphasized answer keywords.
+Open it through the **Flashcards** navigation link or directly at `#flashcards`.
+It contains no practice-question section, question-bank attachment, or Questions tab.
+Practice questions remain separate and are not part of the published collection.
 
 ## Data sources and adaptations
 
@@ -34,6 +38,12 @@ Pause freezes balls in flight, and reduced-motion mode replaces autoplay and ani
 The standalone file requires no external assets or data.
 
 ## Content and design references
+
+The **Flashcards** content follows the instructor-supplied October 27, 2026 Modules 3–4 review handoff.
+The handoff itself is not redistributed.
+The page uses illustrative populations, reproducible resampling, supplied simulation counts, and model-based intervals; it does not contain exam items or student data.
+Its decision cards use the course's `p ≤ α` convention, and matched interval/test examples avoid endpoint equality.
+The standalone download includes all flashcards, styles, and visual controls without external dependencies.
 
 The **Tests & confidence intervals** visualization illustrates exact test inversion for a two-sided normal-mean test with known population SD 2, sample size 16, and fixed observed mean 5.
 Its sampling-distribution plot and candidate-mean strip share the same 0–10 scale, plot width, and margins; their moving candidate markers align vertically, and the fixed interval center aligns with the observed mean.

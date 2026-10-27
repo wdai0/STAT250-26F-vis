@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="52 interactive STAT 250 flashcards for sampling distributions, confidence intervals, and hypothesis testing.">
+  <title>Flashcards · STAT 250</title>
+  <!-- SHARED_THEME -->
+  <style>
+
+#stat250-concepts {
+  --review-bg: light-dark(#f5f7fa, #17212e);
+  --review-paper: light-dark(#ffffff, #202d3d);
+  --review-ink: light-dark(#1c3553, #e5edf8);
+  --review-text: light-dark(#33465d, #ced9e7);
+  --review-muted: light-dark(#607086, #a9bbd0);
+  --review-line: light-dark(#dce3ec, #405268);
+  --review-blue: light-dark(#416db4, #8eb6f1);
+  --review-blue-soft: light-dark(#eaf0f9, #2b3d55);
+  --review-warm: light-dark(#98633c, #dfb18f);
+  --review-warm-soft: light-dark(#f7f1eb, #3c332c);
+  --review-selected: light-dark(#1c3553, #d8e7fb);
+  --review-selected-text: light-dark(#ffffff, #1c3553);
+  color: var(--review-text); background: var(--review-bg);
+  font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  border-radius: 10px; overflow: clip;
+}
+#stat250-concepts * { box-sizing: border-box; }
+#stat250-concepts [hidden] { display: none !important; }
+#stat250-concepts h1, #stat250-concepts h2, #stat250-concepts h3, #stat250-concepts p { margin: 0; }
+#stat250-concepts button { font: inherit; cursor: pointer; }
+#stat250-concepts button:focus-visible, #stat250-concepts summary:focus-visible { outline: 3px solid var(--review-blue); outline-offset: 4px; }
+#stat250-concepts button:disabled { cursor: default; opacity: .48; }
+#stat250-concepts .review-chrome { padding: 21px 30px 0; background: var(--review-paper); border-bottom: 1px solid var(--review-line); }
+#stat250-concepts .review-brand { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-right: 0; }
+#stat250-concepts .review-brand strong { color: var(--review-ink); letter-spacing: .025em; }
+#stat250-concepts .review-brand > span { color: var(--review-muted); }
+#stat250-concepts .review-main { padding: 28px 30px 22px; }
+#stat250-concepts .review-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; color: var(--review-muted); }
+#stat250-concepts h1 { font-size: 29px; line-height: 1.2; letter-spacing: -.03em; color: var(--review-ink); margin-top: 8px; }
+#stat250-concepts .review-subtitle { margin-top: 9px; color: var(--review-muted); font-size: 14px; }
+#stat250-concepts .review-items { display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 8px; margin: 25px 0 22px; }
+#stat250-concepts .review-item { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border: 1px solid var(--review-line); border-radius: 7px; background: var(--review-paper); color: var(--review-text); text-align: left; font-size: 14px; }
+#stat250-concepts .review-item > span { font-size: 11px; opacity: .7; font-variant-numeric: tabular-nums; }
+#stat250-concepts .review-item[aria-pressed="true"] { border-color: var(--review-selected); color: var(--review-selected-text); background: var(--review-selected); }
+#stat250-concepts .review-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr); gap: 20px; align-items: stretch; }
+#stat250-concepts .review-flashcard { display: flex; flex-direction: column; padding: 26px; background: var(--review-paper); border: 1px solid var(--review-line); border-radius: 10px; min-width: 0; min-height: 398px; }
+#stat250-concepts .review-card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; color: var(--review-muted); font-size: 12px; }
+#stat250-concepts .review-card-top > span:first-child { text-transform: uppercase; font-weight: 650; font-size: 10px; letter-spacing: .12em; }
+#stat250-concepts .review-prompt { font-size: 25px; line-height: 1.35; letter-spacing: -.025em; color: var(--review-ink); margin: 24px 0 21px; font-weight: 600; }
+#stat250-concepts .review-recall { color: var(--review-muted); font-size: 14px; max-width: 27ch; }
+#stat250-concepts .review-answer { border-top: 1px solid var(--review-line); padding-top: 18px; margin-bottom: 22px; }
+#stat250-concepts .review-answer p { font-size: 18px; line-height: 1.6; }
+#stat250-concepts .review-answer .review-caution { font-size: 14px; margin-top: 14px; color: var(--review-muted); }
+#stat250-concepts .review-card-actions { margin-top: auto; padding-top: 26px; display: flex; gap: 10px; align-items: center; }
+#stat250-concepts .review-button { display: inline-flex; align-items: center; justify-content: center; min-height: 41px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--review-line); background: var(--review-paper); color: var(--review-ink); font-size: 13px; font-weight: 600; }
+#stat250-concepts .review-button:hover { background: var(--review-blue-soft); }
+#stat250-concepts .review-button-primary { background: var(--review-selected); color: var(--review-selected-text); border-color: var(--review-selected); }
+#stat250-concepts .review-button-primary:hover { opacity: .9; background: var(--review-selected); }
+#stat250-concepts .review-visual { padding: 21px 23px; border: 1px solid var(--review-line); border-radius: 10px; background: var(--review-paper); min-width: 0; }
+#stat250-concepts .review-visual-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+#stat250-concepts .review-visual h3 { font-size: 18px; line-height: 1.35; color: var(--review-ink); margin: 14px 0 4px; font-weight: 600; }
+#stat250-concepts .review-visual-caption { color: var(--review-muted); font-size: 12px; margin-bottom: 16px; }
+#stat250-concepts .review-sample-label { font-size: 12px; color: var(--review-muted); margin-top: 18px; }
+#stat250-concepts .review-sample { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-top: 9px; }
+#stat250-concepts .review-value { min-width: 35px; padding: 7px 8px; text-align: center; background: var(--review-blue-soft); border-radius: 5px; color: var(--review-ink); font-variant-numeric: tabular-nums; }
+#stat250-concepts .review-statistic { margin-top: 14px; display: flex; justify-content: space-between; align-items: baseline; gap: 6px; font-size: 14px; color: var(--review-ink); }
+#stat250-concepts .review-statistic strong { font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; }
+#stat250-concepts .review-svg { width: 100%; display: block; overflow: visible; }
+#stat250-concepts .review-svg text { fill: var(--review-muted); font-family: inherit; font-size: 11px; }
+#stat250-concepts .review-svg .review-axis { stroke: var(--review-line); stroke-width: 1; }
+#stat250-concepts .review-svg .review-dot { fill: var(--review-blue); }
+#stat250-concepts .review-svg .review-new { fill: var(--review-warm); }
+#stat250-concepts .review-svg .review-reference { stroke: var(--review-warm); stroke-width: 1.5; stroke-dasharray: 4 4; }
+#stat250-concepts .review-svg .review-mark-label { fill: var(--review-ink); font-size: 12px; }
+#stat250-concepts .review-visual-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+#stat250-concepts .review-visual-actions > span { font-size: 12px; color: var(--review-muted); }
+#stat250-concepts .review-mini-heading { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--review-ink); margin-top: 12px; }
+#stat250-concepts .review-shape-buttons { display: flex; gap: 7px; flex-wrap: wrap; margin: 12px 0 0; }
+#stat250-concepts .review-shape-buttons .review-button[aria-pressed="true"] { background: var(--review-selected); color: var(--review-selected-text); border-color: var(--review-selected); }
+#stat250-concepts .review-visual-note { color: var(--review-muted); font-size: 12px; margin-top: 10px; }
+#stat250-concepts .review-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-top: 20px; }
+#stat250-concepts .review-navigation { display: flex; gap: 8px; }
+#stat250-concepts .review-footer > span { color: var(--review-muted); font-size: 12px; }
+#stat250-concepts .review-notes { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--review-line); color: var(--review-muted); font-size: 12px; }
+#stat250-concepts .review-notes summary { cursor: pointer; width: fit-content; }
+#stat250-concepts .review-notes p { margin-top: 10px; max-width: 95ch; }
+@media (max-width: 750px) {
+  #stat250-concepts .review-grid { grid-template-columns: 1fr; }
+  #stat250-concepts .review-flashcard { min-height: 300px; }
+  #stat250-concepts .review-items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #stat250-concepts .review-brand { padding-right: 0; }
+}
+@media (max-width: 440px) {
+  #stat250-concepts .review-main { padding: 23px 15px 18px; }
+  #stat250-concepts .review-chrome { padding: 18px 15px 0; }
+  #stat250-concepts h1 { font-size: 25px; }
+  #stat250-concepts .review-prompt { font-size: 23px; }
+  #stat250-concepts .review-flashcard, #stat250-concepts .review-visual { padding: 20px; }
+  #stat250-concepts .review-brand { font-size: 14px; gap: 8px; }
+}
+
+
+
+#stat250-concepts .review-answer strong { color: var(--review-ink); font-weight: 750; }
+#stat250-concepts .review-answer em { color: var(--review-ink); }
+#stat250-concepts .review-topic-control { margin-top: 18px; padding-bottom: 18px; }
+#stat250-concepts .review-topic-control label { display: block; color: var(--review-muted); font-size: 12px; margin-bottom: 6px; }
+#stat250-concepts select { width: 100%; max-width: 540px; font: inherit; font-size: 15px; border: 1px solid var(--review-line); border-radius: 6px; padding: 10px; background: var(--review-paper); color: var(--review-ink); }
+#stat250-concepts select:focus-visible { outline: 3px solid var(--review-blue); outline-offset: 3px; }
+#stat250-concepts .review-table { border-collapse: collapse; width: 100%; table-layout: fixed; font-size: 14px; margin: 18px 0; }
+#stat250-concepts .review-table th, #stat250-concepts .review-table td { text-align: left; vertical-align: top; padding: 10px 6px; border-bottom: 1px solid var(--review-line); overflow-wrap: anywhere; }
+#stat250-concepts .review-table th { color: var(--review-ink); font-size: 12px; font-weight: 650; }
+#stat250-concepts .review-table .review-emphasis { background: var(--review-blue-soft); color: var(--review-ink); font-weight: 650; }
+#stat250-concepts .review-flow { display: grid; gap: 10px; margin: 20px 0; }
+#stat250-concepts .review-flow-step { padding: 13px 15px; background: var(--review-blue-soft); border-radius: 6px; color: var(--review-ink); }
+#stat250-concepts .review-flow-step small { display: block; color: var(--review-muted); font-size: 12px; margin-bottom: 4px; }
+#stat250-concepts .review-flow-step strong { font-size: 18px; font-weight: 650; }
+#stat250-concepts .review-equation { font-size: 24px; line-height: 1.45; color: var(--review-ink); padding: 17px 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+#stat250-concepts .review-population-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 7px; margin: 18px 0 10px; }
+#stat250-concepts .review-person { width: 100%; aspect-ratio: 1; max-width: 18px; border-radius: 50%; background: var(--review-line); justify-self: center; }
+#stat250-concepts .review-person.selected { background: var(--review-blue); }
+#stat250-concepts .review-person.group { border-radius: 2px; background: var(--review-warm); }
+#stat250-concepts .review-track { height: 17px; background: var(--review-blue-soft); margin: 9px 0; overflow: hidden; border-radius: 3px; }
+#stat250-concepts .review-fill { height: 100%; background: var(--review-blue); }
+#stat250-concepts .review-fill.warm { background: var(--review-warm); }
+#stat250-concepts .review-visual-controls { display: flex; gap: 7px; flex-wrap: wrap; margin: 15px 0; }
+#stat250-concepts .review-visual-controls button[aria-pressed="true"] { background: var(--review-selected); border-color: var(--review-selected); color: var(--review-selected-text); }
+#stat250-concepts .review-key { padding: 13px 15px; border-left: 3px solid var(--review-warm); background: var(--review-warm-soft); color: var(--review-ink); margin-top: 16px; font-size: 14px; }
+#stat250-concepts .review-detail { font-size: 13px; color: var(--review-muted); margin: 10px 0; }
+#stat250-concepts .review-svg .review-interval { stroke: var(--review-blue); stroke-width: 3; }
+#stat250-concepts .review-svg .review-miss { stroke: var(--review-warm); stroke-width: 3; stroke-dasharray: 4 3; }
+#stat250-concepts .review-svg .review-curve { stroke: var(--review-blue); stroke-width: 2; fill: none; }
+#stat250-concepts .review-svg .review-area { fill: var(--review-warm); opacity: .32; }
+#stat250-concepts .review-source-line { line-height: 1.55; }
+#stat250-concepts .review-card-top #review-count { white-space: nowrap; }
+#stat250-concepts .review-items { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#stat250-concepts .review-items[data-count="3"], #stat250-concepts .review-items[data-count="6"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 750px) { #stat250-concepts .review-items, #stat250-concepts .review-items[data-count] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 440px) { #stat250-concepts .review-table { font-size: 12px; } #stat250-concepts .review-table th, #stat250-concepts .review-table td { padding: 8px 4px; } }
+
+body { margin: 0; }
+#stat250-concepts { max-width: 1240px; margin: 0 auto; }
+.flashcards-credit { max-width: 1180px; margin: 0 auto; padding: 0 24px 24px; }
+
+  </style>
+</head>
+<body>
+<div id="stat250-concepts">
+  <header class="review-chrome">
+    <div class="review-brand"><strong>STAT 250</strong><span>/</span><span>Flashcards</span></div>
+    <div class="review-topic-control"><label for="review-topic">Review topic</label><select id="review-topic"></select></div>
+  </header>
+  <main class="review-main">
+    <div class="review-eyebrow" id="review-module">Module 3 · Sampling distributions and confidence intervals</div>
+    <h1 id="review-topic-title">Parameters and statistics</h1>
+    <p class="review-subtitle" id="review-subtitle">Population targets and sample evidence.</p>
+    <nav class="review-items" id="review-items" aria-label="Concept cards"></nav>
+    <div class="review-grid">
+      <section class="review-flashcard" aria-labelledby="review-prompt">
+        <div class="review-card-top"><span>Recall the concept</span><span id="review-count"></span></div>
+        <h2 class="review-prompt" id="review-prompt"></h2>
+        <p class="review-recall" id="review-recall">Put it into words before revealing the answer.</p>
+        <div class="review-answer" id="review-answer" hidden aria-live="polite"><p id="review-answer-text"></p><p class="review-caution" id="review-caution"></p></div>
+        <div class="review-card-actions"><button type="button" class="review-button review-button-primary" id="review-reveal" aria-expanded="false" aria-controls="review-answer">Reveal answer</button></div>
+      </section>
+      <section class="review-visual" aria-labelledby="review-visual-title">
+        <div class="review-visual-top"><span class="review-eyebrow">See this concept</span></div>
+        <h3 id="review-visual-title"></h3>
+        <p class="review-visual-caption" id="review-visual-caption"></p>
+        <div id="review-visual-content"></div>
+      </section>
+    </div>
+    <footer class="review-footer"><span id="review-footer-label"></span><div class="review-navigation"><button type="button" class="review-button" id="review-prev">← Previous</button><button type="button" class="review-button" id="review-next">Next concept →</button></div></footer>
+    <details class="review-notes"><summary>Model notes</summary><p id="review-source-line" class="review-source-line"></p><p>These 52 flashcards cover 13 topics from STAT 250 Modules 3–4. Numerical scenarios are illustrative teaching examples.</p><p>Sampling-distribution examples use independent draws with replacement from values 0, 2, and 10, with probabilities 0.50, 0.30, and 0.20; μ = 2.6 and σ = 3.8. Simulation plots are reproducible. The bootstrap example resamples the five records 2, 4, 4, 6, 9. Percentiles use linear interpolation. Null curves are explicitly illustrative Normal models; they do not add formal z- or t-test calculations to the review.</p><p>Decision cards use the course convention: reject when p-value ≤ α. Interval/test examples use matched two-sided procedures and avoid equality at endpoints.</p></details>
+  </main>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const root=document.getElementById('stat250-concepts');
+  const find=id=>root.querySelector('#'+id);
+  const C=(label,prompt,answer,caution,visual,title,caption)=>({label,prompt,answer,caution,visual,title,caption});
+  const topics=[
+    {id:'parameters',module:3,title:'Parameters and statistics',subtitle:'Population targets and sample evidence.',cards:[
+      C('Population & sample','How do a population and a sample differ?','The <strong>population</strong> is the full group of interest. The <strong>sample</strong> is the subset actually observed. Define both in the context of the research question.','A sample is not automatically representative just because it is large.','population','The group and the observed subset','Illustration: a campus population and a sample of students.'),
+      C('Parameter & statistic','What stays fixed, and what changes from sample to sample?','A <strong>parameter</strong> describes the population and is <strong>fixed, usually unknown</strong>. A <strong>statistic</strong> is calculated from a sample and varies across repeated samples.','The observed statistic is a point estimate of the parameter; it is not the known population truth.','parameter','One target, several estimates','Illustrative population proportion and three possible samples.'),
+      C('Notation','How does the variable determine the parameter and statistic?','Use a <strong>mean</strong> for a quantitative variable and a <strong>proportion</strong> for a categorical outcome. For two groups, use a <strong>difference</strong> and keep the same group order.','Describe the population and outcome in words before choosing a symbol.','notation','Match the target to the notation','Population quantities and their corresponding sample statistics.'),
+      C('Differences','How should a difference in proportions be interpreted?','Subtract in the stated order: <strong>p̂₁ − p̂₂</strong>. A difference of 0.15 means <strong>15 percentage points</strong>, not a 15% relative increase.','Reversing the groups reverses the sign. A percentage-point difference and a relative percentage change answer different questions.','difference','Keep A − B in the same order','Illustrative sample proportions: A = 65%, B = 50%.')
+    ]},
+    {id:'sampling',module:3,title:'Sampling distributions',subtitle:'What varies from sample to sample?',cards:[
+      C('One dot','What does one dot in a sampling distribution represent?','<strong>One statistic from one entire sample.</strong> Repeat the <em>same sampling process</em> at the <em>same sample size</em>, and compute the same statistic each time.','An individual observation belongs in a data distribution; a sample statistic belongs in a sampling distribution.','sample-dot','From one sample to one dot','Five observations become one sample mean.'),
+      C('Center','Where should the sampling distribution be centered?','For an <strong>unbiased estimator</strong> under the stated model, it is centered at the <strong>population parameter</strong>: μ for sample means, or p for sample proportions.','The population parameter stays fixed. Individual sample statistics vary around it.','sampling-center','A fixed target, varying estimates','Each dot is the mean of a sample of 25 observations.'),
+      C('Standard error','What does standard error measure?','<strong>Standard error</strong> is the <strong>standard deviation of the sampling distribution</strong>. It measures how much a statistic varies from sample to sample.','Individual-data SD and statistic SE describe different spreads.','sampling-se','The spread of sample means','Same population and horizontal scale; different sample sizes.'),
+      C('Shape','Is a sampling distribution always bell-shaped?','<strong>No.</strong> Shape depends on the <strong>population, statistic, and sample size</strong>. Under suitable independent-sampling conditions, sample means become more nearly Normal as sample size grows.','This does not make the original data Normal. No universal sample-size cutoff guarantees Normality.','sampling-shape','Larger samples, a different shape','The population stays fixed while sample size changes.')
+    ]},
+    {id:'sampling-methods',module:3,title:'Sampling methods and sample size',subtitle:'Distinguish precision from a trustworthy sampling process.',cards:[
+      C('Random sampling','What does random sampling support?','<strong>Random sampling</strong> supports inference to the population represented by the sampling design. Even a random sample can differ from that population through <strong>sampling variability</strong>.','Undercoverage, nonresponse, voluntary response, and poor measurement can still undermine the intended inference.','sampling-design','Start with the sampling process','How the observations are obtained matters.'),
+      C('Bias & size','Can a larger sample remove sampling bias?','A larger sample generally improves <strong>precision</strong> under a comparable valid design. It does <strong>not automatically remove bias</strong>.','A biased process can produce a very narrow estimate around the wrong target.','bias','Precise can still be off target','Schematic repeated estimates; the target is fixed.'),
+      C('SE & n','What happens to SE when sample size is quadrupled?','In the usual independent mean and proportion settings, <strong>SE scales as 1/√n</strong> when other features are fixed. <strong>Four times n halves SE.</strong>','This relationship describes sampling uncertainty under the model; it does not repair the sampling design.','se-rate','Four times the data, half the SE','Independent means with fixed population SD = 4.'),
+      C('Sampling vs assignment','Do random sampling and random assignment have the same purpose?','<strong>Random sampling</strong> supports population <strong>generalization</strong>. <strong>Random assignment</strong> supports <strong>causal comparisons</strong> under appropriate experimental conditions.','Randomly assigning volunteers does not turn them into a random sample of the population.','assignment','Two distinct roles for randomness','How participants enter a study differs from how treatments are assigned.')
+    ]},
+    {id:'confidence-intervals',module:3,title:'Confidence intervals',subtitle:'Identify the target, then read the interval.',cards:[
+      C('The target','What does a confidence interval estimate?','A confidence interval estimates a <strong>population parameter</strong> while expressing <strong>sampling uncertainty</strong>. It gives a range of plausible values under the method’s assumptions.','A confidence interval for a mean is not a range intended to contain most individual observations.','ci-target','An interval for a population quantity','Illustration: the population proportion using a campus service.'),
+      C('Construction','How is a common symmetric confidence interval constructed?','Use <strong>estimate ± margin of error</strong>. Subtract the margin to get the lower endpoint, and add it to get the upper endpoint.','Keep the parameter’s scale and units throughout the calculation.','ci-construction','Build outward from the estimate','Estimate = 0.60; margin of error = 0.06.'),
+      C('Center & width','How do center, margin of error, and total width differ?','For a <strong>symmetric interval</strong> (L, U), center = <strong>(L + U)/2</strong>, margin of error = <strong>(U − L)/2</strong>, and total width = <strong>U − L</strong>.','The midpoint recovers the original estimate only for an interval constructed symmetrically around it.','ci-parts','A half-width and a full width','The same interval, measured three ways.'),
+      C('Units & order','How should an interval for a difference be read?','Identify the <strong>population difference</strong>, preserve the <strong>group order</strong>, and use the correct <strong>units</strong>. An all-positive A − B interval indicates that A is larger.','A difference in proportions is measured in percentage points; a difference in means retains the variable’s units.','ci-difference','The sign follows the group order','Illustrative 95% interval for pA − pB: (0.04, 0.12).')
+    ]},
+    {id:'margin-of-error',module:3,title:'Margin of error and the 95% rule',subtitle:'Use the approximation with its conditions.',cards:[
+      C('Two SEs','What is the approximate 95% interval rule?','For an approximately Normal sampling-error distribution with appropriate SE and little bias, <strong>margin of error ≈ 2 × SE</strong>, so the interval is <strong>statistic ± 2 × SE</strong>.','The multiplier 2 is approximate, not a universal rule for every statistic or confidence level.','two-se','From standard error to endpoints','Given p̂ = 0.60 and SE = 0.03.'),
+      C('MOE vs width','If the margin of error is about 2 SE, what is the total width?','The margin of error is a <strong>half-width</strong>. With this rule, <strong>MOE ≈ 2 SE</strong> and <strong>total width ≈ 4 SE</strong>.','Apply the multiplier to SE, not to the statistic or the SD of individual observations.','moe-width','One SE, one margin, one full width','Given SE = 0.03; all lengths are on the proportion scale.'),
+      C('Confidence & precision','What makes a confidence interval wider or narrower?','With method and other conditions fixed, <strong>smaller SE gives a narrower interval</strong>. With data and method fixed, <strong>higher confidence generally gives a wider interval</strong>.','More confidence and more precision are different goals.','ci-width','Hold the data fixed; change confidence','Illustrative Normal intervals, all centered at 0.60 with SE = 0.03.')
+    ]},
+    {id:'bootstrap',module:3,title:'Bootstrap methods',subtitle:'Use the observed sample to model repeated sampling.',cards:[
+      C('Resample','How is an ordinary one-sample bootstrap resample formed?','Draw <strong>with replacement</strong> from the observed records, using the <strong>original sample size</strong>. Compute the same statistic and repeat many times.','A record may appear more than once or be absent. Sampling the whole sample without replacement merely reorders it.','bootstrap-resample','The same records can appear again','Original sample: five observations.'),
+      C('Dots & SE','What do the center and spread of a bootstrap distribution represent?','One dot is <strong>one bootstrap statistic</strong>. For means and proportions, the center is near the <strong>observed sample statistic</strong>. The SD of bootstrap statistics <strong>estimates SE</strong>.','An estimation bootstrap is not constructed by imposing a null hypothesis.','bootstrap-distribution','Resample → mean → one dot','600 resamples, each of size 5; original mean = 5.'),
+      C('Two methods','How do a bootstrap-SE interval and a percentile interval differ?','A <strong>bootstrap-SE interval</strong> uses the original statistic and estimated SE. A <strong>percentile interval</strong> takes endpoints directly from percentiles of the bootstrap statistics.','Percentile endpoints need not be symmetric around the original statistic.','bootstrap-methods','Two routes from the same resamples','An approximate 95% SE interval and a 95% percentile interval.'),
+      C('Percentiles','Which bootstrap percentiles form a 95% percentile interval?','Keep the <strong>middle 95%</strong>, leaving <strong>2.5% in each tail</strong>. Use the <strong>2.5th and 97.5th percentiles</strong> of the bootstrap statistics.','Use bootstrap-statistic percentiles, not raw-data percentiles.','bootstrap-percentiles','Allocate the two tails','Change the confidence level to see the endpoint percentiles.'),
+      C('More resamples','Does increasing the number of bootstrap replicates create more original data?','<strong>No.</strong> More replicates stabilize the computed SE and endpoints. They do <strong>not increase the original sample size</strong> or remove its uncertainty or selection bias.','Distinguish n, the original sample size, from B, the number of bootstrap replicates.','bootstrap-replicates','n and B have different jobs','One observed sample, many resamples from that sample.'),
+      C('Sampling units','What must be preserved when bootstrapping groups or paired data?','Resample the <strong>appropriate observational units</strong>. For independent groups, resample <strong>within each group</strong>. For paired records, <strong>keep each pair together</strong>.','Keep the group order consistent when computing a difference.','bootstrap-units','Preserve the study structure','The resampling unit must match the design.')
+    ]},
+    {id:'interpretation',module:3,title:'Interpreting confidence intervals',subtitle:'A fixed parameter and a procedure that varies across samples.',cards:[
+      C('One interval','What belongs in a confidence-interval interpretation?','State the <strong>confidence level</strong>, <strong>endpoints</strong>, <strong>population</strong>, and <strong>population parameter</strong>. “We are 95% confident this interval captures the population proportion …”','Do not interpret the endpoints as a range for individual outcomes.','interpret-interval','Give the endpoints their meaning','Illustrative interval for all students at a defined campus.'),
+      C('Confidence level','What does a 95% confidence level mean?','Under the method’s assumptions, <strong>about 95% of intervals from repeated samples</strong> would contain the <strong>fixed population parameter</strong>.','The confidence level describes the long-run procedure; the parameter does not move between intervals.','coverage','Intervals vary; the parameter stays fixed','40 intervals from a model with true mean 0 and known SE = 1.'),
+      C('After observing','After an interval is calculated, is there a 95% probability that the fixed parameter lies in it?','In the frequentist interpretation, the realized interval <strong>either contains the fixed parameter or does not</strong>. The 95% describes the <strong>procedure’s repeated-sampling coverage</strong>.','It is not a probability assigned to the fixed parameter in this one realized interval.','coverage-one','Look at one realized interval','The truth is known in this teaching model, but usually unknown in practice.'),
+      C('Finite collections','Must exactly 95 out of every 100 intervals capture the parameter?','<strong>No.</strong> Actual coverage in a finite collection <strong>varies</strong>. The confidence level is a <strong>long-run rate</strong>, not a quota for each group of intervals.','Neither 95% of observations nor 95% of parameters is the intended interpretation.','coverage-batches','Different batches, the same method','Each batch contains 100 independently generated 95% intervals.')
+    ]},
+    {id:'hypotheses',module:4,title:'Statistical hypotheses',subtitle:'State a population claim before looking at the result.',cards:[
+      C('Population claim','What quantity should hypotheses describe?','Hypotheses concern <strong>population parameters</strong>, such as μ or p, <strong>not observed sample statistics</strong> such as x̄ or p̂.','Define the population parameter in words before writing the symbols.','hypothesis-parameter','A population claim and sample evidence','Claim: more than half of all campus students use the service.'),
+      C('Null benchmark','What role does the null hypothesis play?','The introductory null-reference calculation uses a <strong>specified equality benchmark</strong>: for example, <strong>H₀: p = 0.50</strong> or <strong>H₀: μA − μB = 0</strong>.','The observed sample statistic is not automatically the null value.','hypothesis-null','The benchmark is specified first','A no-difference claim uses zero even if the sample difference is nonzero.'),
+      C('Alternative','How is the alternative hypothesis chosen?','Use the <strong>research question</strong>: “greater” gives <strong>&gt;</strong>, “less” gives <strong>&lt;</strong>, and “different” gives <strong>≠</strong>. Choose it <strong>before examining the result</strong>.','Do not choose a one-sided direction just because the sample estimate has that sign.','hypothesis-direction','Translate the question into a direction','Use a population parameter and a prespecified benchmark.'),
+      C('Group order','Why must group order stay the same?','The sign of a difference depends on the <strong>subtraction order</strong>. If the parameter is <strong>μA − μB</strong>, “A is larger” means a <strong>positive</strong> difference.','Changing to B − A requires reversing the direction as well.','hypothesis-order','The same claim, two equivalent orders','A higher mean in A can be written consistently in either order.')
+    ]},
+    {id:'p-values',module:4,title:'P-values',subtitle:'Measure extremeness under the null model.',cards:[
+      C('Meaning','What does a p-value measure?','<strong>Assuming the null model and study assumptions</strong>, it is the probability of a statistic <strong>at least as extreme as observed</strong> in the direction or directions specified by the alternative.','Include “assuming H₀” and “at least as extreme”; it is not just the probability of exactly the observed result.','p-meaning','Condition on the null, then look outward','An observed statistic defines the cutoff for extremeness.'),
+      C('Tails','What determines the reference distribution, tails, and cutoff?','The <strong>null</strong> determines the reference distribution. The <strong>alternative</strong> determines the tail or tails. The <strong>observed statistic</strong> determines the cutoff.','Choose the tail from the prespecified alternative, not simply from the observed sign.','p-tails','Same observation, different alternatives','Illustrative Normal null: center 0, SD 1; observed statistic 1.6.'),
+      C('Simulation fraction','How is a p-value estimated from supplied null-simulation counts?','Use <strong>qualifying null simulations ÷ total null simulations</strong>. Under the course’s raw-fraction convention, 30 qualifying outcomes out of 1,000 give <strong>0.03</strong>.','The denominator is the simulation count, not the original sample size. Plot estimates are approximate unless counts are supplied.','p-count','Count the qualifying simulations','Supplied illustrative counts, not a count inferred from a picture.'),
+      C('What it is not','Does a p-value give the probability that H₀ is true?','<strong>No.</strong> It describes the data’s extremeness <strong>under H₀</strong>. Smaller p-values indicate greater <strong>incompatibility with the null model</strong>.','It is not the probability that H₀ is true, that the decision is wrong, or that “chance caused” the result.','p-not','Keep the condition in the right place','A probability under a hypothesis is different from a probability of that hypothesis.')
+    ]},
+    {id:'randomization',module:4,title:'Randomization distributions',subtitle:'Generate a reference distribution by imposing the null.',cards:[
+      C('Generate under H₀','How is a randomization distribution generated?','Impose the <strong>null model</strong>, then repeatedly simulate or reassign and calculate the same statistic. In a suitable two-group design, <strong>shuffle assignments while retaining group sizes</strong>.','The mechanism must fit the design. Not every problem permits the same shuffle.','randomization-shuffle','Keep outcomes; reassign group labels','Illustrative randomized experiment: two groups of three.'),
+      C('Center','Is every null-reference distribution centered at zero?','<strong>No.</strong> A no-difference distribution is centered near <strong>zero</strong>. A one-mean or one-proportion null is centered near its <strong>specified benchmark</strong>, which may be nonzero.','The observed statistic is not the required center of the null distribution.','randomization-center','Use the benchmark from H₀','The parameter determines the meaningful null value.'),
+      C('One dot & tails','What is one randomization dot, and how is it used?','One dot is a <strong>statistic from one null-generated dataset or reassignment</strong>. Compare the observed statistic with outcomes <strong>at least as extreme</strong> under the chosen rule.','For a symmetric null with an absolute-distance rule, count both directions for a two-sided test. “Double one tail” is not universal.','randomization-dots','One reassignment, one difference','All 20 equally likely allocations of six outcomes into groups of three.'),
+      C('Bootstrap vs null','How does a randomization distribution differ from an estimation bootstrap?','A <strong>bootstrap</strong> resamples the observed records to estimate <strong>uncertainty</strong>. A <strong>null distribution</strong> imposes H₀ to evaluate <strong>extremeness</strong>.','Similar-looking plots can have different construction rules, centers, and purposes.','distribution-comparison','Name the process before reading the plot','Compare what one mark means and why it was generated.')
+    ]},
+    {id:'decisions',module:4,title:'Statistical decisions and conclusions',subtitle:'Compare with α, then state the evidence in context.',cards:[
+      C('Decision rule','How does a p-value lead to a decision?','Choose <strong>α before seeing the result</strong>. Following the course convention: if <strong>p-value ≤ α, reject H₀</strong>; otherwise <strong>fail to reject H₀</strong>.','The significance level is a chosen threshold; the p-value is calculated from the data and model.','decision-rule','One threshold, two possible decisions','Hold α = 0.05 fixed and compare two example p-values.'),
+      C('Reject','What should a rejection conclusion say?','Report <strong>statistically significant evidence for the alternative</strong>, with the <strong>population claim in context</strong>, under the method’s assumptions.','Rejecting H₀ does not prove that Hₐ is true.','decision-reject','Connect the decision to the research question','H₀: p = 0.50; Hₐ: p > 0.50; α = 0.05.'),
+      C('Fail to reject','What does failure to reject mean?','There is <strong>insufficient evidence for the alternative</strong> at the chosen significance level. It is <strong>not proof of equality or no effect</strong>.','Use “fail to reject,” rather than “accept” or “prove,” the null hypothesis.','decision-fail','Lack of evidence is not proof of the null','Same population question; a different illustrative p-value.'),
+      C('Beyond significance','What does statistical significance fail to establish by itself?','Statistical significance alone does not establish <strong>effect size</strong>, <strong>practical importance</strong>, <strong>causality</strong>, or <strong>population generalizability</strong>.','Read the estimated effect and interval, and check how the data were collected.','decision-limits','Different claims need different support','A small p-value cannot answer every substantive question.')
+    ]},
+    {id:'errors',module:4,title:'Significance levels and errors',subtitle:'Compare the decision with the actual truth.',cards:[
+      C('Type I','What is a Type I error?','A <strong>Type I error</strong> means <strong>rejecting a true null hypothesis</strong>: a false alarm. Both the decision and the truth condition are needed.','A rejection is only a possible Type I error if the truth is unknown.','type-one','Truth: H₀ is true · Decision: reject','Scenario: conclude the service-use proportion exceeds 50% when it actually equals 50%.'),
+      C('Type II','What is a Type II error?','A <strong>Type II error</strong> means <strong>failing to reject a false null hypothesis</strong>: missing an effect. Both the decision and the truth condition are needed.','A failure to reject is not automatically an error; it can be the correct decision when H₀ is true.','type-two','Truth: H₀ is false · Decision: fail to reject','Scenario: fail to find evidence of an increase when the true service-use proportion exceeds 50%.'),
+      C('Significance level','What does α control?','Under valid repeated use, α <strong>controls the long-run Type I error rate</strong>. It is <strong>not the probability that this particular decision is wrong</strong>.','For a conservative test the actual Type I rate can be below α. A finite batch need not match the nominal rate exactly.','alpha','Condition on a true null hypothesis','A calibrated 5% test: expected false alarms per 1,000 uses with H₀ true.'),
+      C('The trade-off','What changes when α is made smaller?','A smaller α makes <strong>rejection harder</strong>. With the design and true effect fixed, it generally lowers false alarms but <strong>increases the chance of missing an effect</strong>.','The trade-off compares repeated decisions under specified truth conditions; it does not reveal whether this decision is wrong.','error-tradeoff','Hold the design and effect fixed','Illustrative one-sided Normal model: null mean 0, true alternative mean 2, SD 1.')
+    ]},
+    {id:'intervals-tests',module:4,title:'Confidence intervals and tests',subtitle:'Match the parameter, method, confidence level, and test direction.',cards:[
+      C('Match the levels','When can a confidence interval be used for a hypothesis-test decision?','Use a <strong>matched two-sided test and interval</strong>. A <strong>100(1 − α)%</strong> interval corresponds to level <strong>α</strong>; a matched 95% interval goes with a two-sided 5% test.','A 95% two-sided interval does not automatically match a 5% one-sided test, or an unrelated simulation method.','duality-levels','Matching confidence and significance','Same parameter, method, and endpoint convention.'),
+      C('The null value','How does the location of the null value determine the decision?','A null value <strong>outside the matched interval</strong> leads to <strong>rejection</strong>. A value in its <strong>nonrejection confidence set</strong> leads to <strong>failure to reject</strong>, with the same endpoint convention.','Containing zero does not establish that the true difference is exactly zero. These examples avoid boundary equality.','duality-interval','Where is zero relative to the interval?','Matched 95% intervals for pA − pB and two-sided tests at α = 0.05.'),
+      C('Magnitude & direction','What does an interval add beyond a reject/fail-to-reject decision?','An interval shows <strong>plausible magnitudes and direction</strong> for the parameter. A test assesses evidence against <strong>one specified benchmark</strong>.','For A − B, an all-positive interval indicates A is larger; an all-negative interval indicates A is smaller.','duality-information','Evidence and size answer different questions','An illustrative matched interval for a population proportion difference.')
+    ]}
+  ];
+  let topicIndex=0, cardIndex=0, revealed=false, settings={};
+  let currentSample=[0,2,0,10,2], extraMeans=[], randomSeed=250;
+  let bootstrapSample=[2,2,4,9,9], shuffled=[2,4,5,7,8,10];
+  const mean=values=>values.reduce((a,b)=>a+b,0)/values.length;
+  const sd=values=>{const center=mean(values);return Math.sqrt(values.reduce((sum,x)=>sum+(x-center)**2,0)/(values.length-1));};
+  const quantile=(values,p)=>{const s=[...values].sort((a,b)=>a-b),i=(s.length-1)*p,j=Math.floor(i);return s[j]+(s[Math.min(j+1,s.length-1)]-s[j])*(i-j);};
+  function rng(initialSeed){let s=initialSeed;return()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296;};}
+  function random(){randomSeed=(Math.imul(randomSeed,1664525)+1013904223)>>>0;return randomSeed/4294967296;}
+  const observation=r=>{const u=r();return u<.5?0:u<.8?2:10;};
+  function sampleMeans(n,count,seed=250){const r=rng(seed);return Array.from({length:count},()=>mean(Array.from({length:n},()=>observation(r))));}
+  function normals(count,seed=250){const r=rng(seed);return Array.from({length:count},()=>Math.sqrt(-2*Math.log(1-r()))*Math.cos(2*Math.PI*r()));}
+  function bootstrapMeans(count){const r=rng(3250),original=[2,4,4,6,9];return Array.from({length:count},()=>mean(Array.from({length:5},()=>original[Math.floor(r()*5)])));}
+  const boot=bootstrapMeans(600), bootSE=sd(boot), bootLow=quantile(boot,.025), bootHigh=quantile(boot,.975);
+  const nullValues=[2,4,5,7,8,10], nullDifferences=[];
+  for(let a=0;a<4;a++)for(let b=a+1;b<5;b++)for(let c=b+1;c<6;c++)nullDifferences.push((2*(nullValues[a]+nullValues[b]+nullValues[c])-36)/3);
+  const normalCDF=x=>{const sign=x<0?-1:1,z=Math.abs(x)/Math.sqrt(2),t=1/(1+.3275911*z);const erf=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-z*z);return (1+sign*erf)/2;};
+  const fmt=(x,digits=2)=>Number(x).toFixed(digits).replace(/^-0\.00$/,'0.00');
+  const content=()=>find('review-visual-content');
+  const html=markup=>{content().innerHTML=markup;};
+  const table=(headers,rows)=>'<table class="review-table"><thead><tr>'+headers.map(x=>'<th scope="col">'+x+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+  const flow=steps=>'<div class="review-flow">'+steps.map(([label,value])=>'<div class="review-flow-step"><small>'+label+'</small><strong>'+value+'</strong></div>').join('')+'</div>';
+  const note=text=>'<p class="review-visual-note">'+text+'</p>';
+  const key=text=>'<div class="review-key">'+text+'</div>';
+  const plotBox=id=>'<div id="'+id+'"></div>';
+  function options(id,items,selected,change){
+    const host=find(id);
+    for(const [value,label] of items){const button=document.createElement('button');button.type='button';button.className='review-button';button.textContent=label;button.dataset.choice=String(value);button.setAttribute('aria-pressed',String(value===selected));button.addEventListener('click',()=>{change(value);drawVisual();find(id).querySelector('[data-choice="'+value+'"]').focus();});host.append(button);}
+  }
+  function setting(name,allowed,fallback){return allowed.includes(settings[name])?settings[name]:fallback;}
+  const SVG='http://www.w3.org/2000/svg';
+  function svgNode(tag,attrs={},text){const n=document.createElementNS(SVG,tag);Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,String(v)));if(text!==undefined)n.textContent=String(text);return n;}
+  function canvas(id,height,summary){const host=find(id),width=Math.max(210,host.getBoundingClientRect().width);const svg=svgNode('svg',{viewBox:`0 0 ${width} ${height}`,class:'review-svg',role:'img','aria-label':summary});host.replaceChildren(svg);return {svg,width,height};}
+  function axis(svg,width,y,domain,label,ticks){
+    const left=25,right=25,x=v=>left+(v-domain[0])/(domain[1]-domain[0])*(width-left-right);
+    svg.append(svgNode('line',{x1:left,x2:width-right,y1:y,y2:y,class:'review-axis'}));
+    ticks=ticks||Array.from({length:4},(_,i)=>domain[0]+i*(domain[1]-domain[0])/3);
+    for(const value of ticks)svg.append(svgNode('text',{x:x(value),y:y+18,'text-anchor':'middle'},Math.abs(value)<1e-10?'0':Number(value.toFixed(2))));
+    svg.append(svgNode('text',{x:width/2,y:y+36,'text-anchor':'middle',class:'axis-title','data-axis':'x'},label));
+    return x;
+  }
+  function dotPlot(id,values,{domain=[0,10],label='Sample mean',height=165,reference=null,highlight=()=>false,peak=0,summary='One dot represents one statistic.'}={}){
+    const {svg,width}=canvas(id,height,summary),baseline=height-44,x=axis(svg,width,baseline,domain,label);
+    const binWidth=(domain[1]-domain[0])/35,bins=new Map();
+    const points=values.map((value,i)=>{const bin=Math.round((value-domain[0])/binWidth),row=bins.get(bin)||0;bins.set(bin,row+1);return {value,row,i};});
+    const spacing=Math.min(8,(baseline-35)/Math.max(1,peak,...bins.values()));
+    const radius=Math.min(3,spacing*.43);
+    if(reference!==null){svg.append(svgNode('line',{x1:x(reference),x2:x(reference),y1:28,y2:baseline,class:'review-reference'}));svg.append(svgNode('text',{x:x(reference),y:17,'text-anchor':'middle',class:'review-mark-label'},'Reference '+Number(reference.toFixed(2))));}
+    for(const {value,row,i} of points)svg.append(svgNode('circle',{cx:x(value),cy:baseline-5-row*spacing,r:highlight(value,i)?Math.max(radius,3.5):radius,class:highlight(value,i)?'review-new':'review-dot',opacity:highlight(value,i)?1:.75}));
+  }
+  function intervals(id,rows,{domain=[0,1],label='Population proportion',reference=null}={}){
+    const height=rows.length*66+48,{svg,width}=canvas(id,height,rows.map(r=>`${r.name}: ${r.lo} to ${r.hi}`).join('; ')),base=height-42,x=axis(svg,width,base,domain,label);
+    if(reference!==null)svg.append(svgNode('line',{x1:x(reference),x2:x(reference),y1:8,y2:base,class:'review-reference'}));
+    rows.forEach((r,i)=>{const y=26+i*66;svg.append(svgNode('text',{x:25,y:y-10,class:'review-mark-label'},r.name));svg.append(svgNode('line',{x1:x(r.lo),x2:x(r.hi),y1:y+8,y2:y+8,class:'review-interval'}));
+      [r.lo,r.hi].forEach(v=>{svg.append(svgNode('line',{x1:x(v),x2:x(v),y1:y+2,y2:y+14,class:'review-interval'}));svg.append(svgNode('text',{x:x(v),y:y+29,'text-anchor':'middle'},fmt(v,2)));});
+      if(r.point!==undefined)svg.append(svgNode('circle',{cx:x(r.point),cy:y+8,r:4,class:'review-new'}));
+    });
+  }
+  function curve(id,{tail='right',observed=1.6,mu=0,sigma=1,domain=[-4,4],label='Statistic (illustrative units)',height=220}={}){
+    const {svg,width}=canvas(id,height,`Illustrative Normal null distribution centered at ${mu}. ${tail} tail rule; observed statistic ${observed}.`),base=height-45,x=axis(svg,width,base,domain,label),top=30;
+    const density=v=>Math.exp(-.5*((v-mu)/sigma)**2),y=v=>base-density(v)*(base-top);
+    const points=Array.from({length:161},(_,i)=>domain[0]+(domain[1]-domain[0])*i/160);
+    function fill(from,to){if(to<=from)return;const vals=[from,...points.filter(v=>v>from&&v<to),to];const d=`M ${x(from)} ${base} `+vals.map(v=>`L ${x(v)} ${y(v)}`).join(' ')+` L ${x(to)} ${base} Z`;svg.append(svgNode('path',{d,class:'review-area'}));}
+    if(tail==='right')fill(observed,domain[1]);
+    if(tail==='left')fill(domain[0],observed);
+    if(tail==='two'){const d=Math.abs(observed-mu);fill(domain[0],mu-d);fill(mu+d,domain[1]);}
+    svg.append(svgNode('path',{d:points.map((v,i)=>`${i?'L':'M'} ${x(v)} ${y(v)}`).join(' '),class:'review-curve'}));
+    svg.append(svgNode('line',{x1:x(observed),x2:x(observed),y1:25,y2:base,class:'review-reference'}));
+    svg.append(svgNode('text',{x:x(observed),y:16,'text-anchor':'middle',class:'review-mark-label'},'Observed '+observed));
+  }
+  function bar(label,value,{warm=false,total=1}={}){return `<div class="review-mini-heading"><span>${label}</span><span>${fmt(value*100,1)}%</span></div><div class="review-track"><div class="review-fill${warm?' warm':''}" style="width:${value/total*100}%"></div></div>`;}
+  function people(selected,group=[]){return '<div class="review-population-grid" role="img" aria-label="60 schematic population units; '+selected.length+' selected for the sample.">'+Array.from({length:60},(_,i)=>'<span aria-hidden="true" class="review-person'+(selected.includes(i)?' selected':'')+(group.includes(i)?' group':'')+'"></span>').join('')+'</div>';}
+  function sampleChips(values){return '<div class="review-sample">'+values.map(value=>'<span class="review-value">'+value+'</span>').join('')+'</div>';}
+  const visuals={
+    population(){html(people([1,5,8,14,19,23,29,34,41,47,53,58])+flow([['Population','All students at the defined campus'],['Sample','The students actually surveyed']])+note('Filled dots mark the observed subset. The diagram is schematic.'));},
+    parameter(){html(flow([['Population target · fixed in this illustration','p = 0.60']])+table(['Sample','Observed statistic'],[['Sample 1','p̂ = 0.52'],['Sample 2','p̂ = 0.64'],['Sample 3','p̂ = 0.58']])+key('Three sample estimates; one population parameter.')+note('Hypothetical sample summaries. In practice, p is usually unknown.'));},
+    notation(){html(table(['Target','Parameter','Statistic'],[['Mean','μ','x̄'],['Proportion','p','p̂ = x/n'],['Mean difference','μ₁ − μ₂','x̄₁ − x̄₂'],['Proportion difference','p₁ − p₂','p̂₁ − p̂₂']])+key('Quantitative outcome → mean<br>Categorical outcome → proportion'));},
+    difference(){html(bar('Group A',.65)+bar('Group B',.50)+flow([['A − B','65% − 50% = 15 percentage points'],['Relative increase from B to A','(0.65 − 0.50) / 0.50 = 30%']])+note('Reversing to B − A gives −15 percentage points.'));},
+    'sample-dot'(){const m=mean(currentSample),values=[...sampleMeans(5,65,1250),...extraMeans,m];html('<div class="review-sample-label">One sample · n = 5</div>'+sampleChips(currentSample)+`<div class="review-statistic"><span>One sample mean</span><strong>x̄ = ${fmt(m,1)}</strong></div>`+plotBox('v-plot')+'<div class="review-visual-controls"><button type="button" class="review-button" id="v-draw">Draw another sample</button></div>'+note(`${values.length} dots = ${values.length} samples of size 5. The larger brown dot marks this sample.`));dotPlot('v-plot',values,{height:150,highlight:(_,i)=>i===values.length-1});find('v-draw').addEventListener('click',()=>{extraMeans.push(m);if(extraMeans.length>30)extraMeans.shift();currentSample=Array.from({length:5},()=>observation(random));drawVisual();find('v-draw').focus();});},
+    'sampling-center'(){html(plotBox('v-plot')+flow([['Population mean · fixed','μ = 2.6']])+note('200 simulated sample means, each from n = 25. The simulated center need not equal 2.6 exactly.'));dotPlot('v-plot',sampleMeans(25,200),{reference:2.6,height:220});},
+    'sampling-se'(){const a=sampleMeans(10,200),b=sampleMeans(40,200);const peak=values=>{const counts={};values.forEach(v=>{const k=Math.round(v/(10/35));counts[k]=(counts[k]||0)+1;});return Math.max(...Object.values(counts));};const max=Math.max(peak(a),peak(b));html('<div class="review-mini-heading"><span>n = 10</span><span>Model SE ≈ 1.20</span></div>'+plotBox('v-small')+'<div class="review-mini-heading"><span>n = 40</span><span>Model SE ≈ 0.60</span></div>'+plotBox('v-large')+note('200 sample means per plot. Population SD remains 3.8.'));dotPlot('v-small',a,{reference:2.6,height:145,peak:max});dotPlot('v-large',b,{reference:2.6,height:145,peak:max});},
+    'sampling-shape'(){const n=setting('shapeN',[1,5,25],5);html(table(['Population value','0','2','10'],[['Proportion','50%','30%','20%']])+'<div class="review-visual-controls" id="v-options"></div>'+plotBox('v-plot')+note('200 sample means. The population proportions above do not change.'));options('v-options',[[1,'n = 1'],[5,'n = 5'],[25,'n = 25']],n,v=>settings.shapeN=v);dotPlot('v-plot',sampleMeans(n,200),{reference:2.6,height:210});},
+    'sampling-design'(){html(people([1,7,11,16,20,25,31,36,40,44,51,58])+flow([['Random sampling','A chance-based selection from the sampling frame'],['Check possible bias','Undercoverage · nonresponse · voluntary response · measurement']])+note('A sampling frame can omit part of the target population, even when selection from that frame is random.'));},
+    bias(){html(plotBox('v-interval')+key('Narrower around 0.75 still misses a target of 0.60.')+note('Schematic ranges of repeated estimates, not confidence intervals.'));intervals('v-interval',[{name:'Valid design · more variation',lo:.50,hi:.70,point:.60},{name:'Biased process · less variation',lo:.72,hi:.78,point:.75}],{domain:[.4,.9],reference:.6,label:'Estimate · fixed target = 0.60'});},
+    'se-rate'(){html(table(['Sample size n','Model SE = 4/√n'],[['25','0.80'],['100','0.40'],['400','0.20']])+flow([['n multiplied by 4','SE divided by 2']])+note('A sample-size relationship under independent sampling; it does not guarantee unbiased measurement or selection.'));},
+    assignment(){html(flow([['Population → sample','Random sampling supports generalization'],['Participants → treatment groups','Random assignment supports causal comparisons']])+table(['Design feature','Does not guarantee'],[['Random sample','A causal effect in an observational study'],['Random assignment','Representation of the entire population']]));},
+    'ci-target'(){html(flow([['Parameter','p: proportion of all campus students using the service']])+plotBox('v-interval')+key('The interval is about p, a population proportion.'));intervals('v-interval',[{name:'Illustrative 95% interval',lo:.54,hi:.66,point:.60}],{domain:[.45,.75]});},
+    'ci-construction'(){html('<div class="review-equation">0.60 ± 0.06</div>'+plotBox('v-interval')+table(['Lower endpoint','Upper endpoint'],[['0.60 − 0.06 = 0.54','0.60 + 0.06 = 0.66']]));intervals('v-interval',[{name:'Estimate 0.60 · equal margins',lo:.54,hi:.66,point:.60}],{domain:[.45,.75]});},
+    'ci-parts'(){html(plotBox('v-interval')+table(['Component','Value'],[['Center','(0.54 + 0.66)/2 = 0.60'],['Margin of error','(0.66 − 0.54)/2 = 0.06'],['Total width','0.66 − 0.54 = 0.12']])+note('The midpoint equals the point estimate here because the interval is symmetric around it.'));intervals('v-interval',[{name:'Symmetric interval',lo:.54,hi:.66,point:.60}],{domain:[.45,.75]});},
+    'ci-difference'(){html(plotBox('v-interval')+key('A is estimated to be 4 to 12 percentage points higher than B, with 95% confidence.')+note('Switching to B − A changes the interval to (−0.12, −0.04).'));intervals('v-interval',[{name:'95% interval for pA − pB',lo:.04,hi:.12,point:.08}],{domain:[-.04,.16],reference:0,label:'Difference in population proportions'});},
+    'two-se'(){html(flow([['Standard error','SE = 0.03'],['Approximate 95% margin','2 × 0.03 = 0.06']])+plotBox('v-interval')+note('Approximate rule: suitable bell shape, appropriate SE, and little bias.'));intervals('v-interval',[{name:'0.60 ± 0.06',lo:.54,hi:.66,point:.60}],{domain:[.45,.75]});},
+    'moe-width'(){html(table(['Length','Calculation','Value'],[['1 SE','Given','0.03'],['Margin of error','2 × SE','0.06'],['Full width','4 × SE','0.12']])+plotBox('v-interval')+key('MOE: 6 percentage points<br>Total width: 12 percentage points'));intervals('v-interval',[{name:'Estimate ± margin',lo:.54,hi:.66,point:.60}],{domain:[.45,.75]});},
+    'ci-width'(){html(plotBox('v-interval')+note('Illustrative Normal multipliers: about 1.645, 1.960, and 2.576. These are supplied, not a memorization requirement.')+key('More confidence → more width, with the same data and method.'));intervals('v-interval',[{name:'90% confidence',lo:.6-1.644854*.03,hi:.6+1.644854*.03,point:.6},{name:'95% confidence',lo:.6-1.959964*.03,hi:.6+1.959964*.03,point:.6},{name:'99% confidence',lo:.6-2.575829*.03,hi:.6+2.575829*.03,point:.6}],{domain:[.45,.75]});},
+    'bootstrap-resample'(){html('<div class="review-sample-label">Original observed sample · n = 5</div>'+sampleChips([2,4,4,6,9])+'<div class="review-sample-label">One bootstrap resample · n = 5</div>'+sampleChips(bootstrapSample)+`<div class="review-statistic"><span>Bootstrap mean</span><strong>${fmt(mean(bootstrapSample),1)}</strong></div>`+'<div class="review-visual-controls"><button type="button" class="review-button" id="v-resample">Resample with replacement</button></div>'+note('Each original record is eligible on every draw. A repeated value can come from the same record or from distinct records with equal values.'));find('v-resample').addEventListener('click',()=>{const records=[2,4,4,6,9];bootstrapSample=Array.from({length:5},()=>records[Math.floor(random()*5)]);drawVisual();find('v-resample').focus();});},
+    'bootstrap-distribution'(){html(plotBox('v-plot')+table(['Original sample mean','Estimated SE'],[['5.00',fmt(bootSE)]])+note('SE estimate = sample SD of the 600 bootstrap means. The reference line marks the original mean.'));dotPlot('v-plot',boot,{domain:[1,10],reference:5,height:230,label:'Bootstrap sample mean'});},
+    'bootstrap-methods'(){html(plotBox('v-interval')+table(['Method','How endpoints are obtained'],[['Bootstrap-SE','5 ± 2 × '+fmt(bootSE)],['Percentile','2.5th and 97.5th percentiles']])+note('Both use the same 600 resamples. Numerical differences are expected; they are different constructions.'));intervals('v-interval',[{name:'Approximate 95% SE interval',lo:5-2*bootSE,hi:5+2*bootSE,point:5},{name:'95% percentile interval',lo:bootLow,hi:bootHigh,point:5}],{domain:[1,9],label:'Population mean · illustrative units'});},
+    'bootstrap-percentiles'(){const level=setting('bootstrapLevel',[90,95,99],95),tail=(100-level)/2,lo=quantile(boot,tail/100),hi=quantile(boot,1-tail/100);html('<div class="review-visual-controls" id="v-options"></div>'+flow([['Lower tail · central interval · upper tail',`${tail}% · ${level}% · ${tail}%`]])+table(['Lower endpoint','Upper endpoint'],[[`${tail}th percentile`,`${100-tail}th percentile`]])+plotBox('v-interval'));options('v-options',[[90,'90%'],[95,'95%'],[99,'99%']],level,v=>settings.bootstrapLevel=v);intervals('v-interval',[{name:`${level}% percentile interval`,lo,hi,point:5}],{domain:[1,9],label:'Population mean · illustrative units'});},
+    'bootstrap-replicates'(){const B=setting('bootstrapB',[200,600,2000],600),values=bootstrapMeans(B);html('<div class="review-visual-controls" id="v-options"></div>'+table(['Original sample size','Bootstrap replicates'],[['n = 5',`B = ${B}`]])+`<div class="review-statistic"><span>Estimated SE from these replicates</span><strong>${fmt(sd(values),3)}</strong></div>`+key('The original five observations do not change.')+note('Larger B reduces Monte Carlo variability. A particular estimate need not improve monotonically.'));options('v-options',[[200,'B = 200'],[600,'B = 600'],[2000,'B = 2,000']],B,v=>settings.bootstrapB=v);},
+    'bootstrap-units'(){html(flow([['Independent groups','Resample inside A and inside B separately'],['Paired observations','Resample whole pairs together']])+table(['Observed pair','Valid repeated selection'],[['Person 1: before 4, after 6','(4, 6) stays together'],['Person 2: before 7, after 8','(7, 8) stays together']])+note('Example pair selection: Person 2, Person 2. Do not mix one person’s “before” with another person’s “after.”'));},
+    'interpret-interval'(){html(plotBox('v-interval')+flow([['Confidence level','95%'],['Population & parameter','Proportion of all students at this campus using the service']])+key('We are 95% confident that (0.54, 0.66) captures that population proportion.'));intervals('v-interval',[{name:'Illustrative interval',lo:.54,hi:.66,point:.6}],{domain:[.45,.75]});},
+    coverage(){html(plotBox('v-coverage')+note('Solid lines capture μ = 0. Dashed lines miss it. Each row comes from a new sample.')+'<div class="review-detail" id="v-coverage-count"></div>');drawCoverage('v-coverage',normals(40,250),1.959964);},
+    'coverage-one'(){const selected=setting('coverageCase',['capture','miss'],'capture'),m=selected==='capture'?.5:2.5;html('<div class="review-visual-controls" id="v-options"></div>'+plotBox('v-interval')+key(selected==='capture'?'This interval contains μ = 0.':'This interval does not contain μ = 0.')+note('In the model, the truth is known. In practice, the population parameter is usually unknown.'));options('v-options',[['capture','An interval that captures'],['miss','An interval that misses']],selected,v=>settings.coverageCase=v);intervals('v-interval',[{name:'One realized 95% interval',lo:m-1.959964,hi:m+1.959964,point:m}],{domain:[-3,5],reference:0,label:'Population mean · model μ = 0'});},
+    'coverage-batches'(){const rows=[101,202,303,404].map((seed,i)=>{const captured=normals(100,seed).filter(v=>Math.abs(v)<=1.959964).length;return [`Batch ${i+1}`,`${captured} / 100`];});html(table(['Independent model batch','Intervals capturing μ'],rows)+flow([['Nominal confidence level','95% for the procedure']])+note('These are simulated counts under a valid Normal model with known SE. None is forced to equal exactly 95.'));},
+    'hypothesis-parameter'(){html(flow([['Define p','Proportion of all campus students using the service'],['Write the claim','Hₐ: p > 0.50'],['Observe evidence','p̂ is calculated from the sample']])+key('The hypothesis uses p; the sample supplies p̂.'));},
+    'hypothesis-null'(){html(table(['Population claim','Null benchmark'],[['No mean difference','H₀: μA − μB = 0'],['Half use the service','H₀: p = 0.50']])+flow([['Example sample evidence','p̂ = 0.58 does not replace the null value 0.50']])+note('The null benchmark comes from the claim, not from the observed sample.'));},
+    'hypothesis-direction'(){html(table(['Research wording','Alternative'],[['More than half','Hₐ: p > 0.50'],['Less than half','Hₐ: p < 0.50'],['Different from half','Hₐ: p ≠ 0.50']])+key('Question → alternative → data → evidence'));},
+    'hypothesis-order'(){html(table(['Parameter order','“A has a larger mean”'],[['μA − μB','Hₐ: μA − μB > 0'],['μB − μA','Hₐ: μB − μA < 0']])+flow([['No difference, either order','H₀: difference = 0']])+note('The meaning is unchanged when both the subtraction order and inequality are reversed.'));},
+    'p-meaning'(){html(flow([['Assume','H₀ and the study assumptions'],['Compare','Observed statistic and more-extreme outcomes'],['Calculate','Probability in the qualifying tail or tails']])+key('Probability of extreme data, conditional on the null model.'));},
+    'p-tails'(){const tail=setting('tail',['right','left','two'],'right'),z=1.6,p=tail==='right'?1-normalCDF(z):tail==='left'?normalCDF(z):2*(1-normalCDF(z));html('<div class="review-visual-controls" id="v-options"></div>'+plotBox('v-plot')+`<div class="review-statistic"><span>Shaded probability</span><strong>p ≈ ${fmt(p,3)}</strong></div>`+note('The observation stays at 1.6. The left-tail alternative therefore gives a large p-value. Two-sided shading uses absolute distance from zero for this symmetric model.'));options('v-options',[['right','Greater'],['left','Less'],['two','Different']],tail,v=>settings.tail=v);curve('v-plot',{tail});},
+    'p-count'(){html(flow([['Qualifying null outcomes','30'],['Total null simulations','1,000']])+'<div class="review-equation">30 / 1,000 = 0.03</div>'+bar('Qualifying fraction',.03,{warm:true})+note('Raw simulation fraction, following the course convention. More simulations refine the approximation, not the original sample.'));},
+    'p-not'(){html(table(['What the p-value describes','What it does not give'],[['Extreme data assuming H₀','Probability that H₀ is true'],['Compatibility with a null model','Probability that the decision is wrong'],['A tail probability','Probability that “chance caused” the result']])+key('A large p-value is not proof of H₀.'));},
+    'randomization-shuffle'(){const d=mean(shuffled.slice(0,3))-mean(shuffled.slice(3));html('<div class="review-sample-label">Group A · three assignments</div>'+sampleChips(shuffled.slice(0,3))+'<div class="review-sample-label">Group B · three assignments</div>'+sampleChips(shuffled.slice(3))+`<div class="review-statistic"><span>x̄A − x̄B</span><strong>${fmt(d)}</strong></div>`+'<div class="review-visual-controls"><button type="button" class="review-button" id="v-shuffle">Shuffle assignments</button></div>'+note('Under a no-treatment-effect randomization model, keep the six outcomes fixed and preserve the two group sizes.'));find('v-shuffle').addEventListener('click',()=>{shuffled=[...nullValues];for(let i=5;i>0;i--){const j=Math.floor(random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];}drawVisual();find('v-shuffle').focus();});},
+    'randomization-center'(){html(table(['Null hypothesis','Reference center'],[['H₀: μA − μB = 0','0'],['H₀: p = 0.50','0.50'],['H₀: μ = 20','20']])+key('The null benchmark sets the reference center; it need not be zero.'));},
+    'randomization-dots'(){const observed=-14/3,tailCount=nullDifferences.filter(v=>Math.abs(v)>=Math.abs(observed)-1e-10).length;html(plotBox('v-plot')+`<div class="review-statistic"><span>Observed A − B</span><strong>${fmt(observed)}</strong></div>`+key(`At least as far from zero: ${tailCount} / 20 = ${fmt(tailCount/20)}`)+note('Larger brown dots mark both qualifying tails. Here the exhaustive allocation distribution is symmetric and the rule uses absolute distance.'));dotPlot('v-plot',nullDifferences,{domain:[-6,6],reference:0,label:'Reassigned mean difference A − B',height:200,highlight:v=>Math.abs(v)>=Math.abs(observed)-1e-10});},
+    'distribution-comparison'(){html(table(['Distribution','How / one mark','Typical center'],[['Original data','Observe / one individual value','Sample data center'],['Sampling','Repeat samples / one statistic','Population parameter¹'],['Bootstrap','Resample records / one statistic','Observed statistic²'],['Null reference','Impose H₀ / one statistic','Null benchmark']])+note('¹ For an unbiased estimator. ² Usual means and proportions, approximately in a finite simulation.'));},
+    'decision-rule'(){const p=setting('decisionP',[.03,.20],.03);html('<div class="review-visual-controls" id="v-options"></div>'+flow([['Chosen before seeing the data','α = 0.05'],['Compare',`${fmt(p)} ${p<=.05?'≤':'>'} 0.05`]])+key(p<=.05?'Reject H₀.':'Fail to reject H₀.'));options('v-options',[[.03,'p = 0.03'],[.20,'p = 0.20']],p,v=>settings.decisionP=v);},
+    'decision-reject'(){html(flow([['Compare','p-value = 0.03 < α = 0.05'],['Decision','Reject H₀']])+key('There is statistically significant evidence that more than half of all students at this campus use the service.')+note('This interpretation assumes the sampling design and test model support that population claim.'));},
+    'decision-fail'(){html(flow([['Compare','p-value = 0.20 > α = 0.05'],['Decision','Fail to reject H₀']])+key('There is insufficient evidence that more than half of all students at this campus use the service.')+note('This does not establish that the population proportion equals 0.50.'));},
+    'decision-limits'(){html(table(['Claim','Additional information needed'],[['Size of the effect','Point estimate and interval'],['Practical importance','Units, consequences, and context'],['Causal effect','Study design and assumptions'],['Population generalization','Sampling design and coverage']])+key('“Statistically significant” is one part of a conclusion.'));},
+    'type-one'(){errorMatrix('one');},
+    'type-two'(){errorMatrix('two');},
+    alpha(){html(flow([['Truth condition','H₀ true on every use'],['Nominal rate','α = 0.05'],['Expected count in a calibrated model','About 50 false rejections per 1,000 uses']])+note('50 is an expectation, not a required observed count. For a conservative test the expected number can be lower.')+key('This does not mean a particular rejection has a 5% probability of being wrong.'));},
+    'error-tradeoff'(){const alpha=setting('errorAlpha',[.10,.05,.01],.05),cutoff={'0.1':1.281552,'0.05':1.644854,'0.01':2.326348}[String(alpha)],miss=normalCDF(cutoff-2);html('<div class="review-visual-controls" id="v-options"></div>'+bar('False alarm · H₀ true',alpha)+bar('Missed effect · true mean 2',miss,{warm:true})+flow([['Rejection cutoff in this model',`Statistic > ${fmt(cutoff,2)}`]])+note('The two bars condition on different population truths. Population spread and the alternative mean stay fixed.'));options('v-options',[[.10,'α = 10%'],[.05,'α = 5%'],[.01,'α = 1%']],alpha,v=>settings.errorAlpha=v);},
+    'duality-levels'(){html(table(['Confidence interval','Matched two-sided test'],[['90%','α = 10%'],['95%','α = 5%'],['99%','α = 1%']])+key('Same parameter + matched method + matching endpoint convention.')+note('Do not automatically combine a percentile interval with an unrelated randomization test.'));},
+    'duality-interval'(){const scenario=setting('dualityCase',['positive','includes','negative'],'positive'),bounds={positive:[.03,.15],includes:[-.03,.09],negative:[-.15,-.03]}[scenario],reject=bounds[0]>0||bounds[1]<0;html('<div class="review-visual-controls" id="v-options"></div>'+plotBox('v-interval')+key(reject?'Zero is outside → reject the no-difference null.':'Zero is inside → fail to reject the no-difference null.')+note(scenario==='positive'?'All-positive A − B: A is larger.':scenario==='negative'?'All-negative A − B: A is smaller.':'Both signs are plausible; equality is not established.'));options('v-options',[['positive','Above zero'],['includes','Includes zero'],['negative','Below zero']],scenario,v=>settings.dualityCase=v);intervals('v-interval',[{name:'Matched 95% interval',lo:bounds[0],hi:bounds[1],point:mean(bounds)}],{domain:[-.2,.2],reference:0,label:'Population proportion difference A − B'});},
+    'duality-information'(){html(plotBox('v-interval')+table(['Test against zero','Interval interpretation'],[['Reject at 5%, two-sided','A is 3 to 15 percentage points higher than B, with 95% confidence.']])+note('The interval conveys plausible effect magnitude; the test decision alone does not.'));intervals('v-interval',[{name:'Matched 95% interval for pA − pB',lo:.03,hi:.15,point:.09}],{domain:[-.04,.20],reference:0,label:'Population proportion difference A − B'});}
+  };
+  function drawCoverage(id,means,margin){
+    const domainLimit=Math.ceil(Math.max(...means.map(Math.abs))+margin+.2);
+    const height=350,{svg,width}=canvas(id,height,'Forty model confidence intervals. Solid intervals contain the true mean zero; dashed intervals miss it.');
+    const baseline=height-45,x=axis(svg,width,baseline,[-domainLimit,domainLimit],'Population mean · fixed μ = 0');
+    svg.append(svgNode('line',{x1:x(0),x2:x(0),y1:16,y2:baseline,class:'review-reference'}));
+    means.forEach((m,i)=>{const y=20+i*(baseline-35)/(means.length-1),captures=Math.abs(m)<=margin;svg.append(svgNode('line',{x1:x(m-margin),x2:x(m+margin),y1:y,y2:y,class:captures?'review-interval':'review-miss'}));});
+    const captures=means.filter(m=>Math.abs(m)<=margin).length;
+    find('v-coverage-count').textContent=`This simulated batch: ${captures} of ${means.length} intervals capture μ = 0.`;
+  }
+  function errorMatrix(which){
+    html('<table class="review-table"><thead><tr><th scope="col">Actual truth</th><th scope="col">Reject H₀</th><th scope="col">Fail to reject H₀</th></tr></thead><tbody><tr><th scope="row">H₀ true</th><td class="'+(which==='one'?'review-emphasis':'')+'">Type I error<br>False alarm</td><td>Correct decision</td></tr><tr><th scope="row">H₀ false</th><td>Correct decision</td><td class="'+(which==='two'?'review-emphasis':'')+'">Type II error<br>Missed effect</td></tr></tbody></table>'+key(which==='one'?'True null + rejection = Type I error.':'False null + failure to reject = Type II error.')+note('When the truth is unknown, name a possible error rather than asserting that an error occurred.'));
+  }
+  function current(){return topics[topicIndex].cards[cardIndex];}
+  function drawVisual(){
+    const visual=visuals[current().visual];
+    if(typeof visual!=='function')throw new Error('Missing visual: '+current().visual);
+    visual();
+  }
+  function updateAnswer(){
+    find('review-answer').hidden=!revealed;
+    find('review-recall').hidden=revealed;
+    find('review-reveal').textContent=revealed?'Hide answer':'Reveal answer';
+    find('review-reveal').setAttribute('aria-expanded',String(revealed));
+  }
+  function render(){
+    const topic=topics[topicIndex],card=current(),total=topics.reduce((sum,t)=>sum+t.cards.length,0);
+    find('review-topic').value=topic.id;
+    find('review-module').textContent=topic.module===3?'Module 3 · Sampling distributions and confidence intervals':'Module 4 · Hypothesis testing';
+    find('review-topic-title').textContent=topic.title;
+    find('review-subtitle').textContent=topic.subtitle;
+    const nav=find('review-items');nav.replaceChildren();nav.setAttribute('data-count',String(topic.cards.length));
+    topic.cards.forEach((item,index)=>{const button=document.createElement('button');button.type='button';button.className='review-item';button.dataset.card=String(index);button.setAttribute('data-card',String(index));button.setAttribute('aria-pressed',String(index===cardIndex));const number=document.createElement('span');number.textContent=String(index+1).padStart(2,'0');button.append(number,document.createTextNode(item.label));button.addEventListener('click',()=>{select(topicIndex,index);find('review-items').querySelector('[data-card="'+index+'"]').focus();});nav.append(button);});
+    find('review-prompt').textContent=card.prompt;
+    find('review-answer-text').innerHTML=card.answer;
+    find('review-caution').textContent=card.caution;
+    find('review-count').textContent=`${cardIndex+1} / ${topic.cards.length}`;
+    find('review-visual-title').textContent=card.title;
+    find('review-visual-caption').textContent=card.caption;
+    find('review-footer-label').textContent=`Topic ${topicIndex+1} of ${topics.length} · Card ${cardIndex+1} of ${topic.cards.length}`;
+    find('review-source-line').textContent=`Module ${topic.module}: ${topic.title}. Full set: ${topics.length} topics and ${total} flashcards.`;
+    find('review-prev').disabled=topicIndex===0&&cardIndex===0;
+    find('review-next').disabled=topicIndex===topics.length-1&&cardIndex===topic.cards.length-1;
+    find('review-next').textContent=cardIndex===topic.cards.length-1&&topicIndex<topics.length-1?'Next topic →':'Next concept →';
+    updateAnswer();drawVisual();
+  }
+  function select(t,c){topicIndex=t;cardIndex=c;revealed=false;render();}
+  function step(direction){
+    let t=topicIndex,c=cardIndex+direction;
+    if(c<0&&t>0){t--;c=topics[t].cards.length-1;}
+    if(c>=topics[t].cards.length&&t<topics.length-1){t++;c=0;}
+    if(c>=0&&c<topics[t].cards.length)select(t,c);
+  }
+  for(const module of [3,4]){const group=document.createElement('optgroup');group.label='Module '+module;topics.filter(t=>t.module===module).forEach(topic=>{const option=document.createElement('option');option.value=topic.id;option.textContent=topic.title;group.append(option);});find('review-topic').append(group);}
+  find('review-topic').addEventListener('change',()=>{const index=topics.findIndex(t=>t.id===find('review-topic').value);if(index>=0)select(index,0);});
+  find('review-prev').addEventListener('click',()=>step(-1));
+  find('review-next').addEventListener('click',()=>step(1));
+  find('review-reveal').addEventListener('click',()=>{revealed=!revealed;updateAnswer();});
+  render();
+  let lastWidth=0;
+  new ResizeObserver(entries=>{const width=entries[0].contentRect.width;if(Math.abs(width-lastWidth)>1){lastWidth=width;drawVisual();}}).observe(content());
+})();
+</script>
+
+<div class="flashcards-credit">
+<!-- AUTHORSHIP -->
+</div>
+</body>
+</html>

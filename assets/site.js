@@ -14,6 +14,7 @@
   const guideLink = document.querySelector('#create-link');
   const homeLink = document.querySelector('#home-link');
   const papersLink = document.querySelector('#papers-link');
+  const flashcardsLink = document.querySelector('#flashcards-link');
   let activeId = homeId;
   let focusOnRoute = false;
   const panels = document.querySelector('#visualization-panels');
@@ -72,6 +73,7 @@
   guideLink.addEventListener('click', event => navigate(event, guideId));
   homeLink.addEventListener('click', event => navigate(event, homeId));
   papersLink.addEventListener('click', event => navigate(event, 'real-world-p-values'));
+  flashcardsLink.addEventListener('click', event => navigate(event, 'flashcards'));
   document.querySelector('.brand').addEventListener('click', event => navigate(event, homeId));
   document.querySelector('.create-callout').addEventListener('click', event => navigate(event, guideId));
 
@@ -242,6 +244,8 @@
     else guideLink.removeAttribute('aria-current');
     if (id === 'real-world-p-values') papersLink.setAttribute('aria-current', 'page');
     else papersLink.removeAttribute('aria-current');
+    if (id === 'flashcards') flashcardsLink.setAttribute('aria-current', 'page');
+    else flashcardsLink.removeAttribute('aria-current');
     document.querySelectorAll('[data-visualization]').forEach(link => {
       if (link.dataset.visualization === id) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');
