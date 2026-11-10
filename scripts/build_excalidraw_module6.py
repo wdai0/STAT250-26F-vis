@@ -54,7 +54,7 @@ def render_formulas(names=None) -> dict:
             continue
         source = directory / f"{name}.typ"
         svg_path = directory / f"{name}.svg"
-        color = "b42332" if name in {"ci-counts", "ht-counts"} else "243247"
+        color = "b42332" if name.endswith("counts") else "243247"
         source.write_text('#set page(width: auto, height: auto, margin: 3pt, fill: none)\n'
                           f'#set text(size: 25pt, fill: rgb("{color}"))\n'
                           f'$ {formula} $\n')

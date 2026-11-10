@@ -1,0 +1,48 @@
+{
+  "source_repository": "STAT250-instruct",
+  "reviewed": "2026-11-10",
+  "original_decks": [
+    {
+      "topic": 2,
+      "source_path": "source-materials/originals/22sum STAT 250 M06 T02 Inference on the Difference between Proportions.pdf",
+      "sha256": "fa17593ce45a36b7d123bb0386f5b72a2a5fa2035e125d59d0c3752c4d8c66d0",
+      "slides": [
+        21,
+        33,
+        34,
+        35,
+        39,
+        42
+      ]
+    },
+    {
+      "topic": 3,
+      "source_path": "source-materials/originals/22sum STAT 250 M06 T03 Inference on the Population Mean(1).pdf",
+      "sha256": "18ea81d685f0b454d15e5be54da28251e8c5b5d47c3973eec19125a52955060d",
+      "slides": [
+        23,
+        34,
+        40,
+        41,
+        42,
+        56,
+        57
+      ]
+    },
+    {
+      "topic": 4,
+      "source_path": "source-materials/originals/22sum STAT 250 M06 T04 Inference on the Difference between Means.pdf",
+      "sha256": "91d4e3e61df815dad36e00211a98d9811eaf23c52ebe9201cc198d5cfa576f57",
+      "slides": [
+        9,
+        10,
+        11,
+        14,
+        15,
+        16,
+        29,
+        30
+      ]
+    }
+  ]
+}

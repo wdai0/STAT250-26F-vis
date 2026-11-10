@@ -1,13 +1,16 @@
 # Module 6 diagrams
 
-Two Excalidraw diagrams use editable shapes and labels, with embedded SVG formula images.
+Five Excalidraw diagrams use editable shapes and labels, with embedded SVG formula images.
 They were rendered and visually reviewed in the official full Excalidraw editor on November 10, 2026.
 No additional MCP server or third-party browser plugin was installed.
 
 | Diagram | Editable scene | Reviewed PNG | Vector export |
 | --- | --- | --- | --- |
 | Topics 1–5 overview | [Excalidraw](module6-overview.excalidraw) | [PNG](module6-overview.png) | [SVG](module6-overview.svg) |
-| Continuous one-proportion CI/HT workflow | [Excalidraw](one-proportion-workflow.excalidraw) | [PNG](one-proportion-workflow.png) | [SVG](one-proportion-workflow.svg) |
+| Topic 1: one proportion | [Excalidraw](one-proportion-workflow.excalidraw) | [PNG](one-proportion-workflow.png) | [SVG](one-proportion-workflow.svg) |
+| Topic 2: difference in proportions | [Excalidraw](two-proportions-workflow.excalidraw) | [PNG](two-proportions-workflow.png) | [SVG](two-proportions-workflow.svg) |
+| Topic 3: one mean | [Excalidraw](one-mean-workflow.excalidraw) | [PNG](one-mean-workflow.png) | [SVG](one-mean-workflow.svg) |
+| Topic 4: difference in independent means | [Excalidraw](two-means-workflow.excalidraw) | [PNG](two-means-workflow.png) | [SVG](two-means-workflow.svg) |
 
 ## Teaching source and scope
 
@@ -19,7 +22,7 @@ The preceding source inspection verified the registered originals with `make sou
 - One proportion: `source-materials/originals/22sum STAT 250 M06 T01 Inference on the Proportion.pdf`, slides 32, 36–38, 44–49, and 51–55.
 - Explicit design and independence checks: `modules/module6/topic1/sections/02-sampling-distribution.tex`, `03-confidence-intervals.tex`, and `04-hypothesis-tests.tex`.
 
-The diagram preserves the course threshold of at least 10 successes and failures, using observed counts for the confidence interval and null expected counts for the hypothesis test.
+The Topic 1 diagram preserves the course threshold of at least 10 successes and failures, using observed counts for the confidence interval and null expected counts for the hypothesis test.
 It uses the slide deck's Normal/Wald interval and null-based z test.
 All hypothesis-test formulas use the slide deck's `p₀` notation for the null value.
 The confidence interval is centered at the observed estimate, whereas the null sampling distribution of the sample proportion is centered at the null claim.
@@ -77,6 +80,66 @@ The formula-import smoke fixture goes to ignored `build/excalidraw-smoke/`.
 - The Topic 1 revision passed text, font, image-reference, alert-color, and formula glyph-path roundtrip checks; the overview's native, PNG, and SVG files retained their prior SHA-256 digests.
 
 The automated browser's native file-picker path remains unverified; the clipboard import/export path is the tested route.
-The two editor tabs are working copies; the local `.excalidraw` files are the durable artifacts.
+The browser canvas is a working copy; the local `.excalidraw` files are the durable artifacts.
 This local checkpoint does not publish the course site or push to a remote.
 Run `python3 scripts/validate_excalidraw.py` for repeatable offline integrity checks.
+
+## Topics 2–4 extension
+
+The three additional workflows reuse the shared scene builder, fonts, colors, grouping, and SVG embedding in `build_excalidraw_module6.py`.
+Their definitions live in [`build_excalidraw_inference.py`](../../../scripts/build_excalidraw_inference.py).
+The overview and Topic 1 native/PNG/SVG files were preserved byte-for-byte against checkpoint `bfc370c`.
+No paired-differences workflow was added.
+
+```sh
+python3 scripts/build_excalidraw_inference.py
+# Or rebuild just one topic:
+python3 scripts/build_excalidraw_inference.py --topic 2
+python3 scripts/build_excalidraw_inference.py --topic 3
+python3 scripts/build_excalidraw_inference.py --topic 4
+```
+
+Export PNG/SVG and recover the editor-normalized native scene after regeneration, following the general workflow.
+The new script does not regenerate the overview or Topic 1 scene.
+
+### Source decisions
+
+The original M06 T02, T03, and T04 PDFs were inspected alongside the authored topic sections in `STAT250-instruct/modules/module6/`.
+Exact original-deck hashes and relevant slide numbers are retained in [topics2-4-sources.json](topics2-4-sources.json).
+
+- Topic 2: original slides 21 and 35 check all four observed success/failure counts, each at least 10; this diagram follows those slides for both branches.
+  The authored derivative recommends pooled null-expected counts for the equality test, so that difference is recorded explicitly rather than silently substituting its condition.
+  Slides 33–35 supply the pooled estimate, written as `p̂_p` in the original, and the equality-null standard error.
+  Pooling here is restricted to the null difference of zero; the CI standard error remains unpooled.
+- Topic 3: original slides 23, 34, 40–42, and 56 supply `s/√n`, `df = n − 1`, the t interval/test, and the sample-size/shape checks.
+  The diagram retains the displayed `n ≥ 30` course guideline and small-sample graphical checks, while noting influential outliers at every sample size as in the authored conditions section.
+  It does not repeat the original's unconditional “in all cases” claim or automatic simulation fallback.
+- Topic 4: original slides 9–16 and 29 supply the separate-variance standard error, two df choices, conditions, interval, and equality test.
+  The shared df card uses the method names Welch–Satterthwaite and conservative minimum, avoiding the later example's reversed option labels documented in the authored sections.
+  Shape and size checks apply to both groups; the `n ≥ 30` guideline is not presented as immunity to influential outliers.
+
+Rendered slides were necessary: text extraction dropped the equality bar in several `≥` signs.
+The displayed thresholds, not the lossy extracted text, were used.
+
+### Style and verification
+
+All sampling-design and condition cards use the same `#b42332` border, `#fff0f1` fill, red heading, and stroke width 3 as Topic 1.
+Stop/pause boxes use the same color family; CI is blue, HT is purple, and contextual conclusions are green.
+Native text uses Excalifont, while all equations are self-contained Typst SVGs.
+The CI center is the observed estimate; the null center is zero for the two-group equality tests and `μ₀` for one mean.
+
+| Diagram | Elements | Embedded SVG files | Reviewed PNG size |
+| --- | ---: | ---: | --- |
+| Topic 2 | 98 | 16 | 3130 × 5860 |
+| Topic 3 | 95 | 13 | 3130 × 5860 |
+| Topic 4 | 103 | 15 | 3130 × 6460 |
+
+All three passed native clipboard roundtrip checks for text, element types, formula metadata, SVG viewBoxes, and glyph paths.
+The saved native files contain the recovered editor-normalized scene data.
+PNG and SVG exports were obtained from the full editor, and the PNGs were visually inspected.
+Offline integrity validation and explicit alert-style checks passed.
+Intermediate screenshots and clipboard reports remain under ignored `build/excalidraw-smoke/`.
+
+Two Typst lessons from visual review: use `overline(x)` for the sample mean, and insert whitespace after a symbolic subscript before a parenthesized factor, for example `n_i (1-hat(p)_i)`.
+Without that separation, Typst can interpret the parenthesized expression as part of the subscript.
+A structural SVG check alone does not detect incorrect mathematical typography.

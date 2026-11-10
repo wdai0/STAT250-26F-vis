@@ -1,13 +1,13 @@
 # Excalidraw workflow for STAT 250
 
-The [Module 6 diagrams](module6/README.md) are the approved examples: a Topics 1–5 overview and a continuous one-proportion CI/HT workflow.
+The [Module 6 diagrams](module6/README.md) include the approved Topics 1–5 overview and Topic 1 workflow, plus matching Topic 2–4 workflows prepared for review.
 Use native Excalidraw shapes and text, with embedded SVG images for mathematics.
 The tested formula route uses Typst and the full official editor; no math plugin or local canvas server was installed.
 
 ## Authoritative files and prerequisites
 
 - Teaching content: the course slide decks in `STAT250-instruct`; record source paths and slide numbers in each diagram's companion README.
-- Reproducible formula definitions and layout: [`build_excalidraw_module6.py`](../../scripts/build_excalidraw_module6.py).
+- Reproducible formula definitions and layout: [`build_excalidraw_module6.py`](../../scripts/build_excalidraw_module6.py) for the overview/Topic 1 and [`build_excalidraw_inference.py`](../../scripts/build_excalidraw_inference.py) for Topics 2–4.
 - Approved editable deliverable: the local `.excalidraw` file, including its embedded `files` collection.
 - Reviewed outputs: full-diagram `.png` and `.svg` exports from the editor.
 - Formula assets: generated `.typ` and `.svg` files retained for inspection and reuse.
@@ -47,6 +47,7 @@ $ "SE"_"CI" = sqrt((hat(p)(1-hat(p)))/n) $
 The renderer invokes `typst compile formula.typ formula.svg`.
 Automatic page dimensions, a small margin, and transparent fill keep each formula tightly bounded.
 The resulting SVG contains glyph outlines, so the editor does not need the mathematical font installed.
+Use `overline(x)` for a sample mean and whitespace after symbolic subscripts before multiplication, such as `n_i (1-hat(p)_i)`; inspect the resulting mathematical notation.
 Condition formulas use the same red as their alert cards.
 
 ### 2. Embed and position the SVG
@@ -80,6 +81,7 @@ python3 scripts/build_excalidraw_module6.py --diagram detailed
 Choose the command for the diagram being revised.
 Omitting `--diagram` rebuilds both and produces a one-formula smoke fixture under ignored `build/excalidraw-smoke/`.
 Generation overwrites native scenes and formula assets; it does not refresh the reviewed PNG/SVG exports.
+For Topics 2–4, use `python3 scripts/build_excalidraw_inference.py --topic 2` (or `3`, `4`); omit `--topic` to rebuild those three workflows.
 
 ### 4. Import through the full editor
 
