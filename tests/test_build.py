@@ -77,19 +77,36 @@ class BuildTests(unittest.TestCase):
         svg = '<svg xmlns="http://www.w3.org/2000/svg"><text>μ &amp; σ</text></svg>'
         path = self.root / "diagrams/example.svg"
         path.write_text(svg)
-        self.entry["diagrams"] = [{"title": "Example diagram", "source": "diagrams/example.svg"}]
+        png = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=")
+        png_path = self.root / "diagrams/example.png"
+        png_path.write_bytes(png)
+        self.entry["diagrams"] = [{"title": "Example diagram", "source": "diagrams/example.svg",
+                                   "png_source": "diagrams/example.png"}]
         self.write_json("visualizations.json", [self.entry])
         (self.root / self.entry["source"]).write_text(self.source.replace("const x = 1", f"const x = {DIAGRAM_MARKER}"))
         build(self.root)
         page = (self.root / "dist/visualizations/example.html").read_text()
         self.assertIn(base64.b64encode(svg.encode()).decode(), page)
         self.assertEqual((self.root / "dist/diagrams/example.svg").read_bytes(), path.read_bytes())
+        self.assertEqual((self.root / "dist/diagrams/example.png").read_bytes(), png)
+        self.assertIn(base64.b64encode(png).decode(), page)
         self.assertNotIn(DIAGRAM_MARKER, page)
         metadata = self.catalog()["visualizations"][0]
         self.assertNotIn("diagrams", metadata)
         path.write_text(svg.replace("μ", "θ"))
         build(self.root)
         self.assertNotEqual(self.catalog()["visualizations"][0]["file"], metadata["file"])
+        version = self.catalog()["visualizations"][0]["file"]
+        png_path.write_bytes(png + b"changed fixture")
+        build(self.root)
+        self.assertNotEqual(self.catalog()["visualizations"][0]["file"], version)
+        for invalid in ("../outside.png", "sources/example.png", "/tmp/example.png", "diagrams/missing.png"):
+            with self.subTest(png_source=invalid):
+                self.entry["diagrams"][0]["png_source"] = invalid
+                self.write_json("visualizations.json", [self.entry])
+                with self.assertRaises(BuildError):
+                    build(self.root)
+        self.entry["diagrams"][0]["png_source"] = "diagrams/example.png"
         for invalid in ("../outside.svg", "sources/example.svg", "/tmp/example.svg"):
             with self.subTest(source=invalid):
                 self.entry["diagrams"][0]["source"] = invalid

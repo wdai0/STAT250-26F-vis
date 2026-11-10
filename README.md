@@ -17,10 +17,11 @@ It contains no practice-question section, question-bank attachment, or Questions
 Practice questions remain separate and are not part of the published collection.
 
 The **Module 6 diagrams** gallery is available through **Browse visualizations** under **Review**, or directly at `#module6-diagrams`.
-It offers previews, full-size views, and individual SVG downloads for the existing overview and Topics 1–4 workflows.
+It offers previews, a fit-to-window viewer, and individual SVG and PNG downloads for the existing overview and Topics 1–4 workflows.
+**View diagram** opens the standalone viewer in a new tab, initially fitting the whole diagram; **Fit width** and zoom buttons allow closer reading. Fitted views adapt when the window changes size.
 The gallery adds no lesson text or assessment questions.
-Its `diagrams` registry list selects the reviewed exports under `diagrams/excalidraw/module6/`; the build embeds those SVGs unchanged into the standalone HTML so viewing and downloading also work offline.
-Rebuild after replacing a reviewed SVG export to update the gallery.
+Its `diagrams` registry list selects the reviewed SVG exports and their `png_source` counterparts under `diagrams/excalidraw/module6/`. The build publishes both formats unchanged and embeds them in the standalone HTML for offline viewing and downloads; including the PNGs makes that HTML larger.
+PNG downloads use the reviewed exports, without browser conversion. Rebuild after replacing a reviewed export to update the gallery.
 
 ## Data sources and adaptations
 

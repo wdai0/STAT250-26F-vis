@@ -12,62 +12,182 @@
     .diagram-preview img { display: block; width: 100%; height: 100%; object-fit: contain; }
     .diagram-details { padding: 20px; }
     .diagram-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    body.viewer-page { padding: 0; }
+    .viewer { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+    .viewer-toolbar { padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--surface); }
+    .viewer-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 12px; }
+    .viewer-heading h1 { font-size: 1.15rem; }
+    .viewer-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .viewer-controls .button { padding: 8px 12px; }
+    .viewer-controls button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+    .zoom-level { min-width: 4ch; text-align: center; font-size: .85rem; font-variant-numeric: tabular-nums; }
+    .zoom-controls { display: inline-flex; align-items: center; gap: 8px; }
+    .viewer-downloads { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+    .viewer-pane { flex: 1; min-height: 0; overflow: auto; background: #f0f2f5; }
+    .viewer-stage { display: grid; place-items: center; width: max-content; min-width: 100%; min-height: 100%; padding: 16px; }
+    .viewer-image { display: block; max-width: none; height: auto; background: white; box-shadow: 0 1px 6px #1c355318; }
     @media (max-width: 680px) { .diagram-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 480px) { .viewer-downloads { margin-left: 0; width: 100%; } }
   </style>
 </head>
 <body class="viz-page">
-  <main class="viz-shell">
+  <main id="gallery" class="viz-shell">
     <header class="viz-heading">
       <p class="eyebrow">STAT 250 · Module 6</p>
       <h1>Module 6 diagrams</h1>
-      <p>View or download the SVG diagrams for reuse in slides, notes, and study materials.</p>
+      <p>View or download the SVG and PNG diagrams for reuse in slides, notes, and study materials.</p>
     </header>
     <div id="diagrams" class="diagram-grid"></div>
     <noscript><p class="notice">Enable JavaScript to view and download the diagrams.</p></noscript>
     <!-- AUTHORSHIP -->
   </main>
+  <main id="viewer" class="viewer" hidden>
+    <header class="viewer-toolbar">
+      <div class="viewer-heading">
+        <h1 id="viewer-title"></h1>
+        <a id="back-to-gallery">All diagrams</a>
+      </div>
+      <div class="viewer-controls" aria-label="Diagram controls">
+        <button id="fit-whole" class="button button-secondary" type="button" aria-pressed="true">Fit whole diagram</button>
+        <button id="fit-width" class="button button-secondary" type="button" aria-pressed="false">Fit width</button>
+        <div class="zoom-controls">
+          <button id="zoom-out" class="button button-secondary" type="button" aria-label="Zoom out">−</button>
+          <output id="zoom-level" class="zoom-level" aria-label="Zoom level" aria-live="polite"></output>
+          <button id="zoom-in" class="button button-secondary" type="button" aria-label="Zoom in">+</button>
+        </div>
+        <div id="viewer-downloads" class="viewer-downloads"></div>
+      </div>
+    </header>
+    <div id="viewer-pane" class="viewer-pane" tabindex="0" role="region" aria-label="Diagram; use arrow keys to scroll when zoomed in">
+      <div class="viewer-stage"><img id="viewer-image" class="viewer-image" alt=""></div>
+    </div>
+  </main>
   <script>
     'use strict';
     const diagrams = /* EMBEDDED_DIAGRAMS */ [];
-    for (const diagram of diagrams) {
-      const bytes = Uint8Array.from(atob(diagram.svg), character => character.charCodeAt(0));
-      const embeddedUrl = URL.createObjectURL(new Blob([bytes], {type: 'image/svg+xml'}));
-      const url = location.protocol === 'file:' ? embeddedUrl : diagram.url;
-      const card = document.createElement('article');
-      card.className = 'diagram-card';
-      const preview = document.createElement('a');
-      preview.className = 'diagram-preview';
-      preview.href = url;
-      preview.target = '_blank';
-      preview.rel = 'noopener';
-      preview.setAttribute('aria-label', `View ${diagram.title} SVG in a new tab`);
-      const image = document.createElement('img');
-      image.src = embeddedUrl;
-      image.alt = `${diagram.title} diagram preview`;
-      preview.append(image);
-      const details = document.createElement('div');
-      details.className = 'diagram-details';
-      const title = document.createElement('h2');
-      title.textContent = diagram.title;
-      const actions = document.createElement('div');
-      actions.className = 'diagram-actions';
-      const view = document.createElement('a');
-      view.className = 'button button-secondary';
-      view.textContent = 'View SVG ↗';
-      view.href = url;
-      view.target = '_blank';
-      view.rel = 'noopener';
-      view.setAttribute('aria-label', `View ${diagram.title} SVG in a new tab`);
-      const download = document.createElement('a');
-      download.className = 'button';
-      download.textContent = 'Download SVG';
-      download.href = url;
-      download.download = diagram.filename;
-      download.setAttribute('aria-label', `Download ${diagram.title} SVG`);
-      actions.append(view, download);
-      details.append(title, actions);
-      card.append(preview, details);
-      document.querySelector('#diagrams').append(card);
+    const galleryUrl = new URL(location.href);
+    galleryUrl.searchParams.delete('diagram');
+    const selectedName = new URL(location.href).searchParams.get('diagram');
+    const selected = diagrams.find(diagram => diagram.filename === selectedName);
+    const urls = new Map();
+
+    function embeddedUrl(data, type) {
+      const bytes = Uint8Array.from(atob(data), character => character.charCodeAt(0));
+      return URL.createObjectURL(new Blob([bytes], {type}));
+    }
+
+    function svgUrl(diagram) {
+      if (!urls.has(diagram.filename)) urls.set(diagram.filename, embeddedUrl(diagram.svg, 'image/svg+xml'));
+      return urls.get(diagram.filename);
+    }
+
+    function addDownloads(container, diagram) {
+      for (const format of ['SVG', 'PNG']) {
+        if (format === 'PNG' && !diagram.png) continue;
+        const link = document.createElement('a');
+        link.className = 'button';
+        link.textContent = `Download ${format}`;
+        link.setAttribute('aria-label', `Download ${diagram.title} ${format}`);
+        link.download = format === 'SVG' ? diagram.filename : diagram.pngFilename;
+        link.href = format === 'SVG' ? diagram.url : diagram.pngUrl;
+        if (location.protocol === 'file:') {
+          // Decode the larger PNG only when requested in the offline gallery.
+          link.addEventListener('click', () => {
+            if (!link.href.startsWith('blob:')) link.href = format === 'SVG'
+              ? svgUrl(diagram) : embeddedUrl(diagram.png, 'image/png');
+          });
+        }
+        container.append(link);
+      }
+    }
+
+    if (selected) {
+      document.querySelector('#gallery').hidden = true;
+      document.querySelector('#viewer').hidden = false;
+      document.body.classList.add('viewer-page');
+      document.title = `${selected.title} · STAT 250`;
+      document.querySelector('#viewer-title').textContent = selected.title;
+      document.querySelector('#back-to-gallery').href = galleryUrl.href;
+      addDownloads(document.querySelector('#viewer-downloads'), selected);
+      const pane = document.querySelector('#viewer-pane');
+      const image = document.querySelector('#viewer-image');
+      const whole = document.querySelector('#fit-whole');
+      const width = document.querySelector('#fit-width');
+      const zoomOut = document.querySelector('#zoom-out');
+      const zoomIn = document.querySelector('#zoom-in');
+      let scale = 1;
+      let mode = 'whole';
+
+      function setScale(next, keepCenter = false) {
+        const centerX = (pane.scrollLeft + pane.clientWidth / 2) / Math.max(1, pane.scrollWidth);
+        const centerY = (pane.scrollTop + pane.clientHeight / 2) / Math.max(1, pane.scrollHeight);
+        scale = Math.max(.01, Math.min(4, next));
+        image.style.width = `${image.naturalWidth * scale}px`;
+        document.querySelector('#zoom-level').textContent = `${Math.round(scale * 100)}%`;
+        whole.setAttribute('aria-pressed', String(mode === 'whole'));
+        width.setAttribute('aria-pressed', String(mode === 'width'));
+        zoomOut.disabled = scale <= .01;
+        zoomIn.disabled = scale >= 4;
+        if (keepCenter) {
+          pane.scrollLeft = centerX * pane.scrollWidth - pane.clientWidth / 2;
+          pane.scrollTop = centerY * pane.scrollHeight - pane.clientHeight / 2;
+        } else {
+          pane.scrollLeft = 0;
+          pane.scrollTop = 0;
+        }
+      }
+
+      function fit() {
+        if (!image.naturalWidth || mode === 'manual') return;
+        // Reserve padding and a scrollbar gutter, including when fitting from a zoomed view.
+        const availableWidth = Math.max(1, pane.getBoundingClientRect().width - 52);
+        const availableHeight = Math.max(1, pane.getBoundingClientRect().height - 52);
+        setScale(mode === 'width' ? availableWidth / image.naturalWidth
+          : Math.min(availableWidth / image.naturalWidth, availableHeight / image.naturalHeight));
+      }
+      whole.addEventListener('click', () => { mode = 'whole'; fit(); });
+      width.addEventListener('click', () => { mode = 'width'; fit(); });
+      zoomOut.addEventListener('click', () => { mode = 'manual'; setScale(scale / 1.25, true); });
+      zoomIn.addEventListener('click', () => { mode = 'manual'; setScale(scale * 1.25, true); });
+      image.alt = selected.title;
+      image.addEventListener('load', fit);
+      image.src = svgUrl(selected);
+      new ResizeObserver(fit).observe(pane);
+    } else {
+      for (const diagram of diagrams) {
+        const viewerUrl = new URL(galleryUrl);
+        viewerUrl.searchParams.set('diagram', diagram.filename);
+        const card = document.createElement('article');
+        card.className = 'diagram-card';
+        const preview = document.createElement('a');
+        preview.className = 'diagram-preview';
+        preview.href = viewerUrl.href;
+        preview.target = '_blank';
+        preview.rel = 'noopener';
+        preview.setAttribute('aria-label', `View ${diagram.title} in a new tab`);
+        const image = document.createElement('img');
+        image.src = svgUrl(diagram);
+        image.alt = `${diagram.title} diagram preview`;
+        preview.append(image);
+        const details = document.createElement('div');
+        details.className = 'diagram-details';
+        const title = document.createElement('h2');
+        title.textContent = diagram.title;
+        const actions = document.createElement('div');
+        actions.className = 'diagram-actions';
+        const view = document.createElement('a');
+        view.className = 'button button-secondary';
+        view.textContent = 'View diagram ↗';
+        view.href = viewerUrl.href;
+        view.target = '_blank';
+        view.rel = 'noopener';
+        view.setAttribute('aria-label', `View ${diagram.title} in a new tab`);
+        actions.append(view);
+        addDownloads(actions, diagram);
+        details.append(title, actions);
+        card.append(preview, details);
+        document.querySelector('#diagrams').append(card);
+      }
     }
   </script>
 </body>

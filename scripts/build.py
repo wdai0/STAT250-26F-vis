@@ -171,7 +171,7 @@ def attribution(authorship: dict) -> str:
     )
 
 
-def embed_diagrams(source: str, root: Path, entry: dict, output: dict[str, str]) -> str:
+def embed_diagrams(source: str, root: Path, entry: dict, output: dict[str, str | bytes]) -> str:
     """Bundle the explicitly selected SVG exports for offline viewing and reuse."""
     if "diagrams" not in entry:
         if DIAGRAM_MARKER in source:
@@ -197,9 +197,28 @@ def embed_diagrams(source: str, root: Path, entry: dict, output: dict[str, str])
         svg = read_text(path)
         output[name] = svg
         version = hashlib.sha256(svg.encode("utf-8")).hexdigest()[:12]
-        payload.append({"title": title, "filename": relative.name,
-                        "url": f"../{name}?v={version}",
-                        "svg": base64.b64encode(svg.encode("utf-8")).decode("ascii")})
+        item = {"title": title, "filename": relative.name,
+                "url": f"../{name}?v={version}",
+                "svg": base64.b64encode(svg.encode("utf-8")).decode("ascii")}
+        if "png_source" in diagram:
+            png_name = require_text(diagram["png_source"], "diagram.png_source")
+            png_relative = PurePosixPath(png_name)
+            png_path = (root / png_name).resolve()
+            if (png_relative.is_absolute() or ".." in png_relative.parts or "\\" in png_name
+                    or png_relative.parts[0] != "diagrams" or png_relative.suffix != ".png"
+                    or not png_path.is_relative_to(root / "diagrams")):
+                raise BuildError(f"PNG must be a path below diagrams/: {png_name}")
+            try:
+                png = png_path.read_bytes()
+            except OSError as error:
+                raise BuildError(f"Cannot read {png_path}: {error}") from error
+            if not png.startswith(b"\x89PNG\r\n\x1a\n"):
+                raise BuildError(f"Invalid PNG signature: {png_name}")
+            output[png_name] = png
+            png_version = hashlib.sha256(png).hexdigest()[:12]
+            item.update(png=base64.b64encode(png).decode("ascii"),
+                        pngFilename=png_relative.name, pngUrl=f"../{png_name}?v={png_version}")
+        payload.append(item)
     return source.replace(DIAGRAM_MARKER, json.dumps(payload, ensure_ascii=True).replace("<", "\\u003c"))
 
 
@@ -280,7 +299,10 @@ def build(root: Path) -> int:
     for name, contents in output.items():
         path = destination / name
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(contents, encoding="utf-8")
+        if isinstance(contents, bytes):
+            path.write_bytes(contents)
+        else:
+            path.write_text(contents, encoding="utf-8")
     return len(catalog)
 
 

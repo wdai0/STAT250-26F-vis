@@ -132,30 +132,35 @@
   {
     "id": "module6-diagrams",
     "title": "Module 6 diagrams",
-    "description": "View and download SVG diagrams: module overview, one proportion, two proportions, one mean, and two means.",
+    "description": "View and download SVG and PNG diagrams: module overview, one proportion, two proportions, one mean, and two means.",
     "source": "sources/module6-diagrams.html",
     "category": "Review",
     "kind": "guide",
     "diagrams": [
       {
         "title": "Module 6 overview",
-        "source": "diagrams/excalidraw/module6/module6-overview.svg"
+        "source": "diagrams/excalidraw/module6/module6-overview.svg",
+        "png_source": "diagrams/excalidraw/module6/module6-overview.png"
       },
       {
         "title": "Topic 1 · One proportion",
-        "source": "diagrams/excalidraw/module6/one-proportion-workflow.svg"
+        "source": "diagrams/excalidraw/module6/one-proportion-workflow.svg",
+        "png_source": "diagrams/excalidraw/module6/one-proportion-workflow.png"
       },
       {
         "title": "Topic 2 · Two proportions",
-        "source": "diagrams/excalidraw/module6/two-proportions-workflow.svg"
+        "source": "diagrams/excalidraw/module6/two-proportions-workflow.svg",
+        "png_source": "diagrams/excalidraw/module6/two-proportions-workflow.png"
       },
       {
         "title": "Topic 3 · One mean",
-        "source": "diagrams/excalidraw/module6/one-mean-workflow.svg"
+        "source": "diagrams/excalidraw/module6/one-mean-workflow.svg",
+        "png_source": "diagrams/excalidraw/module6/one-mean-workflow.png"
       },
       {
         "title": "Topic 4 · Two means",
-        "source": "diagrams/excalidraw/module6/two-means-workflow.svg"
+        "source": "diagrams/excalidraw/module6/two-means-workflow.svg",
+        "png_source": "diagrams/excalidraw/module6/two-means-workflow.png"
       }
     ]
   }
