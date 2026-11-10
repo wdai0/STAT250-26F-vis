@@ -1,0 +1,3 @@
+#set page(width: auto, height: auto, margin: 3pt, fill: none)
+#set text(size: 25pt, fill: rgb("243247"))
+$ p != p_0 : quad 2 P(Z >= abs(z_"obs")) $

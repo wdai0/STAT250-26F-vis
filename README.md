@@ -153,6 +153,12 @@ Loaded visualizations retain their current controls and simulations when switchi
 
 ## Add a visualization
 
+For conceptual diagrams, see the [Excalidraw authoring workflow](diagrams/excalidraw/README.md).
+It documents the official hosted MCP, a repeatable connection/drawing smoke check, and the full-editor workflow for embedded SVG formulas.
+A local canvas setup remains an uninstalled backup.
+Diagram inputs and test artifacts are not automatically included in the published collection.
+Reviewed exports can be embedded in visualization HTML using the standalone file requirements below.
+
 1. Place an HTML file in `sources/` with a unique, descriptive filename.
 2. Add exactly one `<!-- SHARED_THEME -->` inside its `<head>` and one `<!-- AUTHORSHIP -->` inside its `<body>`.
 3. Adapt its typography, controls, layout, and chart colors to the tokens and components in `assets/theme.css`.

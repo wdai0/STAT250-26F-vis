@@ -1,0 +1,12 @@
+[
+  {"type":"cameraUpdate","width":800,"height":600,"x":0,"y":0},
+  {"type":"text","id":"title","x":100,"y":65,"text":"From a population to a statistic","fontSize":28,"fontFamily":5},
+  {"type":"text","id":"subtitle","x":155,"y":115,"text":"STAT 250 · Random sampling","fontSize":20,"strokeColor":"#495057","fontFamily":5},
+  {"type":"rectangle","id":"population","x":45,"y":240,"width":200,"height":100,"roundness":{"type":3},"backgroundColor":"#a5d8ff","label":{"text":"Population\nAll units of interest","fontSize":20,"fontFamily":5}},
+  {"type":"arrow","id":"sample-arrow","x":250,"y":290,"width":45,"height":0,"points":[[0,0],[45,0]],"endArrowhead":"arrow","startBinding":{"elementId":"population","fixedPoint":[1,0.5]},"endBinding":{"elementId":"sample","fixedPoint":[0,0.5]}},
+  {"type":"rectangle","id":"sample","x":300,"y":240,"width":200,"height":100,"roundness":{"type":3},"backgroundColor":"#d0bfff","label":{"text":"Random sample\nObserved units","fontSize":20,"fontFamily":5}},
+  {"type":"arrow","id":"statistic-arrow","x":505,"y":290,"width":45,"height":0,"points":[[0,0],[45,0]],"endArrowhead":"arrow","startBinding":{"elementId":"sample","fixedPoint":[1,0.5]},"endBinding":{"elementId":"statistic","fixedPoint":[0,0.5]}},
+  {"type":"rectangle","id":"statistic","x":555,"y":240,"width":200,"height":100,"roundness":{"type":3},"backgroundColor":"#b2f2bb","label":{"text":"Statistic\nSample mean","fontSize":20,"fontFamily":5}},
+  {"type":"text","id":"note","x":95,"y":405,"text":"Repeat the sampling process: the statistic can change.\nA sampling distribution describes that variability.","fontSize":20,"fontFamily":5},
+  {"type":"text","id":"scope","x":175,"y":500,"text":"Conceptual setup test · No observed data","fontSize":16,"strokeColor":"#495057","fontFamily":5}
+]
