@@ -16,6 +16,12 @@ Open it through **Browse visualizations** or directly at `#flashcards`.
 It contains no practice-question section, question-bank attachment, or Questions tab.
 Practice questions remain separate and are not part of the published collection.
 
+The **Module 6 diagrams** gallery is available through **Browse visualizations** under **Review**, or directly at `#module6-diagrams`.
+It offers previews, full-size views, and individual SVG downloads for the existing overview and Topics 1–4 workflows.
+The gallery adds no lesson text or assessment questions.
+Its `diagrams` registry list selects the reviewed exports under `diagrams/excalidraw/module6/`; the build embeds those SVGs unchanged into the standalone HTML so viewing and downloading also work offline.
+Rebuild after replacing a reviewed SVG export to update the gallery.
+
 ## Data sources and adaptations
 
 The supplied `data/cars20.csv` and `data/nba23.csv` are authoritative for the data exploration visualizations.

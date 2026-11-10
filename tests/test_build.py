@@ -1,11 +1,12 @@
 """Build-contract checks use disposable projects, never the repository's dist/."""
 
 import json
+import base64
 from pathlib import Path
 import tempfile
 import unittest
 
-from scripts.build import AUTHORSHIP_MARKER, BuildError, DATA_MARKER, THEME_MARKER, build
+from scripts.build import AUTHORSHIP_MARKER, BuildError, DATA_MARKER, DIAGRAM_MARKER, THEME_MARKER, build
 
 
 class BuildTests(unittest.TestCase):
@@ -70,6 +71,31 @@ class BuildTests(unittest.TestCase):
         self.assertRegex(metadata["file"], r"^visualizations/example\.html\?v=[0-9a-f]{12}$")
         self.assertNotIn("source", metadata)
         self.assertTrue((self.root / "dist/.nojekyll").is_file())
+
+    def test_diagram_download_preserves_svg_and_changes_content_version(self):
+        (self.root / "diagrams").mkdir()
+        svg = '<svg xmlns="http://www.w3.org/2000/svg"><text>μ &amp; σ</text></svg>'
+        path = self.root / "diagrams/example.svg"
+        path.write_text(svg)
+        self.entry["diagrams"] = [{"title": "Example diagram", "source": "diagrams/example.svg"}]
+        self.write_json("visualizations.json", [self.entry])
+        (self.root / self.entry["source"]).write_text(self.source.replace("const x = 1", f"const x = {DIAGRAM_MARKER}"))
+        build(self.root)
+        page = (self.root / "dist/visualizations/example.html").read_text()
+        self.assertIn(base64.b64encode(svg.encode()).decode(), page)
+        self.assertEqual((self.root / "dist/diagrams/example.svg").read_bytes(), path.read_bytes())
+        self.assertNotIn(DIAGRAM_MARKER, page)
+        metadata = self.catalog()["visualizations"][0]
+        self.assertNotIn("diagrams", metadata)
+        path.write_text(svg.replace("μ", "θ"))
+        build(self.root)
+        self.assertNotEqual(self.catalog()["visualizations"][0]["file"], metadata["file"])
+        for invalid in ("../outside.svg", "sources/example.svg", "/tmp/example.svg"):
+            with self.subTest(source=invalid):
+                self.entry["diagrams"][0]["source"] = invalid
+                self.write_json("visualizations.json", [self.entry])
+                with self.assertRaises(BuildError):
+                    build(self.root)
 
     def test_changed_visualization_has_a_fresh_url_and_unchanged_build_is_stable(self):
         build(self.root)

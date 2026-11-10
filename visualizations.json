@@ -124,9 +124,39 @@
   {
     "id": "flashcards",
     "title": "Flashcards",
-    "description": "Review 52 concept flashcards across Modules 3\u20134, with highlighted answers and matching visualizations.",
+    "description": "Review 52 concept flashcards across Modules 3–4, with highlighted answers and matching visualizations.",
     "source": "sources/flashcards.html",
     "category": "Review",
     "kind": "guide"
+  },
+  {
+    "id": "module6-diagrams",
+    "title": "Module 6 diagrams",
+    "description": "View and download SVG diagrams: module overview, one proportion, two proportions, one mean, and two means.",
+    "source": "sources/module6-diagrams.html",
+    "category": "Review",
+    "kind": "guide",
+    "diagrams": [
+      {
+        "title": "Module 6 overview",
+        "source": "diagrams/excalidraw/module6/module6-overview.svg"
+      },
+      {
+        "title": "Topic 1 · One proportion",
+        "source": "diagrams/excalidraw/module6/one-proportion-workflow.svg"
+      },
+      {
+        "title": "Topic 2 · Two proportions",
+        "source": "diagrams/excalidraw/module6/two-proportions-workflow.svg"
+      },
+      {
+        "title": "Topic 3 · One mean",
+        "source": "diagrams/excalidraw/module6/one-mean-workflow.svg"
+      },
+      {
+        "title": "Topic 4 · Two means",
+        "source": "diagrams/excalidraw/module6/two-means-workflow.svg"
+      }
+    ]
   }
 ]

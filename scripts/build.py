@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import csv
+import base64
 import html
 import hashlib
 import io
@@ -20,6 +21,7 @@ THEME_MARKER = "<!-- SHARED_THEME -->"
 AUTHORSHIP_MARKER = "<!-- AUTHORSHIP -->"
 DATA_TOKEN = "/* EMBEDDED_DATA */"
 DATA_MARKER = f"{DATA_TOKEN} []"
+DIAGRAM_MARKER = "/* EMBEDDED_DIAGRAMS */ []"
 STATIC_FILES = ("index.html", "assets/theme.css", "assets/site.css", "assets/site.js", "LICENSE")
 ID_PATTERN = re.compile(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)*\Z")
 
@@ -169,6 +171,38 @@ def attribution(authorship: dict) -> str:
     )
 
 
+def embed_diagrams(source: str, root: Path, entry: dict, output: dict[str, str]) -> str:
+    """Bundle the explicitly selected SVG exports for offline viewing and reuse."""
+    if "diagrams" not in entry:
+        if DIAGRAM_MARKER in source:
+            raise BuildError(f"{entry['source']}: diagram marker requires diagrams")
+        return source
+    diagrams = entry["diagrams"]
+    if not isinstance(diagrams, list) or not diagrams:
+        raise BuildError("diagrams must be a nonempty list")
+    if source.count(DIAGRAM_MARKER) != 1:
+        raise BuildError(f"{entry['source']} must contain exactly one {DIAGRAM_MARKER}")
+    payload = []
+    for diagram in diagrams:
+        if not isinstance(diagram, dict):
+            raise BuildError("Each diagram must be an object")
+        name = require_text(diagram.get("source"), "diagram.source")
+        relative = PurePosixPath(name)
+        path = (root / name).resolve()
+        if (relative.is_absolute() or ".." in relative.parts or "\\" in name
+                or not relative.parts or relative.parts[0] != "diagrams"
+                or relative.suffix != ".svg" or not path.is_relative_to(root / "diagrams")):
+            raise BuildError(f"Diagram must be an SVG path below diagrams/: {name}")
+        title = require_text(diagram.get("title"), "diagram.title")
+        svg = read_text(path)
+        output[name] = svg
+        version = hashlib.sha256(svg.encode("utf-8")).hexdigest()[:12]
+        payload.append({"title": title, "filename": relative.name,
+                        "url": f"../{name}?v={version}",
+                        "svg": base64.b64encode(svg.encode("utf-8")).decode("ascii")})
+    return source.replace(DIAGRAM_MARKER, json.dumps(payload, ensure_ascii=True).replace("<", "\\u003c"))
+
+
 def render_visualization(source: str, theme: str, authorship: dict,
                          license_text: str, label: str) -> str:
     for marker, element in ((THEME_MARKER, "head"), (AUTHORSHIP_MARKER, "body")):
@@ -219,10 +253,11 @@ def build(root: Path) -> int:
         used_sources.add(source)
         filename = f"visualizations/{identifier}.html"
         output[filename] = render_visualization(
-            embed_dataset(read_text(source), root, entry), theme, site["authorship"], license_text, entry["source"]
+            embed_diagrams(embed_dataset(read_text(source), root, entry), root, entry, output),
+            theme, site["authorship"], license_text, entry["source"]
         )
         version = hashlib.sha256(output[filename].encode("utf-8")).hexdigest()[:12]
-        catalog.append({key: value for key, value in entry.items() if key not in ("source", "dataset")}
+        catalog.append({key: value for key, value in entry.items() if key not in ("source", "dataset", "diagrams")}
                        | {"file": f"{filename}?v={version}"})
 
     if "homepage" in site:

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Module 6 diagrams · STAT 250</title>
+  <!-- SHARED_THEME -->
+  <style>
+    .diagram-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+    .diagram-card { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .diagram-preview { display: flex; align-items: center; justify-content: center; padding: 18px; height: 280px; background: #f8f9fb; border-bottom: 1px solid var(--line); }
+    .diagram-preview img { display: block; width: 100%; height: 100%; object-fit: contain; }
+    .diagram-details { padding: 20px; }
+    .diagram-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    @media (max-width: 680px) { .diagram-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body class="viz-page">
+  <main class="viz-shell">
+    <header class="viz-heading">
+      <p class="eyebrow">STAT 250 · Module 6</p>
+      <h1>Module 6 diagrams</h1>
+      <p>View or download the SVG diagrams for reuse in slides, notes, and study materials.</p>
+    </header>
+    <div id="diagrams" class="diagram-grid"></div>
+    <noscript><p class="notice">Enable JavaScript to view and download the diagrams.</p></noscript>
+    <!-- AUTHORSHIP -->
+  </main>
+  <script>
+    'use strict';
+    const diagrams = /* EMBEDDED_DIAGRAMS */ [];
+    for (const diagram of diagrams) {
+      const bytes = Uint8Array.from(atob(diagram.svg), character => character.charCodeAt(0));
+      const embeddedUrl = URL.createObjectURL(new Blob([bytes], {type: 'image/svg+xml'}));
+      const url = location.protocol === 'file:' ? embeddedUrl : diagram.url;
+      const card = document.createElement('article');
+      card.className = 'diagram-card';
+      const preview = document.createElement('a');
+      preview.className = 'diagram-preview';
+      preview.href = url;
+      preview.target = '_blank';
+      preview.rel = 'noopener';
+      preview.setAttribute('aria-label', `View ${diagram.title} SVG in a new tab`);
+      const image = document.createElement('img');
+      image.src = embeddedUrl;
+      image.alt = `${diagram.title} diagram preview`;
+      preview.append(image);
+      const details = document.createElement('div');
+      details.className = 'diagram-details';
+      const title = document.createElement('h2');
+      title.textContent = diagram.title;
+      const actions = document.createElement('div');
+      actions.className = 'diagram-actions';
+      const view = document.createElement('a');
+      view.className = 'button button-secondary';
+      view.textContent = 'View SVG ↗';
+      view.href = url;
+      view.target = '_blank';
+      view.rel = 'noopener';
+      view.setAttribute('aria-label', `View ${diagram.title} SVG in a new tab`);
+      const download = document.createElement('a');
+      download.className = 'button';
+      download.textContent = 'Download SVG';
+      download.href = url;
+      download.download = diagram.filename;
+      download.setAttribute('aria-label', `Download ${diagram.title} SVG`);
+      actions.append(view, download);
+      details.append(title, actions);
+      card.append(preview, details);
+      document.querySelector('#diagrams').append(card);
+    }
+  </script>
+</body>
+</html>
