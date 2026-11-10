@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore how degrees of freedom change Student’s t, tail probabilities, and critical values.">
+  <title>How degrees of freedom change the t distribution · STAT 250</title>
+  <!-- SHARED_THEME -->
+  <style>
+    :root { color-scheme: light; --page: #fff; --ink: #1c3553; --text: #33465d; --muted: #607086; --line: #dce3ec; --blue: #2864ae; --orange: #b45816; --soft: #f5f8fc; --font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--text); font: 16px/1.45 var(--font); }
+    h1, h2, h3, p { margin: 0; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button, input, select { -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+    [hidden] { display: none !important; }
+    .app { max-width: 1280px; margin: auto; padding: 20px 28px 8px; }
+    header { display: flex; gap: 20px; align-items: start; justify-content: space-between; }
+    h1 { color: var(--ink); font-size: clamp(1.4rem, 2.3vw, 1.85rem); line-height: 1.2; letter-spacing: -.025em; font-weight: 650; }
+    .subtitle { margin-top: 7px; color: var(--muted); font-size: .94rem; }
+    button { background: white; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 7px 11px; min-height: 36px; }
+    button:hover { background: #edf3fb; border-color: #a8bdd9; }
+    button[aria-pressed="true"] { background: #e8f0fb; color: #204d88; border-color: #829fc5; }
+    #reset { font-size: .85rem; white-space: nowrap; }
+    .tabs { display: flex; gap: 20px; border-bottom: 1px solid var(--line); margin: 18px 0; }
+    .tab { border: 0; border-radius: 0; border-bottom: 3px solid transparent; padding: 9px 1px 11px; color: var(--muted); font-size: .92rem; }
+    .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--blue); font-weight: 650; }
+    .workspace { display: grid; grid-template-columns: 244px minmax(0, 1fr); gap: 30px; }
+    aside { border-right: 1px solid var(--line); padding-right: 24px; }
+    .field-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    label, legend, .field-title { font-size: .87rem; font-weight: 600; }
+    input[type="number"] { width: 76px; padding: 7px 8px; border: 1px solid #b8c6d7; border-radius: 5px; background: white; color: var(--ink); font-variant-numeric: tabular-nums; }
+    input[type="range"] { width: 100%; margin: 12px 0 2px; accent-color: var(--blue); cursor: pointer; height: 20px; }
+    .endpoints { display: flex; justify-content: space-between; font-size: .74rem; color: var(--muted); }
+    .presets { display: flex; gap: 5px; margin-top: 12px; flex-wrap: wrap; }
+    .presets button { padding: 4px 8px; min-width: 31px; font-size: .78rem; }
+    .presets[aria-label="Degrees of freedom quick choices"] { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .presets[aria-label="Degrees of freedom quick choices"] button { min-width: 0; padding-inline: 2px; }
+    .help { font-size: .76rem; color: var(--muted); margin-top: 8px; }
+    .check { display: flex; gap: 8px; align-items: start; font-size: .82rem; font-weight: 400; margin: 20px 0; }
+    input[type="checkbox"] { margin: 2px 0 0; width: 17px; height: 17px; accent-color: var(--blue); flex-shrink: 0; }
+    .question-controls { border-top: 1px solid var(--line); padding-top: 18px; }
+    fieldset { border: 0; padding: 0; margin: 0 0 20px; min-width: 0; }
+    legend { margin-bottom: 9px; }
+    .tail-buttons { display: flex; gap: 4px; }
+    .tail-buttons button { font-size: .79rem; padding: 6px 8px; flex: 1; white-space: nowrap; }
+    .tail-buttons button:last-child { flex: 1.4; }
+    .fixed { border-left: 3px solid #b6cae6; padding-left: 11px; margin-top: 18px; font-size: .81rem; line-height: 1.55; }
+    .fixed strong { color: var(--ink); }
+    .error { font-size: .78rem; color: #a52c28; margin-top: 6px; }
+    .plot-area { min-width: 0; }
+    .plot-heading { display: flex; gap: 10px; justify-content: space-between; align-items: baseline; flex-wrap: wrap; }
+    h2 { font-size: 1.03rem; color: var(--ink); font-weight: 650; }
+    .legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 10px 0 0; font-size: .81rem; }
+    .key { display: inline-flex; gap: 7px; align-items: center; }
+    .key::before { content: ''; width: 25px; border-top: 3px solid currentColor; }
+    .t-color { color: var(--blue); }
+    .normal-color { color: var(--orange); }
+    .key.normal-color::before { border-top-style: dashed; }
+    #chart { display: block; width: 100%; height: 300px; overflow: visible; touch-action: pan-y; }
+    #chart text { font-family: var(--font); font-size: 12px; fill: var(--muted); }
+    #chart .cut-label { font-size: 12px; font-weight: 650; }
+    #chart .t-label { fill: var(--blue); }
+    #chart .normal-label { fill: var(--orange); }
+    #chart .handle { cursor: ew-resize; touch-action: none; }
+    #chart .handle:focus { outline: none; stroke: #1c3553; stroke-width: 3; }
+    .view-controls { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; font-size: .76rem; }
+    .view-controls label { font-size: .76rem; font-weight: 400; }
+    select { color: var(--text); background: white; border: 1px solid var(--line); border-radius: 5px; padding: 5px; font-size: .76rem; max-width: 100%; }
+    #range-note { color: var(--muted); }
+    .plot-note { font-size: .75rem; color: var(--muted); margin-top: 6px; }
+    #range-warning { color: #865012; background: #fff8ed; padding: 7px 10px; margin-top: 8px; font-size: .8rem; }
+    .results { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; border-top: 1px solid var(--line); padding-top: 15px; margin-top: 15px; }
+    .result-label { font-size: .78rem; display: block; }
+    .result-value { display: block; margin: 3px 0; font-size: clamp(1.25rem, 2vw, 1.65rem); font-weight: 650; line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--ink); }
+    .result-detail { color: var(--muted); font-size: .74rem; }
+    .takeaway { margin-top: 15px; font-size: .85rem; line-height: 1.5; }
+    .takeaway strong { color: var(--ink); }
+    #ci-note { color: var(--muted); font-size: .78rem; margin-top: 6px; }
+    .why { max-width: 940px; padding: 0 0 8px; }
+    .why-lead { font-size: 1.1rem; line-height: 1.6; max-width: 850px; }
+    .formula { font-family: "Cambria Math", "Times New Roman", serif; font-size: 1.55rem; display: flex; gap: 12px; align-items: center; justify-content: center; padding: 24px 0; margin: 20px 0; background: var(--soft); border-radius: 6px; color: var(--ink); }
+    .fraction { display: inline-flex; flex-direction: column; text-align: center; line-height: 1.4; }
+    .fraction > :first-child { border-bottom: 1px solid currentColor; padding: 0 8px; }
+    .why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+    .why h3 { font-size: .94rem; color: var(--ink); margin-bottom: 7px; }
+    .why-grid p, .why details { font-size: .88rem; line-height: 1.6; }
+    .why-grid p + p { margin-top: 10px; }
+    .why details { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 22px; }
+    .why summary { cursor: pointer; font-weight: 600; }
+    .why details p { margin-top: 10px; }
+    .attribution { font-size: .7rem; color: var(--muted); margin-top: 18px; }
+    @media (max-width: 850px) {
+      .app { padding: 20px; } .workspace { grid-template-columns: 210px minmax(0, 1fr); gap: 20px; }
+      aside { padding-right: 18px; } .results { gap: 10px; } .result-label { font-size: .73rem; }
+    }
+    @media (max-width: 680px) {
+      .app { padding: 18px 14px; } header { gap: 10px; } #reset { padding: 6px 9px; }
+      .subtitle { font-size: .85rem; } .tabs { gap: 12px; margin: 18px 0; } .tab { font-size: .81rem; }
+      .workspace { display: flex; flex-direction: column; gap: 22px; }
+      aside { padding: 0 0 16px; border-right: 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      .check { margin: 12px 0 0; } .question-controls { border-top: 0; padding-top: 0; }
+      .presets { gap: 4px; } .presets button { padding: 5px 8px; }
+      .tail-buttons { flex-wrap: wrap; } .tail-buttons button { flex: 1 1 auto; }
+      fieldset { margin-bottom: 14px; } input[type="number"] { font-size: 16px; width: 70px; }
+      .field-heading { flex-wrap: wrap; } .fixed { margin-top: 12px; }
+      #chart { height: 300px; } .results { gap: 12px; } .result-value { font-size: 1.22rem; }
+      .why-grid { grid-template-columns: 1fr; gap: 20px; } .why-lead { font-size: .97rem; }
+    }
+    @media (max-width: 380px) { aside { grid-template-columns: 1fr; } .results { grid-template-columns: 1fr 1fr; } .tabs { gap: 8px; } .tab { font-size: .75rem; } }
+    @media (pointer: coarse) { button { min-height: 44px; } input[type="range"] { height: 30px; } }
+  </style>
+</head>
+<body>
+<main class="app">
+  <header><div><h1>How degrees of freedom change the t distribution</h1><p class="subtitle">Compare its shape, tail probabilities, and critical values with the standard normal.</p></div><button id="reset" type="button">Reset</button></header>
+  <div class="tabs" role="tablist" aria-label="Comparison question">
+    <button class="tab" id="tab-area" type="button" role="tab" aria-selected="true" aria-controls="comparison" data-tab="area">Compare tail areas</button>
+    <button class="tab" id="tab-critical" type="button" role="tab" aria-selected="false" aria-controls="comparison" data-tab="critical" tabindex="-1">Compare critical values</button>
+    <button class="tab" id="tab-why" type="button" role="tab" aria-selected="false" aria-controls="why" data-tab="why" tabindex="-1">Why t?</button>
+  </div>
+  <section id="comparison" role="tabpanel" aria-labelledby="tab-area" class="workspace">
+    <aside aria-label="Distribution and comparison controls">
+      <div>
+        <div class="field-heading"><label for="df">Degrees of freedom</label><input id="df" type="number" min="1" max="1000" step="1" value="5" aria-describedby="df-help df-error"></div>
+        <input id="df-slider" type="range" min="1" max="100" step="1" value="5" aria-label="Degrees of freedom, slider from 1 to 100">
+        <div class="endpoints"><span>1</span><span>100</span></div>
+        <div class="presets" aria-label="Degrees of freedom quick choices"><button type="button" data-df="1">1</button><button type="button" data-df="5">5</button><button type="button" data-df="10">10</button><button type="button" data-df="15">15</button><button type="button" data-df="30">30</button><button type="button" data-df="100">100</button></div>
+        <p id="df-help" class="help">Type a whole number up to 1,000.</p><p id="df-error" class="error" role="alert" hidden></p>
+        <label class="check"><input id="show-normal" type="checkbox" checked><span>Show standard normal comparison</span></label>
+      </div>
+      <div class="question-controls">
+        <fieldset><legend>Tail region</legend><div class="tail-buttons"><button type="button" data-tail="right">Right</button><button type="button" data-tail="left">Left</button><button type="button" data-tail="two">Two-sided</button></div></fieldset>
+        <div id="area-controls">
+          <div class="field-heading"><label for="cutoff">Cutoff magnitude c</label><input id="cutoff" type="number" min="0" max="5" step="any" value="2" aria-describedby="cutoff-help cutoff-error"></div>
+          <input id="cutoff-slider" type="range" min="0" max="5" step="0.01" value="2" aria-label="Cutoff magnitude">
+          <div class="endpoints"><span>0</span><span>5</span></div>
+          <p id="cutoff-help" class="help">Drag either cutoff marker on the chart.</p><p id="cutoff-error" class="error" role="alert" hidden></p>
+        </div>
+        <div id="critical-controls" hidden>
+          <div class="field-heading"><label for="alpha">Total tail probability α</label><input id="alpha" type="number" min="0.001" max="0.20" step="any" value="0.05" aria-describedby="alpha-help alpha-error"></div>
+          <div class="presets" aria-label="Tail probability quick choices"><button type="button" data-alpha="0.10">0.10</button><button type="button" data-alpha="0.05">0.05</button><button type="button" data-alpha="0.01">0.01</button></div>
+          <p id="alpha-help" class="help">Choose 0.001–0.20 in advance. This is not an observed p-value.</p><p id="alpha-error" class="error" role="alert" hidden></p>
+        </div>
+        <p class="fixed" id="fixed-note"></p>
+      </div>
+    </aside>
+    <div class="plot-area">
+      <div class="plot-heading"><h2 id="question"></h2></div>
+      <div class="legend"><span class="key t-color" id="t-legend"></span><span class="key normal-color" id="normal-legend">Standard normal N(0,1)</span></div>
+      <svg id="chart" role="group" aria-label="Probability density curves and selected tail regions"></svg>
+      <div class="view-controls"><label for="chart-view" id="view-label" hidden>Chart view</label><select id="chart-view" hidden><option value="all">Include all cutoffs</option><option value="central">Central view (−6 to 6)</option></select><span id="range-note"></span></div>
+      <p id="range-warning" role="status" hidden></p>
+      <p class="plot-note"><strong>Area represents probability; curve height does not.</strong> Probabilities include the off-screen tails.</p>
+      <div class="results" aria-live="polite" aria-atomic="true">
+        <div><span class="result-label t-color" id="t-label"></span><output class="result-value" id="t-value"></output><span class="result-detail" id="t-detail"></span></div>
+        <div id="normal-result"><span class="result-label normal-color" id="normal-label"></span><output class="result-value" id="normal-value"></output><span class="result-detail" id="normal-detail"></span></div>
+        <div id="third-result"><span class="result-label" id="third-label"></span><output class="result-value" id="third-value"></output><span class="result-detail" id="third-detail"></span></div>
+      </div>
+      <p class="takeaway"><strong id="caption"></strong> <span id="explanation"></span></p>
+      <p id="ci-note" hidden>For the same estimated SE, the larger t multiplier gives a wider interval than the normal multiplier.</p>
+    </div>
+  </section>
+  <section id="why" role="tabpanel" aria-labelledby="tab-why" class="why" hidden>
+    <p class="why-lead">For a mean, the true standard error is σ/√n. Usually σ is unknown, so we estimate it using s. The t reference distribution accounts for the uncertainty introduced by estimating that spread.</p>
+    <div class="formula" role="img" aria-label="T equals X bar minus mu zero, divided by S over the square root of n; degrees of freedom equal n minus one."><span>T =</span><span class="fraction"><span>X̄ − μ₀</span><span>S / √n</span></span><span>, &nbsp; df = n − 1</span></div>
+    <div class="why-grid">
+      <div><h3>Which quantity follows t?</h3><p>The <strong>standardized statistic T</strong> follows t, not the raw observations or the unstandardized sample mean.</p><p>This is an exact result for independent observations from a normal population under H₀: μ = μ₀. For nonnormal populations, the approximation requires suitable conditions; n ≥ 30 is not a universal guarantee.</p></div>
+      <div><h3>What changes with df?</h3><p>Smaller df give heavier tails. As df increases, t approaches the standard normal. No finite df makes them exactly identical.</p><p>Varying df here isolates the standardized reference curve. It does not simulate repeated samples or show a raw-scale sampling distribution narrowing. In a real study, changing n also changes SE.</p></div>
+    </div>
+    <details><summary>Symmetry, spread, and interpreting tail probabilities</summary><p>Both curves are symmetric about zero and each has total area one. The ordinary t distribution is shown with location zero and scale one; this does not mean its SD is one. Its variance is df/(df − 2) for df &gt; 2 and is not finite for df ≤ 2. At df = 1 its mean is undefined, so zero is best described as the symmetry center.</p><p>The relation df = n − 1 is for the one-sample t procedure; degrees of freedom can be defined differently in other uses of t.</p><p>A displayed tail probability is a p-value only when the cutoff is the observed test statistic and the curve is its null reference distribution, with the tail choice matching the alternative. It is not the probability that the null hypothesis is true.</p></details>
+  </section>
+  <!-- AUTHORSHIP -->
+</main>
+<script id="t-distribution-math">
+// Dependency-free special functions. Tail areas are analytic, never pixel counts.
+const TDistributionMath = (() => {
+  const coefficients = [676.5203681218851, -1259.1392167224028, 771.3234287776531,
+    -176.6150291621406, 12.507343278686905, -.13857109526572012,
+    9.984369578019572e-6, 1.5056327351493116e-7];
+  function logGamma(z) {
+    z -= 1;
+    let sum = .99999999999980993;
+    coefficients.forEach((value, i) => { sum += value / (z + i + 1); });
+    const t = z + 7.5;
+    return .5 * Math.log(2 * Math.PI) + (z + .5) * Math.log(t) - t + Math.log(sum);
+  }
+  const protect = x => Math.abs(x) < 1e-300 ? (x < 0 ? -1e-300 : 1e-300) : x;
+  function betaFraction(a, b, x) {
+    let c = 1, d = 1 / protect(1 - (a + b) * x / (a + 1)), value = d;
+    for (let m = 1; m <= 10000; m++) {
+      let term = m * (b - m) * x / ((a + 2 * m - 1) * (a + 2 * m));
+      d = 1 / protect(1 + term * d); c = protect(1 + term / c); value *= d * c;
+      term = -(a + m) * (a + b + m) * x / ((a + 2 * m) * (a + 2 * m + 1));
+      d = 1 / protect(1 + term * d); c = protect(1 + term / c);
+      const delta = d * c; value *= delta;
+      if (Math.abs(delta - 1) < 3e-14) return value;
+    }
+    throw new Error('Incomplete beta did not converge.');
+  }
+  function betaRegularized(x, a, b) {
+    if (x <= 0) return 0;
+    if (x >= 1) return 1;
+    const front = Math.exp(logGamma(a + b) - logGamma(a) - logGamma(b) + a * Math.log(x) + b * Math.log1p(-x));
+    return x < (a + 1) / (a + b + 2)
+      ? front * betaFraction(a, b, x) / a
+      : 1 - front * betaFraction(b, a, 1 - x) / b;
+  }
+  function checkDF(df) { if (!Number.isInteger(df) || df < 1 || df > 1000) throw new RangeError('df must be an integer from 1 to 1000.'); }
+  function checkX(x) { if (!Number.isFinite(x)) throw new RangeError('Statistic must be finite.'); }
+  function tPDF(x, df) {
+    checkX(x); checkDF(df);
+    return Math.exp(logGamma((df + 1) / 2) - logGamma(df / 2) - .5 * Math.log(df * Math.PI) - (df + 1) / 2 * Math.log1p(x * x / df));
+  }
+  function tSF(x, df) {
+    checkX(x); checkDF(df);
+    if (x < 0) return 1 - tSF(-x, df);
+    if (x === 0) return .5;
+    const square = x * x;
+    // Near zero use x²/(df+x²); in the tails evaluate the small area directly.
+    return square <= 1
+      ? .5 * (1 - betaRegularized(square / (df + square), .5, df / 2))
+      : .5 * betaRegularized(df / (df + square), df / 2, .5);
+  }
+  function normalPDF(x) { checkX(x); return Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI); }
+  // Q(1/2, x²/2)/2 avoids subtracting a near-one normal CDF.
+  function normalSF(x) {
+    checkX(x);
+    if (x < 0) return 1 - normalSF(-x);
+    if (x === 0) return .5;
+    const z = x * x / 2, a = .5, front = Math.exp(-z + a * Math.log(z) - logGamma(a));
+    if (z < a + 1) {
+      let term = 1 / a, sum = term;
+      for (let n = 1; n < 10000; n++) {
+        term *= z / (a + n); sum += term;
+        if (Math.abs(term) < Math.abs(sum) * 2e-15) return .5 * (1 - front * sum);
+      }
+    } else {
+      let b = z + 1 - a, c = 1e300, d = 1 / b, value = d;
+      for (let i = 1; i < 10000; i++) {
+        const term = -i * (i - a); b += 2;
+        d = 1 / protect(term * d + b); c = protect(b + term / c);
+        const delta = d * c; value *= delta;
+        if (Math.abs(delta - 1) < 2e-15) return .5 * front * value;
+      }
+    }
+    throw new Error('Normal tail calculation did not converge.');
+  }
+  function inverseSF(probability, survival) {
+    if (!Number.isFinite(probability) || probability < .0005 || probability > .2) throw new RangeError('Tail probability must be between .0005 and .2.');
+    let low = 0, high = 1;
+    while (survival(high) > probability) high *= 2;
+    for (let i = 0; i < 75; i++) {
+      const middle = (low + high) / 2;
+      if (survival(middle) > probability) low = middle; else high = middle;
+    }
+    return (low + high) / 2;
+  }
+  function tISF(p, df) { checkDF(df); return inverseSF(p, x => tSF(x, df)); }
+  function normalISF(p) { return inverseSF(p, normalSF); }
+  return Object.freeze({tPDF, tSF, normalPDF, normalSF, tISF, normalISF});
+})();
+</script>
+<script id="t-distribution-ui">
+(() => {
+  const math = TDistributionMath;
+  const $ = id => document.getElementById(id);
+  const all = selector => [...document.querySelectorAll(selector)];
+  const defaults = () => ({df: 5, normal: true, tab: 'area', tail: 'two', cutoff: 2, alpha: .05, view: 'all'});
+  let state = defaults(), geometry, dragging = false;
+  const probability = p => p > 0 && p < .0001 ? p.toExponential(3) : p.toFixed(5).replace(/0+$/, '').replace(/\.$/, '');
+  const percent = p => p > 0 && p < .00001 ? (100 * p).toExponential(2) + '%' : (100 * p).toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + '%';
+  const number = x => Math.abs(x) >= 100 ? x.toFixed(2) : x > 0 && x < .001 ? x.toExponential(2) : x.toFixed(state.tab === 'critical' ? 4 : 3);
+  const signed = c => state.tail === 'two' ? (c === 0 ? '0' : '±' + number(c)) : (state.tail === 'left' && c !== 0 ? '−' : '') + number(c);
+  function result() {
+    const factor = state.tail === 'two' ? 2 : 1, p = state.alpha / factor;
+    const tCut = state.tab === 'critical' ? math.tISF(p, state.df) : state.cutoff;
+    const zCut = state.tab === 'critical' ? math.normalISF(p) : state.cutoff;
+    return {tCut, zCut, tP: factor * math.tSF(tCut, state.df), zP: factor * math.normalSF(zCut)};
+  }
+  function error(id, message = '') {
+    $(id + '-error').hidden = !message; $(id + '-error').textContent = message;
+    $(id).setAttribute('aria-invalid', String(Boolean(message)));
+  }
+  function render(preserveInput = null) {
+    const critical = state.tab === 'critical', why = state.tab === 'why';
+    $('comparison').hidden = why; $('why').hidden = !why;
+    all('[data-tab]').forEach(button => { const active = button.dataset.tab === state.tab; button.setAttribute('aria-selected', String(active)); button.tabIndex = active ? 0 : -1; });
+    $('comparison').setAttribute('aria-labelledby', critical ? 'tab-critical' : 'tab-area');
+    if (why) return;
+    ['df', 'cutoff', 'alpha'].forEach(key => { if (key !== preserveInput) $(key).value = state[key]; error(key); });
+    $('df-slider').value = Math.min(100, state.df);
+    $('df-help').textContent = state.df > 100 ? 'Numeric entry is active. The slider covers 1–100.' : 'Type a whole number up to 1,000.';
+    $('show-normal').checked = state.normal;
+    $('cutoff-slider').value = state.cutoff;
+    all('[data-df]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.df === state.df)));
+    all('[data-alpha]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.alpha === state.alpha)));
+    all('[data-tail]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tail === state.tail)));
+    $('area-controls').hidden = critical; $('critical-controls').hidden = !critical;
+    $('normal-legend').hidden = !state.normal; $('normal-result').hidden = !state.normal;
+    $('third-result').hidden = !critical && !state.normal;
+    $('t-legend').textContent = `Student’s t (df = ${state.df})`;
+    $('question').textContent = critical ? 'What cutoff gives this probability?' : 'What probability is beyond this cutoff?';
+    $('fixed-note').innerHTML = critical
+      ? `<strong>Fixed: total tail probability ${probability(state.alpha)}.</strong><br>Cutoffs change with df.${state.tail === 'two' ? ` Each tail gets α/2 = ${probability(state.alpha / 2)}.` : ''}`
+      : `<strong>Fixed: cutoff ${signed(state.cutoff)}.</strong><br>Tail areas change with df.`;
+    const r = result();
+    $('t-label').textContent = critical ? 't critical value' : 't tail probability';
+    $('normal-label').textContent = critical ? 'Normal critical value' : 'Normal tail probability';
+    $('t-value').textContent = critical ? signed(r.tCut) : probability(r.tP);
+    $('normal-value').textContent = critical ? signed(r.zCut) : probability(r.zP);
+    $('t-detail').textContent = critical ? `Shaded probability: ${probability(state.alpha)}` : percent(r.tP) + ' of total area';
+    $('normal-detail').textContent = critical ? `Shaded probability: ${probability(state.alpha)}` : percent(r.zP) + ' of total area';
+    $('third-label').textContent = critical ? 'Central probability' : 'Difference in tail probability';
+    // In one-sided mode the unshaded region is not a symmetric central region.
+    if (critical && state.tail !== 'two') $('third-label').textContent = 'Unshaded probability';
+    const difference = 100 * (r.tP - r.zP);
+    $('third-value').textContent = critical ? percent(1 - state.alpha) : '+' + (difference > 0 && difference < .0005 ? difference.toExponential(2) : difference.toFixed(3));
+    $('third-detail').textContent = critical ? (state.tail === 'two' ? 'Between each pair of cutoffs' : 'On the other side of each cutoff') : 'percentage points (t − normal)';
+    $('caption').textContent = state.normal ? (critical ? 'Same tail probability, more extreme t cutoff.' : 'Same cutoff, different tail probabilities.') : (critical ? 'The cutoff gives the chosen tail probability.' : 'Area beyond the selected cutoff.');
+    if (!critical && state.cutoff === 0 && state.normal) $('caption').textContent = 'At zero, the tail probabilities are equal.';
+    $('explanation').textContent = critical ? (state.tail === 'two' ? `Each shaded tail contains ${percent(state.alpha / 2)}.` : `The shaded tail contains ${percent(state.alpha)}.`) : state.cutoff === 0 ? 'Symmetry puts half the probability on each side of zero.' : state.normal ? 'With finite df, the t curve places more probability beyond these cutoffs.' : 'Smaller df give heavier tails; larger df approach the standard normal.';
+    $('ci-note').hidden = !critical || state.tail !== 'two' || !state.normal;
+    $('chart-view').hidden = !critical; $('view-label').hidden = !critical; $('chart-view').value = state.view;
+    draw(r);
+  }
+  function draw(r) {
+    const svg = $('chart'), width = Math.max(260, svg.getBoundingClientRect().width), height = svg.getBoundingClientRect().height || 310;
+    const critical = state.tab === 'critical';
+    const bound = critical && state.view === 'all' ? Math.max(6, Math.ceil(1.18 * Math.max(r.tCut, state.normal ? r.zCut : 0))) : 6;
+    const left = 49, right = width - 16, top = 68, bottom = height - 49;
+    const x = v => left + (v + bound) / (2 * bound) * (right - left), y = v => bottom - v / .45 * (bottom - top);
+    geometry = {left, right, bound};
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    let content = `<title>Student’s t with ${state.df} degrees of freedom${state.normal ? ' and standard normal' : ''}</title><desc>${critical ? 'Equal tail probabilities with different critical values.' : 'The same cutoff with tail probabilities calculated over the full distribution.'} Horizontal range minus ${bound} to ${bound}. Vertical density range zero to 0.45.</desc><defs><pattern id="normal-hatch" width="7" height="7" patternUnits="userSpaceOnUse"><path d="M-2,2 L2,-2 M0,7 L7,0 M5,9 L9,5" stroke="#b45816" stroke-width="1" opacity=".5" fill="none"/></pattern><clipPath id="plot-clip"><rect x="${left}" y="${top}" width="${right-left}" height="${bottom-top}"/></clipPath></defs>`;
+    const line = (x1,y1,x2,y2,color,extra='') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" ${extra}/>`;
+    const text = (tx,ty,label,extra='') => `<text x="${tx}" y="${ty}" ${extra}>${label}</text>`;
+    [0,.1,.2,.3,.4].forEach(v => { content += line(left,y(v),right,y(v),'#e7edf4') + text(left-9,y(v)+4,v.toFixed(1),'text-anchor="end"'); });
+    content += text(left, top-9, 'Probability density');
+    const ticks = width < 480 ? [-bound,0,bound] : [-bound,-bound*2/3,-bound/3,0,bound/3,bound*2/3,bound];
+    ticks.forEach(v => { content += line(x(v),bottom,x(v),bottom+5,'#aebdd0') + text(x(v),bottom+21,Number(v.toFixed(1)).toString().replace('-','−'),'text-anchor="middle"'); });
+    content += text((left+right)/2,height-6,'Standardized statistic value','text-anchor="middle"');
+    // Add dense center samples on wide domains so a small central peak is not missed.
+    function samples(a,b) {
+      const points = [a,b];
+      for (let i=1; i<700; i++) { const v=-bound+2*bound*i/700; if(v>a&&v<b) points.push(v); }
+      for (let i=-240; i<=240; i++) { const v=i/40; if(v>a&&v<b) points.push(v); }
+      return points.sort((u,v)=>u-v);
+    }
+    function path(pdf,a,b,area=false) {
+      const points=samples(a,b), curve=points.map(v=>`${x(v).toFixed(2)},${y(pdf(v)).toFixed(2)}`).join(' L');
+      return area ? `M${x(a)},${bottom} L${curve} L${x(b)},${bottom} Z` : 'M'+curve;
+    }
+    function shade(pdf,c,fill) {
+      if(c>bound) return '';
+      const regions = state.tail === 'right' ? [[c,bound]] : state.tail === 'left' ? [[-bound,-c]] : [[-bound,-c],[c,bound]];
+      return regions.map(([a,b])=>`<path d="${path(pdf,a,b,true)}" fill="${fill}"/>`).join('');
+    }
+    const tPDF = v=>math.tPDF(v,state.df);
+    content += '<g clip-path="url(#plot-clip)" pointer-events="none">';
+    content += shade(tPDF,r.tCut,'#2864ae33');
+    if(state.normal) content += shade(math.normalPDF,r.zCut,'#b458161a') + shade(math.normalPDF,r.zCut,'url(#normal-hatch)');
+    content += `<path d="${path(tPDF,-bound,bound)}" fill="none" stroke="#2864ae" stroke-width="2.8"/>`;
+    if(state.normal) content += `<path d="${path(math.normalPDF,-bound,bound)}" fill="none" stroke="#b45816" stroke-width="2.5" stroke-dasharray="7 5"/>`;
+    content += '</g>';
+    function markers(c,kind,row) {
+      const cuts=state.tail==='right'?[c]:state.tail==='left'?[-c]:c===0?[0]:[-c,c];
+      let html='';
+      const joined = cuts.length === 2 && x(c) - x(-c) < (critical ? 160 : 95);
+      cuts.forEach(v=>{
+        if(Math.abs(v)>bound) return;
+        const blue=kind==='t', color=blue?'#2864ae':'#b45816';
+        html+=line(x(v),top,x(v),bottom,color,`stroke-width="1.3" ${blue?'':'stroke-dasharray="4 4"'}`);
+        const label = (critical?(blue?'t*: ':'z*: '):'') + (v<0?'−':'') + number(Math.abs(v));
+        if (!joined) html+=text(x(v),row,label,`class="cut-label ${blue?'t-label':'normal-label'}" text-anchor="middle"`);
+        if(!critical) html+=`<circle class="handle" data-drag="true" role="slider" tabindex="0" aria-label="Cutoff magnitude; arrow keys change by 0.05" aria-valuemin="0" aria-valuemax="5" aria-valuenow="${state.cutoff}" aria-valuetext="${signed(state.cutoff)}" cx="${x(v)}" cy="${bottom}" r="8" fill="white" stroke="${color}" stroke-width="2.5"/>`;
+      });
+      if (joined && c <= bound) html += text(x(0),row,(critical ? (kind === 't' ? 't*: ' : 'z*: ') : '') + '±' + number(c),`class="cut-label ${kind === 't' ? 't-label' : 'normal-label'}" text-anchor="middle"`);
+      return html;
+    }
+    content += markers(r.tCut,'t',20);
+    if(critical&&state.normal) content += markers(r.zCut,'normal',42);
+    // Continuation marks indicate that the finite plotting window is not all the area.
+    if(state.tail!=='right') content+=text(left+3,bottom-9,'←','class="t-label"');
+    if(state.tail!=='left') content+=text(right-3,bottom-9,'→','class="t-label" text-anchor="end"');
+    const focused = document.activeElement?.dataset?.drag === 'true';
+    svg.innerHTML=content;
+    if(focused) svg.querySelector('.handle')?.focus({preventScroll:true});
+    $('range-note').textContent = `Shared x range: −${bound} to ${bound}. Density scale fixed at 0–0.45.`;
+    const offscreen = critical && (r.tCut>bound || (state.normal&&r.zCut>bound));
+    $('range-warning').hidden = !offscreen && bound <= 12;
+    $('range-warning').textContent = offscreen ? `Central view: ${r.tCut>bound?'t':''}${state.normal&&r.zCut>bound?' and normal':''} cutoffs lie off-screen. Exact cutoffs remain below; select “Include all cutoffs” to see them.` : `The shared x range has expanded to include every cutoff. Use “Central view” to inspect the peak.`;
+  }
+  all('[data-tab]').forEach((b,index,buttons)=>{
+    b.addEventListener('click',()=>{state.tab=b.dataset.tab;render();});
+    b.addEventListener('keydown',event=>{
+      let next;
+      if(event.key==='ArrowRight') next=(index+1)%buttons.length;
+      if(event.key==='ArrowLeft') next=(index+buttons.length-1)%buttons.length;
+      if(event.key==='Home') next=0;
+      if(event.key==='End') next=buttons.length-1;
+      if(next!==undefined){event.preventDefault();buttons[next].click();buttons[next].focus();}
+    });
+  });
+  all('[data-tail]').forEach(b=>b.addEventListener('click',()=>{state.tail=b.dataset.tail;render();}));
+  all('[data-df]').forEach(b=>b.addEventListener('click',()=>{state.df=+b.dataset.df;error('df');render();}));
+  all('[data-alpha]').forEach(b=>b.addEventListener('click',()=>{state.alpha=+b.dataset.alpha;error('alpha');render();}));
+  const validation = {df:[1,1000,'Enter a whole number from 1 to 1,000.'],cutoff:[0,5,'Enter a cutoff magnitude from 0 to 5.'],alpha:[.001,.2,'Enter a probability from 0.001 to 0.20.']};
+  Object.entries(validation).forEach(([key,[low,high,message]])=>{
+    function update(event) {
+      const value=$(key).valueAsNumber;
+      if(!Number.isFinite(value)||value<low||value>high||(key==='df'&&!Number.isInteger(value))){error(key,message + ' The chart keeps the last valid value.');return;}
+      state[key]=value;error(key);render(event.type === 'input' ? key : null);
+    }
+    $(key).addEventListener('input',update);
+    $(key).addEventListener('change',update);
+  });
+  $('df-slider').addEventListener('input',()=>{state.df=+$('df-slider').value;error('df');render();});
+  $('cutoff-slider').addEventListener('input',()=>{state.cutoff=+$('cutoff-slider').value;error('cutoff');render();});
+  $('show-normal').addEventListener('change',()=>{state.normal=$('show-normal').checked;render();});
+  $('chart-view').addEventListener('change',()=>{state.view=$('chart-view').value;render();});
+  $('reset').addEventListener('click',()=>{state=defaults();dragging=false;$('why').querySelector('details').open=false;Object.keys(validation).forEach(key=>error(key));render();});
+  function dragTo(event) {
+    const point=$('chart').createSVGPoint();point.x=event.clientX;point.y=event.clientY;
+    const position=point.matrixTransform($('chart').getScreenCTM().inverse());
+    state.cutoff=Math.round(Math.max(0,Math.min(5,Math.abs((position.x-geometry.left)/(geometry.right-geometry.left)*2*geometry.bound-geometry.bound)))*100)/100;
+    error('cutoff');render();
+  }
+  $('chart').addEventListener('pointerdown',event=>{if(event.target.dataset.drag==='true'){event.preventDefault();dragging=true;$('chart').setPointerCapture(event.pointerId);dragTo(event);}});
+  $('chart').addEventListener('pointermove',event=>{if(dragging)dragTo(event);});
+  ['pointerup','pointercancel','lostpointercapture'].forEach(type=>$('chart').addEventListener(type,()=>{dragging=false;}));
+  $('chart').addEventListener('keydown',event=>{
+    if(event.target.dataset.drag!=='true')return;
+    const change={ArrowLeft:-.05,ArrowDown:-.05,ArrowRight:.05,ArrowUp:.05}[event.key];
+    if(change!==undefined||event.key==='Home'||event.key==='End'){
+      event.preventDefault();state.cutoff=event.key==='Home'?0:event.key==='End'?5:Math.round(Math.max(0,Math.min(5,state.cutoff+change))*100)/100;
+      error('cutoff');render();
+    }
+  });
+  new ResizeObserver(()=>{if(state.tab!=='why')draw(result());}).observe($('chart'));
+  render();
+})();
+</script>
+</body>
+</html>

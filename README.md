@@ -65,6 +65,13 @@ The percentile convention is linear interpolation between order statistics (type
 The normal CDF and interval endpoints are checked against independent Python references, and bin areas are checked to sum to one.
 Open it at `#normal-inference`; the generated standalone file works without external assets.
 
+The **t distribution & degrees of freedom** visualization compares Student’s t with the standard normal using a shared density scale.
+The **Compare tail areas** tab fixes the cutoff; **Compare critical values** fixes the chosen total tail probability, with right, left, and two-sided options.
+Degrees of freedom range from 1 to 1,000, and the optional **Why t?** tab explains the one-sample reference distribution and its assumptions.
+Extreme critical values expand the shared horizontal range explicitly; a central view keeps the numerical cutoffs and warns when they are off-screen.
+Probabilities include the full tails and are calculated independently of the visible plot; numerical checks cover normal references, Cauchy identities, symmetry, and quantile inversion.
+Open it at `#t-distribution`; its standalone download requires no external assets.
+
 The **Tests & confidence intervals** visualization illustrates exact test inversion for a two-sided normal-mean test with known population SD 2, sample size 16, and fixed observed mean 5.
 Its sampling-distribution plot and candidate-mean strip share the same 0–10 scale, plot width, and margins; their moving candidate markers align vertically, and the fixed interval center aligns with the observed mean.
 The candidate null mean moves while the data and standard error remain fixed; both shaded tails represent its p-value.

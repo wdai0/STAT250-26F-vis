@@ -98,6 +98,14 @@
     "kind": "visualization"
   },
   {
+    "id": "t-distribution",
+    "title": "t distribution & degrees of freedom",
+    "description": "Compare Student’s t with the standard normal: hold a cutoff fixed to compare tail areas, or hold a tail probability fixed to compare critical values.",
+    "source": "sources/t-distribution.html",
+    "category": "Sampling & inference",
+    "kind": "visualization"
+  },
+  {
     "id": "test-ci-duality",
     "title": "Tests & confidence intervals",
     "description": "Test candidate means against fixed observed data and reveal the matching 95% confidence interval.",
