@@ -1,0 +1,21 @@
+{
+  "id": "t5-ci",
+  "language": "typst",
+  "expression": "overline(d) plus.minus t^* s_d / sqrt(n)",
+  "source": "t5-ci.source.txt",
+  "renderer_source": "t5-ci.typ",
+  "svg": "t5-ci.svg",
+  "svg_sha256": "f6eaf1595e64d3cb65e430ac8f715447bd4fee148602fce414fc16bd668e696d",
+  "width": 110.1611111111111,
+  "height": 57.525,
+  "renderer": {
+    "typst": "typst 0.14.2 (unknown hash)"
+  },
+  "math_profile": {
+    "typst_font": "New Computer Modern Math",
+    "size": 25,
+    "margin": 3,
+    "latex_preamble": ""
+  },
+  "color": "#243247"
+}

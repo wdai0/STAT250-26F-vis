@@ -1,0 +1,21 @@
+{
+  "id": "t5-null",
+  "language": "typst",
+  "expression": "H_0: mu_d = mu_(d,0)",
+  "source": "t5-null.source.txt",
+  "renderer_source": "t5-null.typ",
+  "svg": "t5-null.svg",
+  "svg_sha256": "3828ff39ffff974460427d62dbc64d80abde107a2d1ef4564004348b9bb48a30",
+  "width": 161.7552777777778,
+  "height": 32.6275,
+  "renderer": {
+    "typst": "typst 0.14.2 (unknown hash)"
+  },
+  "math_profile": {
+    "typst_font": "New Computer Modern Math",
+    "size": 25,
+    "margin": 3,
+    "latex_preamble": ""
+  },
+  "color": "#243247"
+}

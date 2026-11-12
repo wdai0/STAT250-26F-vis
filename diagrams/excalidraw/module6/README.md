@@ -1,7 +1,7 @@
 # Module 6 diagrams
 
-Five Excalidraw diagrams use editable shapes and labels, with embedded SVG formula images.
-They were rendered and visually reviewed in the official full Excalidraw editor on November 10, 2026.
+Six Excalidraw diagrams use editable shapes and labels, with embedded SVG formula images.
+The overview and Topics 1–4 were rendered and visually reviewed in the official full Excalidraw editor on November 10, 2026; Topic 5 was added and reviewed on November 12, 2026.
 No additional MCP server or third-party browser plugin was installed.
 
 | Diagram | Editable scene | Reviewed PNG | Vector export |
@@ -11,6 +11,7 @@ No additional MCP server or third-party browser plugin was installed.
 | Topic 2: difference in proportions | [Excalidraw](two-proportions-workflow.excalidraw) | [PNG](two-proportions-workflow.png) | [SVG](two-proportions-workflow.svg) |
 | Topic 3: one mean | [Excalidraw](one-mean-workflow.excalidraw) | [PNG](one-mean-workflow.png) | [SVG](one-mean-workflow.svg) |
 | Topic 4: difference in independent means | [Excalidraw](two-means-workflow.excalidraw) | [PNG](two-means-workflow.png) | [SVG](two-means-workflow.svg) |
+| Topic 5: paired differences | [Excalidraw](paired-differences-workflow.excalidraw) | [PNG](paired-differences-workflow.png) | [SVG](paired-differences-workflow.svg) |
 
 ## Teaching source and scope
 
@@ -89,7 +90,7 @@ Run `python3 scripts/validate_excalidraw.py` for repeatable offline integrity ch
 The three additional workflows reuse the shared scene builder, fonts, colors, grouping, and SVG embedding in `build_excalidraw_module6.py`.
 Their definitions live in [`build_excalidraw_inference.py`](../../../scripts/build_excalidraw_inference.py).
 The overview and Topic 1 native/PNG/SVG files were preserved byte-for-byte against checkpoint `bfc370c`.
-No paired-differences workflow was added.
+That checkpoint covered Topics 2–4; the paired-differences extension is documented below.
 
 ```sh
 python3 scripts/build_excalidraw_inference.py
@@ -143,3 +144,39 @@ Intermediate screenshots and clipboard reports remain under ignored `build/excal
 Two Typst lessons from visual review: use `overline(x)` for the sample mean, and insert whitespace after a symbolic subscript before a parenthesized factor, for example `n_i (1-hat(p)_i)`.
 Without that separation, Typst can interpret the parenthesized expression as part of the subscript.
 A structural SVG check alone does not detect incorrect mathematical typography.
+
+## Topic 5: one sample of paired differences
+
+The paired workflow reuses the Topic 3 layout and the established Excalifont labels, outlined SVG equations, blue CI branch, purple HT branch, green conclusions, and red design/condition cards.
+Its opening card makes the reduction explicit: one pair produces one ordered difference, then one-sample t inference applies to those differences.
+It counts complete pairs, uses the SD of the differences, checks independence across pairs and shape within the differences, and retains the sign and units in the interpretation.
+
+The source comparison and SHA-256 hashes are in [topic5-sources.json](topic5-sources.json).
+The authored Topic 5 sections use `d̄`, `s_d`, `n` pairs, and a general null mean `μ_{d,0}`; the original slides use `x̄_d`, `n_d`, and a zero-null example.
+The diagram follows the authored notation and identifies zero as the usual null value.
+Original slide 14 displays `n_d ≥ 30`, whereas slide 15 displays `n > 30`.
+The diagram retains the series' `n ≥ 30` course guideline, with a caution to investigate influential outliers at every sample size.
+Both slides were visually inspected because text extraction loses the equality bar on slide 14.
+
+The candidate generator is [`build_excalidraw_paired.py`](../../../scripts/build_excalidraw_paired.py).
+Its saved [style profile](paired-differences-workflow.style.json) drives the series colors, native font family/line height, and formula rendering.
+New formulas retain their expressions, Typst renderer inputs, SVGs, and renderer/hash metadata under `formulas/t5-*`.
+The four shared tail/decision formulas reuse the existing assets.
+
+```sh
+python3 scripts/build_excalidraw_paired.py
+```
+
+By default this writes only the candidate scene to ignored `build/excalidraw-m6t5/candidate/`, leaving the reviewed native scene and exports intact.
+The local `excalidraw-math` skill supplies the formula renderer; opening the saved scene does not require that skill or Typst.
+Use `--force-formulas` only when intentionally revising formula assets, then import the candidate, visually review it, and export all three formats again.
+
+The final scene contains 101 elements, including 15 equation-image objects backed by 14 unique embedded SVG files.
+PNG and SVG exports were obtained from the full editor; the PNG is 3130 × 6540 and was reviewed at full-diagram and detail scales.
+The saved native document wraps editor-normalized clipboard data.
+The import assigned new element/group IDs and translated the selection; checks confirmed the same text, styles, dimensions, relative positions, grouping, formula metadata, and render-bearing SVG structure.
+The file-picker save/reopen route remains unverified; clipboard import/export is the tested route.
+The existing five native/PNG/SVG sets were preserved byte-for-byte.
+See [paired-differences-workflow.verification.json](paired-differences-workflow.verification.json) for the checked artifact hashes and validation scope.
+The reviewed SVG and PNG exports are registered in the website's Module 6 gallery alongside the other workflows, with the same fitted viewer and download controls.
+The site build publishes the reviewed exports unchanged and embeds them in the standalone gallery.

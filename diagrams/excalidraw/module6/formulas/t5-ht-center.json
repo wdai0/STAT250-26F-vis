@@ -1,0 +1,21 @@
+{
+  "id": "t5-ht-center",
+  "language": "typst",
+  "expression": "\"Null center\" = mu_(d,0)",
+  "source": "t5-ht-center.source.txt",
+  "renderer_source": "t5-ht-center.typ",
+  "svg": "t5-ht-center.svg",
+  "svg_sha256": "8efbcea813c34a62abfe370b4063c5f173edd3df7d98422ae16c16364959b4ef",
+  "width": 203.8313888888889,
+  "height": 32.9025,
+  "renderer": {
+    "typst": "typst 0.14.2 (unknown hash)"
+  },
+  "math_profile": {
+    "typst_font": "New Computer Modern Math",
+    "size": 25,
+    "margin": 3,
+    "latex_preamble": ""
+  },
+  "color": "#243247"
+}

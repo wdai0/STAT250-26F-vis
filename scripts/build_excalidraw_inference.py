@@ -56,7 +56,7 @@ TOPICS = {
 }
 
 
-def workflow(topic: int, formulas: dict) -> dict:
+def workflow(topic: int, formulas: dict, *, save: bool = True) -> dict | Scene:
     name, subtitle = TOPICS[topic]
     s = Scene(name, formulas)
     prefix = f't{topic}'
@@ -186,7 +186,7 @@ def workflow(topic: int, formulas: dict) -> dict:
     s.text('scope-text','CONCLUDE WITHIN THE STUDY DESIGN',420,y(2880),760,25)
     for element in s.elements:
         if element['type']=='text': element['fontFamily']=5
-    return s.save()
+    return s.save() if save else s
 
 
 def main():

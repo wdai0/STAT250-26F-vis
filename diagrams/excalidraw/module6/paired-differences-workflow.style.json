@@ -1,0 +1,69 @@
+{
+  "name": "STAT250 Module 6 workflow",
+  "text": {
+    "font_family": 5,
+    "title_size": 39,
+    "body_size": 24,
+    "note_size": 21,
+    "line_height": 1.25
+  },
+  "math": {
+    "typst_font": "New Computer Modern Math",
+    "size": 25,
+    "margin": 3,
+    "latex_preamble": ""
+  },
+  "canvas": {
+    "background": "#ffffff"
+  },
+  "stroke": {
+    "width": 2,
+    "roughness": 0.7
+  },
+  "palette": {
+    "neutral": {
+      "stroke": "#33465d",
+      "fill": "#f3f5f8",
+      "text": "#243247"
+    },
+    "blue": {
+      "stroke": "#17628a",
+      "fill": "#e7f3fa",
+      "text": "#243247"
+    },
+    "purple": {
+      "stroke": "#6744a0",
+      "fill": "#f0eafa",
+      "text": "#243247"
+    },
+    "red": {
+      "stroke": "#b42332",
+      "fill": "#fff0f1",
+      "text": "#8f1c28"
+    },
+    "green": {
+      "stroke": "#28634b",
+      "fill": "#e8f5eb",
+      "text": "#243247"
+    }
+  },
+  "series_colors": {
+    "ink": "#243247",
+    "blue": "#17628a",
+    "purple": "#6744a0",
+    "bluefill": "#e7f3fa",
+    "purplefill": "#f0eafa",
+    "gray": "#f3f5f8",
+    "amber": "#fff1d6",
+    "red": "#9c431e",
+    "green": "#e8f5eb",
+    "alert": "#b42332",
+    "alertfill": "#fff0f1"
+  },
+  "roles": {
+    "conditions": "alert",
+    "confidence_interval": "blue",
+    "hypothesis_test": "purple",
+    "conclusion": "green"
+  }
+}

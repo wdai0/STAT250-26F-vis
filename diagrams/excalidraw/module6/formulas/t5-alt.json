@@ -1,0 +1,21 @@
+{
+  "id": "t5-alt",
+  "language": "typst",
+  "expression": "H_a: mu_d > mu_(d,0), quad mu_d < mu_(d,0), quad \"or\" quad mu_d != mu_(d,0)",
+  "source": "t5-alt.source.txt",
+  "renderer_source": "t5-alt.typ",
+  "svg": "t5-alt.svg",
+  "svg_sha256": "1cbdf83549fcaecda6ea87a8ca68f441dcbe0aa903b61de747c352eb6dff4a96",
+  "width": 480.4155555555556,
+  "height": 33.802499999999995,
+  "renderer": {
+    "typst": "typst 0.14.2 (unknown hash)"
+  },
+  "math_profile": {
+    "typst_font": "New Computer Modern Math",
+    "size": 25,
+    "margin": 3,
+    "latex_preamble": ""
+  },
+  "color": "#243247"
+}

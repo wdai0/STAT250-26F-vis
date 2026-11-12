@@ -1,0 +1,1 @@
+t_"obs" = (overline(d) - mu_(d,0)) / (s_d / sqrt(n))

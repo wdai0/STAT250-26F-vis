@@ -1,0 +1,21 @@
+{
+  "id": "t5-df",
+  "language": "typst",
+  "expression": "\"df\" = n - 1",
+  "source": "t5-df.source.txt",
+  "renderer_source": "t5-df.typ",
+  "svg": "t5-df.svg",
+  "svg_sha256": "27425cc1cec0df957c6cee09424b0fc94d10be3f303f3d9c43d9858d8516e302",
+  "width": 118.95,
+  "height": 23.900000000000002,
+  "renderer": {
+    "typst": "typst 0.14.2 (unknown hash)"
+  },
+  "math_profile": {
+    "typst_font": "New Computer Modern Math",
+    "size": 25,
+    "margin": 3,
+    "latex_preamble": ""
+  },
+  "color": "#243247"
+}

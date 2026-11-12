@@ -1,0 +1,21 @@
+{
+  "id": "t5-ci-center",
+  "language": "typst",
+  "expression": "\"Center\" = overline(d)",
+  "source": "t5-ci-center.source.txt",
+  "renderer_source": "t5-ci-center.typ",
+  "svg": "t5-ci-center.svg",
+  "svg_sha256": "06681592a385acf415685abcb6985f8392878de6528657014102c2c170744829",
+  "width": 126.61388888888891,
+  "height": 29.3,
+  "renderer": {
+    "typst": "typst 0.14.2 (unknown hash)"
+  },
+  "math_profile": {
+    "typst_font": "New Computer Modern Math",
+    "size": 25,
+    "margin": 3,
+    "latex_preamble": ""
+  },
+  "color": "#243247"
+}

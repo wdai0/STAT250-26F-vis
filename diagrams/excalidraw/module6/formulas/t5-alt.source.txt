@@ -1,0 +1,1 @@
+H_a: mu_d > mu_(d,0), quad mu_d < mu_(d,0), quad "or" quad mu_d != mu_(d,0)

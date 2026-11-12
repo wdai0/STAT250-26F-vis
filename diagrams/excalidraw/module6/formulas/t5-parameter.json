@@ -1,0 +1,21 @@
+{
+  "id": "t5-parameter",
+  "language": "typst",
+  "expression": "mu_d quad \"estimated by\" quad overline(d)",
+  "source": "t5-parameter.source.txt",
+  "renderer_source": "t5-parameter.typ",
+  "svg": "t5-parameter.svg",
+  "svg_sha256": "6776c7a551b575a8c0be6bd2f75768586a866b90349654ac1807d3e3192cafaf",
+  "width": 237.70250000000004,
+  "height": 35.1,
+  "renderer": {
+    "typst": "typst 0.14.2 (unknown hash)"
+  },
+  "math_profile": {
+    "typst_font": "New Computer Modern Math",
+    "size": 25,
+    "margin": 3,
+    "latex_preamble": ""
+  },
+  "color": "#243247"
+}

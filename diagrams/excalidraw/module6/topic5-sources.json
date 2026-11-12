@@ -1,0 +1,42 @@
+{
+  "source_repository": "STAT250-instruct",
+  "reviewed": "2026-11-12",
+  "topic": 5,
+  "original_deck": {
+    "source_path": "source-materials/originals/22sum STAT 250 M06 T05 Inference on Paired Differences in Means.pdf",
+    "sha256": "e52963dd9cbc84ee76385675332cc0c2e8f68d9f2e0fc2c90056aaebb03c1a12",
+    "slides_inspected": [
+      13,
+      14,
+      15,
+      30,
+      38
+    ],
+    "slides_visually_inspected": [
+      14,
+      15
+    ]
+  },
+  "authored_sections": [
+    {
+      "source_path": "modules/module6/topic5/sections/01-paired-study-designs.tex",
+      "sha256": "3f9a3bfd62ac76906f2e9d1e026bac8aa16382ac7145f426c4e3466786bb9ffe"
+    },
+    {
+      "source_path": "modules/module6/topic5/sections/02-one-sample-of-differences.tex",
+      "sha256": "ffe7d01584fcc201c563c4d55f518a15767a656a7d1699ea4b305316852fe0b6"
+    },
+    {
+      "source_path": "modules/module6/topic5/sections/04-paired-t-inference.tex",
+      "sha256": "569e080cce8f5e4a21632b52c9a590abca36c5298d3738cbd3cfeba837eb0cda"
+    }
+  ],
+  "source_decisions": [
+    "Use d_i = A_i - B_i and one sample of differences; n counts complete pairs, s_d is the SD of the differences, and df = n - 1.",
+    "Adopt authored notation dbar and n in place of the original slides xbar_d and n_d.",
+    "The original slide 15 presents the zero-null test. Use the authored general null mu_(d,0), with zero identified as usual.",
+    "Original slide 14 visually displays n_d >= 30; slide 15 displays n > 30. Retain n >= 30 from slide 14 and the preceding series, as a course guideline, with influential outliers checked at every n.",
+    "Check independence across pairs, expected dependence within each pair, and the distribution of the differences. Use the authored sampling/assignment scope and finite-population caution.",
+    "No numerical example or source-data results were added."
+  ]
+}

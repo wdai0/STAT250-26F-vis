@@ -140,7 +140,7 @@
   {
     "id": "module6-diagrams",
     "title": "Module 6 diagrams",
-    "description": "View and download SVG and PNG diagrams: module overview, one proportion, two proportions, one mean, and two means.",
+    "description": "View and download SVG and PNG diagrams: module overview, one proportion, two proportions, one mean, two means, and paired differences.",
     "source": "sources/module6-diagrams.html",
     "category": "Review",
     "kind": "guide",
@@ -169,6 +169,11 @@
         "title": "Topic 4 · Two means",
         "source": "diagrams/excalidraw/module6/two-means-workflow.svg",
         "png_source": "diagrams/excalidraw/module6/two-means-workflow.png"
+      },
+      {
+        "title": "Topic 5 · Paired differences",
+        "source": "diagrams/excalidraw/module6/paired-differences-workflow.svg",
+        "png_source": "diagrams/excalidraw/module6/paired-differences-workflow.png"
       }
     ]
   }

@@ -1,0 +1,21 @@
+{
+  "id": "t5-ci-se",
+  "language": "typst",
+  "expression": "\"SE\" = s_d / sqrt(n)",
+  "source": "t5-ci-se.source.txt",
+  "renderer_source": "t5-ci-se.typ",
+  "svg": "t5-ci-se.svg",
+  "svg_sha256": "72e2214578560b8cda82076ac0d369063c0aa6a8ba716051f2152b7e804a74cd",
+  "width": 111.08888888888889,
+  "height": 57.525,
+  "renderer": {
+    "typst": "typst 0.14.2 (unknown hash)"
+  },
+  "math_profile": {
+    "typst_font": "New Computer Modern Math",
+    "size": 25,
+    "margin": 3,
+    "latex_preamble": ""
+  },
+  "color": "#243247"
+}

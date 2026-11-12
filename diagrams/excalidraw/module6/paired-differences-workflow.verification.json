@@ -1,0 +1,49 @@
+{
+  "reviewed": "2026-11-12",
+  "scene": "paired-differences-workflow.excalidraw",
+  "editor": "https://excalidraw.com",
+  "export_route": "Selected native elements and embedded files pasted in full editor; Copy and Copy as PNG/SVG; native clipboard data wrapped in version-2 document.",
+  "native_elements": 101,
+  "equation_image_objects": 15,
+  "unique_embedded_svgs": 14,
+  "png_dimensions": [
+    3130,
+    6540
+  ],
+  "validation": {
+    "legacy_all_formula_integrity": "passed",
+    "new_equation_metadata_integrity": "passed",
+    "new_equation_metadata_objects": 11,
+    "shared_legacy_equation_objects": 4,
+    "candidate_rebuild": "identical",
+    "clipboard_content_and_styles": "passed",
+    "clipboard_geometry": "same dimensions and relative positions; uniform translation only",
+    "clipboard_groups_and_bindings": "same membership and binding topology after ID remapping",
+    "embedded_svg_structure": "same render-bearing structure, including transforms, glyph placements and references",
+    "native_ids": "remapped by editor import; not a byte-identical roundtrip",
+    "red_condition_cards": "passed",
+    "previous_native_png_svg_sets": "15 files unchanged against HEAD",
+    "visual_review": "Final editor PNG inspected at overview and detail scales; checked formulas, signs, subscripts, fractions, labels, spacing and arrows.",
+    "file_picker_save_reopen": "not verified; clipboard route tested",
+    "publication": "Website publication is handled separately by the site registry and GitHub Pages workflow."
+  },
+  "artifacts": [
+    {
+      "file": "paired-differences-workflow.excalidraw",
+      "sha256": "e5ae20d34901440f0562c3cc42db93db5ac11cea04f861f663af45f5c21c5292"
+    },
+    {
+      "file": "paired-differences-workflow.png",
+      "sha256": "4de2debc2ab7bfa144e3681958528463a465c6381438af006f9ada7149417692"
+    },
+    {
+      "file": "paired-differences-workflow.svg",
+      "sha256": "34f64111f21b841a78e0e9ee80d635cf208715c6dfc32f308b2df9bbd883850f"
+    },
+    {
+      "file": "paired-differences-workflow.style.json",
+      "sha256": "6b0436f185eeed6c624be3ae0f573392f25068582e59223e20e5bd6026a6cd16"
+    }
+  ],
+  "working_evidence": "Ignored build/excalidraw-m6t5 contains candidate, roundtrip payload, editor screenshot, exported files, detail views and rendered source slides."
+}

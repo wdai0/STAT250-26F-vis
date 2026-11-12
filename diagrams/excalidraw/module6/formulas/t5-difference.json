@@ -1,0 +1,21 @@
+{
+  "id": "t5-difference",
+  "language": "typst",
+  "expression": "d_i = A_i - B_i",
+  "source": "t5-difference.source.txt",
+  "renderer_source": "t5-difference.typ",
+  "svg": "t5-difference.svg",
+  "svg_sha256": "59f2effdaeb63ef33b2b83f4db29ee84f9ac54fb9b14e32f110b1477b84b1beb",
+  "width": 144.785,
+  "height": 30.249999999999996,
+  "renderer": {
+    "typst": "typst 0.14.2 (unknown hash)"
+  },
+  "math_profile": {
+    "typst_font": "New Computer Modern Math",
+    "size": 25,
+    "margin": 3,
+    "latex_preamble": ""
+  },
+  "color": "#243247"
+}

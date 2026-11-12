@@ -1,0 +1,21 @@
+{
+  "id": "t5-stat",
+  "language": "typst",
+  "expression": "t_\"obs\" = (overline(d) - mu_(d,0)) / (s_d / sqrt(n))",
+  "source": "t5-stat.source.txt",
+  "renderer_source": "t5-stat.typ",
+  "svg": "t5-stat.svg",
+  "svg_sha256": "63a52f0f26d93826459de17be5473271c9419e8f40452d97746a163fa3097f90",
+  "width": 167.2175,
+  "height": 79.62,
+  "renderer": {
+    "typst": "typst 0.14.2 (unknown hash)"
+  },
+  "math_profile": {
+    "typst_font": "New Computer Modern Math",
+    "size": 25,
+    "margin": 3,
+    "latex_preamble": ""
+  },
+  "color": "#243247"
+}
