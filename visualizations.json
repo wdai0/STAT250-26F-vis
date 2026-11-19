@@ -42,6 +42,14 @@
     }
   },
   {
+    "id": "least-squares",
+    "title": "Finding the least-squares line",
+    "description": "Move a regression line through a scatterplot and watch the signed and squared residuals change.",
+    "source": "sources/least-squares.html",
+    "category": "Linear regression",
+    "kind": "visualization"
+  },
+  {
     "id": "normal-95-rule",
     "title": "95% rule",
     "description": "Compare the central 95% interval with fixed bounds on a normal curve.",

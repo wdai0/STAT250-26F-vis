@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Move a line through a scatterplot to discover which line minimizes the sum of squared residuals.">
+  <title>Finding the least-squares line · STAT 250</title>
+  <!-- SHARED_THEME -->
+  <style>
+    .viz-shell { max-width: 1060px; }
+    .viz-heading h1 { font-size: clamp(1.85rem, 4vw, 2.65rem); letter-spacing: -.04em; }
+    .title-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; }
+    .points-only .line-only, body:not(.points-only) .raw-prompt { display: none; }
+    .lab { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(260px, 1fr); gap: clamp(18px, 3vw, 36px); align-items: start; }
+    .scatter-panel, .loss-panel { min-width: 0; }
+    .scatter-head, .legend, .metric-heading, .actions { display: flex; flex-wrap: wrap; align-items: center; }
+    .scatter-head { justify-content: space-between; gap: 4px 14px; }
+    .equation { color: var(--accent); font: italic 1.13rem/1.5 Georgia, serif; font-variant-numeric: tabular-nums; }
+    .legend { gap: 4px 18px; margin: 9px 0; color: var(--muted); font-size: .8rem; }
+    .legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .dot-key { width: 9px; height: 9px; background: var(--ink); border-radius: 50%; }
+    .gap-key { width: 18px; border-top: 2px dashed var(--warm); }
+    .line-key { width: 18px; border-top: 3px solid var(--plot); }
+    #scatter, #loss-plot { display: block; width: 100%; overflow: visible; }
+    #scatter { height: clamp(260px, 32vw, 345px); }
+    #loss-plot { height: 155px; margin-top: 3px; }
+    .axis-label, .tick { font: 12px var(--font); fill: var(--muted); }
+    .axis-label { font-weight: 600; fill: var(--text); }
+    .gridline { stroke: var(--plot-grid); }
+    .axis { stroke: var(--plot-axis); }
+    .obs { fill: var(--ink); stroke: var(--surface); stroke-width: 1.5; }
+    .residual { stroke: var(--warm); stroke-dasharray: 4 3; stroke-width: 1.8; }
+    .fit-line { stroke: var(--plot); stroke-width: 3; }
+    .handle { stroke: var(--plot); stroke-width: 2.5; fill: var(--surface); pointer-events: none; }
+    [data-drag] { cursor: ns-resize; touch-action: none; }
+    .hint, .detail, .explain, #fit-message { font-size: .85rem; }
+    .hint { margin: 8px 0 14px; color: var(--muted); }
+    .sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-block: 1px solid var(--line); padding: 15px 0 7px; }
+    .control-group { margin: 0; }
+    .control-group label { margin: 0; }
+    input[type="range"] { min-height: 26px; }
+    .detail { margin-top: 13px; }
+    .detail summary { cursor: pointer; color: var(--accent); width: fit-content; font-weight: 600; }
+    .detail p { margin-top: 6px; }
+    .loss-panel { background: var(--accent-soft); padding: clamp(16px, 2.3vw, 23px); border-radius: 10px; }
+    .metric-heading { justify-content: space-between; gap: 4px 14px; }
+    .metric-heading h2 { font-size: 1.05rem; }
+    .notation { font: italic 1.15rem Georgia, serif; }
+    .big-value, #signed, .equation, #example-text { font-variant-numeric: tabular-nums; }
+    .big-value { color: var(--ink); font-size: clamp(2.4rem, 4.5vw, 3.2rem); font-weight: 650; line-height: 1.15; letter-spacing: -.045em; margin: 4px 0 10px; }
+    .signed-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 12px; justify-content: space-between; font-size: .87rem; }
+    #signed { color: var(--ink); font-size: 1.2rem; font-weight: 600; }
+    .curve-section { padding-top: 15px; margin-top: 13px; border-top: 1px solid var(--plot-axis); }
+    .curve-section h3 { font-size: .92rem; }
+    .curve-section .gridline { stroke: var(--plot-axis); opacity: .65; }
+    .explain { margin: 8px 0 14px; }
+    .actions { gap: 8px; }
+    #fit-message { margin-top: 10px; font-weight: 600; color: var(--ink); }
+    @media (max-width: 760px) {
+      .lab { grid-template-columns: minmax(0, 1fr); }
+      .loss-panel { display: contents; }
+      .metric-summary { grid-row: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 5px 16px; padding: 9px 14px; border-radius: 6px; background: var(--accent-soft); }
+      .primary-metric { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 9px; }
+      .metric-heading h2 { font-size: .92rem; }
+      .metric-heading .notation { display: none; }
+      .big-value { font-size: 1.55rem; margin: 0; }
+      .signed-row { gap: 0 9px; }
+      .curve-section { margin-top: 0; padding-top: 12px; }
+      .viz-page { padding: 22px 16px; }
+      #scatter { height: 285px; }
+      .viz-heading { margin-bottom: 19px; }
+    }
+    @media (max-width: 400px) {
+      .sliders { gap: 10px; }
+      .control-group label { align-items: start; flex-direction: column; gap: 2px; }
+    }
+    @media (pointer: coarse) { input[type="range"] { min-height: 44px; } }
+  </style>
+</head>
+<body class="viz-page">
+  <main class="viz-shell">
+    <header class="viz-heading">
+      <p class="eyebrow">STAT 250 / Linear regression</p>
+      <div class="title-row">
+        <h1>Finding the least-squares line</h1>
+        <label class="checkbox-label"><input type="checkbox" id="show-line" checked> Show fitted line</label>
+      </div>
+      <p><span class="line-only">Each vertical gap is a residual, the observed <i>y</i> minus the line’s prediction at that <i>x</i>.
+        How small can you make the sum of the squared residuals?</span><span class="raw-prompt">What pattern do you see in the observed <i>x</i> and <i>y</i> values?</span></p>
+    </header>
+    <div class="lab">
+      <section class="scatter-panel" aria-labelledby="scatter-heading">
+        <div class="scatter-head">
+          <h2 id="scatter-heading">14 illustrative observations</h2>
+          <span class="equation line-only" id="equation" aria-label="Line equation"></span>
+        </div>
+        <div class="legend" aria-hidden="true">
+          <span><i class="dot-key"></i>Observation</span><span class="line-only"><i class="line-key"></i>Prediction line</span><span class="line-only"><i class="gap-key"></i>Residual</span>
+        </div>
+        <svg id="scatter" role="img" aria-labelledby="scatter-title scatter-desc">
+          <title id="scatter-title">Scatterplot of 14 observed pairs</title>
+          <desc id="scatter-desc">Fourteen observations show an upward trend. A movable line and vertical residuals overlay the points.</desc>
+          <defs><clipPath id="plot-clip"><rect id="clip-box"></rect></clipPath></defs>
+          <g id="scatter-axes"></g>
+          <g clip-path="url(#plot-clip)">
+            <g class="line-only">
+              <rect id="example-square" fill="var(--warm)" opacity=".17" visibility="hidden"></rect>
+              <g id="gaps"></g>
+              <line class="fit-line" id="line"></line>
+            </g>
+            <g id="points"></g>
+            <line id="line-hit" class="line-only" data-drag="shift" stroke="transparent" stroke-width="32"></line>
+          </g>
+          <g class="line-only">
+            <circle class="handle" id="center" r="7"></circle>
+            <circle id="center-dot" r="2.2" fill="var(--plot)" pointer-events="none"></circle>
+            <polygon class="handle" id="tilt"></polygon>
+            <circle id="tilt-hit" data-drag="tilt" fill="transparent" r="22"></circle>
+          </g>
+        </svg>
+        <p class="hint line-only">Drag the line up or down. Drag the diamond to tilt it around the center ring.</p>
+        <div class="sliders line-only">
+          <div class="control-group"><label for="slope">Slope <output id="slope-value" for="slope"></output></label>
+            <input id="slope" type="range" min="-0.5" max="1.5" value="0" step="0.01"></div>
+          <div class="control-group"><label for="height"><span>Height at <i>x</i> = 5</span> <output id="height-value" for="height"></output></label>
+            <input id="height" type="range" min="4" max="8" value="6" step="0.01"></div>
+        </div>
+        <details class="detail line-only" id="example">
+          <summary>See one residual squared</summary>
+          <p id="example-text"></p>
+        </details>
+      </section>
+      <section class="loss-panel line-only" aria-labelledby="loss-heading">
+        <div class="metric-summary">
+          <div class="primary-metric">
+            <div class="metric-heading"><h2 id="loss-heading">Sum of squared residuals</h2><span class="notation" aria-hidden="true">Σ eᵢ²</span></div>
+            <p class="big-value" id="sse">84.02</p>
+          </div>
+          <p class="signed-row"><span>Sum of signed residuals <i>(Σ eᵢ)</i></span><span id="signed">0.00</span></p>
+        </div>
+        <div class="loss-detail">
+          <div class="curve-section">
+            <h3>Squared error at each slope</h3>
+            <p class="muted">Holding the height at <i>x</i> = 5 fixed</p>
+            <svg id="loss-plot" role="img" aria-labelledby="curve-title curve-desc">
+              <title id="curve-title">Sum of squared residuals as the slope varies</title>
+              <desc id="curve-desc">A dot on the curve marks the current slope and squared-error total.</desc>
+              <g id="loss-axes"></g>
+              <path id="curve" fill="none" stroke="var(--plot)" stroke-width="2"></path>
+              <circle id="loss-dot" r="5.5" fill="var(--ink)" stroke="var(--surface)" stroke-width="1.5"></circle>
+            </svg>
+          </div>
+          <p class="explain">Positive and negative residuals can cancel. Squaring makes each miss count, and a miss twice as large contributes four times as much.</p>
+          <div class="actions">
+            <button type="button" class="button" id="fit">Show least-squares line</button>
+            <button type="button" class="button button-secondary" id="reset">Start over</button>
+          </div>
+          <p id="fit-message" hidden></p>
+          <p id="announcement" class="sr-only" aria-live="polite"></p>
+        </div>
+      </section>
+    </div>
+    <!-- AUTHORSHIP -->
+  </main>
+  <script>
+  (() => {
+    'use strict';
+    const points = [[1,4.1], [1.5,1.6], [2,2.5], [2.5,2.6], [3.5,5.8], [4,6.1], [4.5,7],
+                    [5.5,7.9], [6,7.2], [6.5,5.4], [7.5,9.6], [8,6.7], [8.5,7.7], [9,9.8]];
+    const meanX = points.reduce((sum, [x]) => sum + x, 0) / points.length;
+    const meanY = points.reduce((sum, [, y]) => sum + y, 0) / points.length;
+    const sxx = points.reduce((sum, [x]) => sum + (x - meanX) ** 2, 0);
+    const sxy = points.reduce((sum, [x, y]) => sum + (x - meanX) * (y - meanY), 0);
+    const bestSlope = sxy / sxx;
+    const sample = points[1];
+    const $ = id => document.getElementById(id);
+    const scatter = $('scatter');
+    const lossPlot = $('loss-plot');
+    const slopeControl = $('slope'), heightControl = $('height');
+    const fixed = (value, digits = 2) => (Math.abs(value) < 1e-10 ? 0 : value).toFixed(digits).replace('-', '−');
+    const pointValue = value => fixed(value, Math.abs(value * 100 - Math.round(value * 100)) > 1e-8 ? 3 : 2);
+    let slope = 0, height = meanY;
+    let savedTrial = null, drag = null, scales;
+
+    function predict(x, b = slope, h = height) {
+      return h + b * (x - meanX);
+    }
+    function errors(b, h) {
+      let signed = 0, squared = 0;
+      for (const [x, y] of points) {
+        const residual = y - predict(x, b, h);
+        signed += residual;
+        squared += residual ** 2;
+      }
+      return {signed, squared};
+    }
+    function attrs(node, values) {
+      for (const [key, value] of Object.entries(values)) node.setAttribute(key, value);
+      return node;
+    }
+    function svg(tag, values, label) {
+      const node = attrs(document.createElementNS('http://www.w3.org/2000/svg', tag), values);
+      if (label !== undefined) node.textContent = label;
+      return node;
+    }
+    const gaps = [], dots = [];
+    for (const point of points) {
+      const gap = svg('line', {class: 'residual'}), dot = svg('circle', {class: 'obs', r: 4.9});
+      dot.append(svg('title', {}, 'Observation (' + point.join(', ') + ')'));
+      $('gaps').append(gap);
+      $('points').append(dot);
+      gaps.push(gap);
+      dots.push(dot);
+    }
+
+    function drawAxes(chart, group, xDomain, yDomain, xTicks, yTicks, xLabel, yLabel) {
+      const {width, height: chartHeight} = chart.getBoundingClientRect();
+      const left = chart === scatter ? 32 : 33, right = width - 12, top = 20, bottom = chartHeight - 37;
+      const sx = x => left + (right - left) * (x - xDomain[0]) / (xDomain[1] - xDomain[0]);
+      const sy = y => bottom - (bottom - top) * (y - yDomain[0]) / (yDomain[1] - yDomain[0]);
+      const marks = [];
+      for (const x of xTicks) {
+        marks.push(svg('line', {x1: sx(x), x2: sx(x), y1: bottom, y2: bottom + 4, class: 'axis'}));
+        marks.push(svg('text', {x: sx(x), y: bottom + 17, class: 'tick', 'text-anchor': 'middle'}, x));
+      }
+      for (const y of yTicks) {
+        marks.push(svg('line', {x1: left, x2: right, y1: sy(y), y2: sy(y), class: 'gridline'}));
+        marks.push(svg('text', {x: left - 7, y: sy(y) + 4, class: 'tick', 'text-anchor': 'end'}, y));
+      }
+      marks.push(svg('line', {x1: left, x2: left, y1: top, y2: bottom, class: 'axis'}));
+      marks.push(svg('line', {x1: left, x2: right, y1: bottom, y2: bottom, class: 'axis'}));
+      marks.push(svg('text', {x: left, y: 12, class: 'axis-label'}, yLabel));
+      marks.push(svg('text', {x: (left + right) / 2, y: chartHeight - 2, class: 'axis-label', 'text-anchor': 'middle'}, xLabel));
+      group.replaceChildren(...marks);
+      return {sx, sy, left, right, top, bottom};
+    }
+    function layout() {
+      if (!scatter.clientWidth) return;
+      const main = drawAxes(scatter, $('scatter-axes'), [0, 10], [-2, 14],
+                            [0, 2, 4, 6, 8, 10], [-2, 0, 2, 4, 6, 8, 10, 12, 14], 'x', 'y');
+      const {left, right, top, bottom, sx, sy} = main;
+      attrs($('clip-box'), {x: left, y: top, width: right - left, height: bottom - top});
+      points.forEach(([x, y], i) => attrs(dots[i], {cx: sx(x), cy: sy(y)}));
+      if (!lossPlot.clientWidth) return;
+      scales = { main,
+        loss: drawAxes(lossPlot, $('loss-axes'), [-.5, 1.5], [0, 250],
+                       [-.5, 0, .5, 1, 1.5], [0, 100, 200], 'Slope', 'Σ eᵢ²')
+      };
+      render();
+    }
+
+    function render() {
+      if (!scales) return;
+      const {sx, sy} = scales.main;
+      const totals = errors(slope, height);
+      const minimum = errors(bestSlope, meanY).squared;
+      const closeToMinimum = totals.squared - minimum > 1e-8 && fixed(totals.squared) === fixed(minimum);
+      const lossLabel = fixed(totals.squared, closeToMinimum ? 3 : 2);
+      const intercept = predict(0);
+      slopeControl.value = slope;
+      heightControl.value = height;
+      $('slope-value').value = fixed(slope);
+      $('height-value').value = fixed(height);
+      $('equation').textContent = 'ŷ = ' + fixed(intercept) +
+        (Math.abs(slope) < 1e-10 ? '' : (slope < 0 ? ' − ' : ' + ') + fixed(Math.abs(slope)) + 'x');
+      $('signed').textContent = fixed(totals.signed);
+      $('sse').textContent = lossLabel;
+
+      const endpoints = {x1: sx(0), y1: sy(predict(0)), x2: sx(10), y2: sy(predict(10))};
+      attrs($('line'), endpoints);
+      attrs($('line-hit'), endpoints);
+      points.forEach(([x, y], i) => {
+        attrs(gaps[i], {x1: sx(x), x2: sx(x), y1: sy(y), y2: sy(predict(x))});
+      });
+      const center = {cx: sx(meanX), cy: sy(height)};
+      attrs($('center'), center);
+      attrs($('center-dot'), center);
+      const hx = sx(9), hy = sy(predict(9));
+      attrs($('tilt-hit'), {cx: hx, cy: hy});
+      attrs($('tilt'), {points: [[hx, hy-8], [hx+8, hy], [hx, hy+8], [hx-8, hy]].map(p => p.join(',')).join(' ')});
+
+      const [x, y] = sample, prediction = predict(x), e = y - prediction;
+      const size = Math.abs(sy(y) - sy(prediction));
+      attrs($('example-square'), {x: sx(x), y: Math.min(sy(y), sy(prediction)), width: size, height: size,
+                                  visibility: $('example').open ? 'visible' : 'hidden'});
+      $('example-text').textContent = 'At x = ' + x + ', the observed y is ' + y + ' and the line predicts ' +
+        pointValue(prediction) + '. The residual is ' + fixed(y) + ' − ' +
+        (prediction < 0 ? '(' + pointValue(prediction) + ')' : pointValue(prediction)) + ' = ' + pointValue(e) +
+        '. The shaded square contributes ' + Number((e ** 2).toFixed(6)) + ' to the total.';
+
+      const loss = scales.loss, path = [];
+      for (let i = 0; i <= 100; i++) {
+        const b = -.5 + i / 50;
+        path.push((i === 0 ? 'M' : 'L') + loss.sx(b) + ' ' + loss.sy(errors(b, height).squared));
+      }
+      $('curve').setAttribute('d', path.join(' '));
+      attrs($('loss-dot'), {cx: loss.sx(slope), cy: loss.sy(totals.squared)});
+      $('curve-desc').textContent = 'At the current slope of ' + fixed(slope) + ', the sum of squared residuals is ' + lossLabel + '.';
+      const atMinimum = Math.abs(slope - bestSlope) < 1e-10 && Math.abs(height - meanY) < 1e-10;
+      $('fit-message').hidden = !atMinimum;
+      $('fit-message').textContent = atMinimum ? 'The minimum across all lines is ' + fixed(totals.squared) + '.' : '';
+      $('fit').textContent = savedTrial ? 'Return to my line' : 'Show least-squares line';
+    }
+    function announce() {
+      $('announcement').textContent = $('equation').textContent + '. Signed sum ' + $('signed').textContent +
+        '. Sum of squared residuals ' + $('sse').textContent + '. ' + $('fit-message').textContent;
+    }
+    function useControls() {
+      savedTrial = null;
+      slope = slopeControl.valueAsNumber;
+      height = heightControl.valueAsNumber;
+      render();
+    }
+    for (const control of [slopeControl, heightControl]) {
+      control.addEventListener('input', useControls);
+      control.addEventListener('change', announce);
+    }
+    scatter.addEventListener('pointerdown', event => {
+      const mode = event.target.dataset.drag;
+      if (!mode || drag || event.button !== 0) return;
+      event.preventDefault();
+      drag = {mode, y: event.clientY, slope, height, id: event.pointerId};
+      scatter.setPointerCapture(event.pointerId);
+    });
+    scatter.addEventListener('pointermove', event => {
+      if (!drag || drag.id !== event.pointerId) return;
+      const {sy} = scales.main;
+      const dy = (drag.y - event.clientY) / (sy(0) - sy(1));
+      if (drag.mode === 'shift') heightControl.value = drag.height + dy;
+      else slopeControl.value = drag.slope + dy / (9 - meanX);
+      useControls();
+    });
+    scatter.addEventListener('lostpointercapture', () => {
+      if (drag) announce();
+      drag = null;
+    });
+    $('example').addEventListener('toggle', render);
+    function updateLineVisibility() {
+      const showLine = $('show-line').checked;
+      document.body.classList.toggle('points-only', !showLine);
+      if (!showLine && drag) {
+        scatter.releasePointerCapture(drag.id);
+        drag = null;
+      }
+      $('scatter-desc').textContent = showLine
+        ? 'Fourteen observations show an upward trend. A movable line and vertical residuals overlay the points.'
+        : 'Fourteen observed x and y pairs show an upward trend.';
+      layout();
+    }
+    $('show-line').addEventListener('change', updateLineVisibility);
+    $('fit').addEventListener('click', () => {
+      if (savedTrial) {
+        ({slope, height} = savedTrial);
+        savedTrial = null;
+      } else {
+        savedTrial = {slope, height};
+        slope = bestSlope;
+        height = meanY;
+      }
+      render();
+      announce();
+    });
+    $('reset').addEventListener('click', () => {
+      slope = 0;
+      height = meanY;
+      savedTrial = null;
+      $('example').open = false;
+      render();
+      announce();
+    });
+    const observer = new ResizeObserver(layout);
+    observer.observe(scatter);
+    observer.observe(lossPlot);
+    updateLineVisibility();
+  })();
+  </script>
+</body>
+</html>
